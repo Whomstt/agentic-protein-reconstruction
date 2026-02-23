@@ -1,3 +1,4 @@
 .env
 .venv
 data/uniprot_sprot.fasta
+mlm_bert
