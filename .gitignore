@@ -2,3 +2,4 @@
 .venv
 data
 mlm_bert
+__pycache__
