@@ -3,10 +3,11 @@ import itertools
 import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
-from models.prot_bert import mlm, tokeniser, device
+from models.prot_bert import mlm, tokeniser
+from config import DEVICE, FRAG_BATCH_SIZE
 
 
-def score_junctions(fragments, batch_size=32):
+def score_junctions(fragments):
     """Score all pairwise fragment junctions using batched ProtBERT MLM."""
     n = len(fragments)
     pairs = list(itertools.permutations(range(n), 2))  # all ordered pairs of fragments
@@ -22,14 +23,14 @@ def score_junctions(fragments, batch_size=32):
         )  # fragment i + [MASK] + fragment j (without first residue)
     mat = torch.zeros(n, n)  # score matrix
     for start in tqdm(
-        range(0, len(pairs), batch_size), desc="Scoring Junctions"
+        range(0, len(pairs), FRAG_BATCH_SIZE), desc="Scoring Junctions"
     ):  # process in batches and show progress
-        end = min(start + batch_size, len(pairs))  # end index for batch
+        end = min(start + FRAG_BATCH_SIZE, len(pairs))  # end index for batch
         batch_inputs = tokeniser(
             inputs[start:end], return_tensors="pt", padding=True, truncation=True
         )  # tokenise batch
         batch_inputs = {
-            k: v.to(device) for k, v in batch_inputs.items()
+            k: v.to(DEVICE) for k, v in batch_inputs.items()
         }  # move to gpu if available
         with torch.no_grad():
             logits = mlm(**batch_inputs).logits  # final linear layer logits

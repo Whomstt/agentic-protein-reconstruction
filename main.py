@@ -1,8 +1,13 @@
 import json
 from agents.react_agent import build_agent
+from config import DEVICE
 
 
 def main():
+    """Main function to run the agent on a sample protein reconstruction task."""
+
+    print(f"Using device: {DEVICE}")
+
     agent = build_agent()
 
     with open("data/fragmented_ecoli.jsonl") as f:

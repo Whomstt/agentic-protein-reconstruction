@@ -4,13 +4,13 @@ from algorithms.greedy_order import greedy_order
 
 
 @tool
-def reconstruct_protein_fragments(fragments: list[str]) -> dict:
+def reconstruct_tool(fragments: list[str]) -> dict:
     """Reconstruct a protein sequence from unordered fragments using ProtBERT MLM scores."""
     scores = score_junctions(fragments)
     order = greedy_order(scores)
     result = "".join(fragments[i] for i in order)
     return {
-        "order": order,
-        "reconstruction": result,
-        "scores": scores.tolist(),
+        "reconstruction": result,  # output reconstructed sequence
+        "order": order,  # order of fragments used in reconstruction
+        "scores": scores.tolist(),  # pairwise junction scores for reference
     }
