@@ -1,16 +1,16 @@
 import json
 from agents.react_agent import build_agent
-from config import DEVICE
+from config import cfg
 
 
 def main():
     """Main function to run the agent on a sample protein reconstruction task."""
 
-    print(f"Using device: {DEVICE}")
+    print(f"Using device: {cfg["device"]}")
 
     agent = build_agent()
 
-    with open("data/fragmented_ecoli.jsonl") as f:
+    with open(cfg["data"]["fragmented_ecoli"]) as f:
         sample = json.loads(f.readline())
 
     fragments = sample["fragments"]

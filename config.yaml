@@ -1,0 +1,13 @@
+mlm_model:
+  type: "prot" # prot or esm
+  name: "Rostlab/prot_bert" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D
+  batch_size: 32 # batch size for scoring junctions
+  mask_size: 2 # number of residues to mask (1 or 2)
+
+llm_model:
+  name: "gpt-5-nano"
+
+device: "auto"
+
+data:
+  fragmented_ecoli: "data/fragmented_ecoli.jsonl"
