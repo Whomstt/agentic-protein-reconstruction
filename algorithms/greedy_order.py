@@ -11,7 +11,7 @@ def greedy_order(scores):
         row = scores[
             order[-1]
         ].clone()  # consider all candidates after the last fragment in order
-        row[list(used)] = -1  # ignore already used fragments
+        row[list(used)] = float("-inf")  # ignore already used fragments
         nxt = row.argmax().item()  # pick highest probability
         order.append(nxt)
         used.add(nxt)

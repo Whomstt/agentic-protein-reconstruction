@@ -2,7 +2,7 @@ mlm_model:
   type: "prot" # prot or esm
   name: "Rostlab/prot_bert" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D
   batch_size: 32 # batch size for scoring junctions
-  mask_size: 2 # number of residues to mask (1 or 2)
+  max_length: 512 # max sequence length for the MLM model (512 for ProtBert, 1024 for ESM-2)
 
 llm_model:
   name: "gpt-5-nano"
