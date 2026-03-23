@@ -7,6 +7,7 @@ mlm_model:
   name: "facebook/esm2_t6_8M_UR50D" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D
   batch_size: 32 # batch size for scoring junctions
   max_length: 1024 # max sequence length for the MLM model (512 for ProtBert, 1024 for ESM-2)
+  beam_size: 5 # beam size for scoring junctions
 
 llm_model:
   name: "gpt-5-nano"

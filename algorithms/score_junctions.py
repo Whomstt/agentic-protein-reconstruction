@@ -11,10 +11,10 @@ def format_sequence(seq, is_prot):
 
 
 def score_junctions(fragments):
-    """Score all pairwise fragment junctions using batched ProtBERT MLM."""
     model_type = cfg["mlm_model"]["type"]
     batch_size = cfg["mlm_model"]["batch_size"]
     max_length = cfg["mlm_model"]["max_length"]
+
     if model_type == "prot":
         from models.prot import mlm, tokeniser
 
@@ -40,14 +40,6 @@ def score_junctions(fragments):
             + format_sequence(b[1:], is_prot)
         )
         targets.append(b[0])
-        inputs.append(
-            format_sequence(a[:-1], is_prot)
-            + sep
-            + mask
-            + sep
-            + format_sequence(b, is_prot)
-        )
-        targets.append(a[-1])
 
     all_scores = []
     for start in tqdm(range(0, len(inputs), batch_size), desc="Scoring Junctions"):
@@ -63,17 +55,17 @@ def score_junctions(fragments):
         with torch.no_grad():
             logits = mlm(**batch_inputs).logits
         for k in range(end - start):
-            # each input has exactly one mask
             mask_idx = (
                 batch_inputs["input_ids"][k] == tokeniser.mask_token_id
             ).nonzero(as_tuple=False)[0, 0]
-            score = F.log_softmax(logits[k, mask_idx], dim=-1)[
-                tokeniser.convert_tokens_to_ids(targets[start + k])
-            ].item()
-            all_scores.append(score)
+            target_id = tokeniser.convert_tokens_to_ids(targets[start + k])
+            score = F.log_softmax(logits[k, mask_idx], dim=-1)[target_id].item()
+
+            frag_len = len(fragments[pairs[start + k][1]])
+            all_scores.append(score / max(frag_len, 1))
 
     mat = torch.zeros(n, n)
     for idx, (i, j) in enumerate(pairs):
-        mat[i, j] = (all_scores[idx * 2] + all_scores[idx * 2 + 1]) / 2
+        mat[i, j] = all_scores[idx]
 
     return mat

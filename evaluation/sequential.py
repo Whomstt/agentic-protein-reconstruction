@@ -5,45 +5,31 @@ from config import cfg
 
 
 test_path = cfg["data"]["ecoli_test_split"]
-sample_count = 3  # number of samples to evaluate (None to evaluate all)
+sample_count = 10
 
 with open(test_path) as f:
     samples = [json.loads(l) for l in f if l.strip()][:sample_count]
 
 
-def all_occurrences(text, pattern):
-    i, starts = text.find(pattern), []
-    while i != -1:
-        starts.append(i)
-        i = text.find(pattern, i + 1)
-    return starts
-
-
 def count_correctly_placed_fragments(original, fragments, order):
-    used, correct, placed, cursor = set(), 0, 0, 0
+    cursor = 0
+    correct = 0
     for idx in order:
         frag = fragments[idx]
-        true_starts = all_occurrences(original, frag)
-        placed += bool(true_starts)
-        if cursor in true_starts and cursor not in used:
+        if original[cursor : cursor + len(frag)] == frag:
             correct += 1
-            used.add(cursor)
         cursor += len(frag)
-    return correct, placed
+    return correct
 
 
 summary = {
     "similarity": [],
-    "exact_match": [],
-    "len_delta": [],
     "residue_acc": [],
-    "fragments_present_rate": [],
-    "fragments_correctly_placed_rate": [],
+    "fragment_acc": [],
 }
 
-print(f"Sequential Reconstruction Evaluation ({len(samples)} Samples)")
+print(f"Reconstruction Evaluation ({len(samples)} Samples)")
 print("-" * 60)
-
 
 for i, sample in enumerate(samples, 1):
     original_key = next(k for k in sample if k.endswith("_original"))
@@ -54,28 +40,25 @@ for i, sample in enumerate(samples, 1):
     reconstruction, order = result["reconstruction"], result["order"]
 
     sim = SequenceMatcher(None, original, reconstruction).ratio()
-    residue_matches = sum(a == b for a, b in zip(original, reconstruction))
-    residue_acc = residue_matches / len(original) if original else 0.0
-    correctly_placed, fragments_present = count_correctly_placed_fragments(
-        original, fragments, order
+
+    max_len = max(len(original), len(reconstruction))
+    correct_residues = sum(
+        a == b for a, b in zip(original.ljust(max_len), reconstruction.ljust(max_len))
     )
-    len_delta = len(reconstruction) - len(original)
-    fragments_present_rate = fragments_present / len(fragments) if fragments else 0.0
-    correctly_placed_rate = correctly_placed / len(fragments) if fragments else 0.0
+    residue_acc = correct_residues / max_len if max_len else 0.0
+
+    correctly_placed = count_correctly_placed_fragments(original, fragments, order)
+    fragment_acc = correctly_placed / len(fragments) if fragments else 0.0
 
     summary["similarity"].append(sim)
-    summary["exact_match"].append(float(reconstruction == original))
-    summary["len_delta"].append(len_delta)
     summary["residue_acc"].append(residue_acc)
-    summary["fragments_present_rate"].append(fragments_present_rate)
-    summary["fragments_correctly_placed_rate"].append(correctly_placed_rate)
+    summary["fragment_acc"].append(fragment_acc)
 
     print(f"Sample {i}")
+    print(f"  Similarity: {sim:.4f}")
+    print(f"  Correct Residues: {correct_residues}/{max_len} ({residue_acc:.4f})")
     print(
-        f"  Similarity: {sim:.4f} | Exact Match: {"Yes" if reconstruction == original else "No"} | Length Delta: {len_delta:+d}"
-    )
-    print(
-        f"  Residues Correct: {residue_matches}/{len(original)} ({residue_acc:.4f}) | Fragments Present: {fragments_present}/{len(fragments)} | Correctly Placed Fragments: {correctly_placed}/{len(fragments)}"
+        f"  Correct Fragment Positions: {correctly_placed}/{len(fragments)} ({fragment_acc:.4f})"
     )
 
 if samples:
@@ -83,9 +66,6 @@ if samples:
     avg = {k: sum(v) / n for k, v in summary.items()}
     print("\nAverage Results")
     print("-" * 60)
-    print(
-        f"Similarity: {avg["similarity"]:.4f} | Exact Match Rate: {avg["exact_match"]:.4f} | Avg Length Delta: {avg["len_delta"]:+.2f}"
-    )
-    print(
-        f"Residue Accuracy: {avg["residue_acc"]:.4f} | Fragments Present Rate: {avg["fragments_present_rate"]:.4f} | Correctly Placed Fragments Rate: {avg["fragments_correctly_placed_rate"]:.4f}"
-    )
+    print(f"  Similarity: {avg['similarity']:.4f}")
+    print(f"  Residue Accuracy: {avg['residue_acc']:.4f}")
+    print(f"  Fragment Accuracy: {avg['fragment_acc']:.4f}")
