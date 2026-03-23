@@ -5,7 +5,7 @@ from config import cfg
 
 
 test_path = cfg["data"]["ecoli_test_split"]
-sample_count = 10
+sample_count = 100  # set to None to evaluate all samples
 
 with open(test_path) as f:
     samples = [json.loads(l) for l in f if l.strip()][:sample_count]
@@ -64,8 +64,12 @@ for i, sample in enumerate(samples, 1):
 if samples:
     n = len(samples)
     avg = {k: sum(v) / n for k, v in summary.items()}
+    model_name = cfg["mlm_model"]["name"]
+    beam_size = cfg["mlm_model"].get("beam_size", "N/A")
     print("\nAverage Results")
     print("-" * 60)
+    print(f"  Model: {model_name}")
+    print(f"  Beam Size: {beam_size}")
     print(f"  Similarity: {avg['similarity']:.4f}")
     print(f"  Residue Accuracy: {avg['residue_acc']:.4f}")
     print(f"  Fragment Accuracy: {avg['fragment_acc']:.4f}")
