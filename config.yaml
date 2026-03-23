@@ -1,13 +1,26 @@
+misc:
+  seed: 42
+  device: "auto"
+
 mlm_model:
-  type: "prot" # prot or esm
-  name: "Rostlab/prot_bert" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D
+  type: "esm" # prot or esm
+  name: "facebook/esm2_t6_8M_UR50D" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D
   batch_size: 32 # batch size for scoring junctions
-  max_length: 512 # max sequence length for the MLM model (512 for ProtBert, 1024 for ESM-2)
+  max_length: 1024 # max sequence length for the MLM model (512 for ProtBert, 1024 for ESM-2)
 
 llm_model:
   name: "gpt-5-nano"
 
-device: "auto"
-
 data:
-  fragmented_ecoli: "data/fragmented_ecoli.jsonl"
+  test_ratio: 0.2
+  raw_uniprot: "data/raw/uniprot_sprot.fasta"
+  raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
+  fragmented_ecoli: "data/ecoli/fragmented_ecoli.jsonl"
+  fragmented_yeast: "data/yeast/fragmented_yeast.jsonl"
+  fragmented_mixture: "data/mixture/fragmented_mixture.jsonl"
+  ecoli_train_split: "data/ecoli/ecoli_train.jsonl"
+  yeast_train_split: "data/yeast/yeast_train.jsonl"
+  mixture_train_split: "data/mixture/mixture_train.jsonl"
+  ecoli_test_split: "data/ecoli/ecoli_test.jsonl"
+  yeast_test_split: "data/yeast/yeast_test.jsonl"
+  mixture_test_split: "data/mixture/mixture_test.jsonl"

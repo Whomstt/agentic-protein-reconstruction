@@ -6,7 +6,7 @@ from config import cfg
 def main():
     """Main function to run the agent on a sample protein reconstruction task."""
 
-    print(f"Using device: {cfg["device"]}")
+    print(f"Using device: {cfg["misc"]["device"]}")
 
     agent = build_agent()
 

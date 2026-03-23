@@ -6,3 +6,7 @@ This research is tackling the challenge of de novo protein reconstruction from f
 
 ### Dataset
 - Reviewed (Swiss-Prot) FASTA: https://www.uniprot.org/help/downloads
+
+### Evaluation
+- Evaluate Agentic Approach: python evaluation/agentic.py
+- Evaluate Sequential Approach: python evaluation/sequential.py

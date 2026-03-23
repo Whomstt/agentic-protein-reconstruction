@@ -59,7 +59,7 @@ def score_junctions(fragments):
             truncation=True,
             max_length=max_length,
         )
-        batch_inputs = {k: v.to(cfg["device"]) for k, v in batch_inputs.items()}
+        batch_inputs = {k: v.to(cfg["misc"]["device"]) for k, v in batch_inputs.items()}
         with torch.no_grad():
             logits = mlm(**batch_inputs).logits
         for k in range(end - start):
