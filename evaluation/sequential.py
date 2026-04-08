@@ -31,7 +31,8 @@ print(f"Sequential Evaluation ({len(samples)} Samples)")
 print("-" * 60)
 
 for i, sample in enumerate(samples, 1):
-    target = sample["reconstruction_target"]
+    target = sample["ecoli_original"]
+
     fragments = sample["fragments"]
 
     reconstruction, order = reconstruct(fragments)

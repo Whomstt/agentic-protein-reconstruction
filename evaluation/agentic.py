@@ -8,7 +8,9 @@ def extract_reconstruction(result):
     """Extract reconstruction and order from the agent's final tool call."""
     for msg in reversed(result["messages"]):
         if hasattr(msg, "name") and msg.name == "beam_search":
-            content = json.loads(msg.content) if isinstance(msg.content, str) else msg.content
+            content = (
+                json.loads(msg.content) if isinstance(msg.content, str) else msg.content
+            )
             return content["reconstruction"], content["order"]
     return result["messages"][-1].content, []
 
@@ -27,11 +29,16 @@ print(f"Agentic Evaluation ({len(samples)} Samples)")
 print("-" * 60)
 
 for i, sample in enumerate(samples, 1):
-    target = sample["reconstruction_target"]
+    target = sample["ecoli_original"]
+
     fragments = sample["fragments"]
 
     result = agent.invoke(
-        {"messages": [("user", f"Reconstruct the protein from these fragments: {fragments}")]}
+        {
+            "messages": [
+                ("user", f"Reconstruct the protein from these fragments: {fragments}")
+            ]
+        }
     )
 
     reconstruction, order = extract_reconstruction(result)
