@@ -14,10 +14,13 @@ folding_model:
   name: "facebook/esmfold_v1" # facebook/esmfold_v1
 
 llm_model:
-  name: "gpt-5-nano"
+  name: "gpt-5-nano" # the brain of the reasoning agent
+  temperature: 0.0 # temperature for the LLM
 
 data:
-  test_ratio: 0.2
+  test_ratio: 0.2 # ratio of data to hold out for testing (0.2 means 20% test, 80% train)
+  missed_cleavage_ratio: 0.5 # ratio of missed cleavages to simulate in the fragmentation process (0.5 means 50% of cleavage sites will be missed on average)
+  min_length: 7 # minimum length of peptide fragments to keep
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
   raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
   fragmented_ecoli: "data/ecoli/fragmented_ecoli.jsonl"
