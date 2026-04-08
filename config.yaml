@@ -4,17 +4,17 @@ misc:
 
 mlm_model:
   type: "esm" # prot or esm
-  name: "facebook/esm2_t6_8M_UR50D" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D or esm2_t33_650M_UR50D
+  name: "facebook/esm2_t33_650M_UR50D" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D or facebook/esm2_t33_650M_UR50D
   batch_size: 32 # batch size for scoring junctions
   max_length: 1024 # max sequence length for the MLM model (512 for ProtBert, 1024 for ESM-2)
-  beam_size: 5 # beam size for scoring junctions
+  beam_size: 50 # beam size for scoring junctions
 
 folding_model:
   type: "esm"
   name: "facebook/esmfold_v1" # facebook/esmfold_v1
 
 llm_model:
-  name: "gpt-5-nano" # the brain of the reasoning agent
+  name: "gpt-5.4-nano" # the brain of the reasoning agent
   temperature: 0.0 # temperature for the LLM
 
 data:
