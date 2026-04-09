@@ -1,6 +1,6 @@
 import json
 from agents.react_agent import build_agent
-from evaluation.metrics import METRIC_NAMES, compute_all, print_metrics, print_averages
+from evaluation.metrics import METRIC_NAMES, compute_all, print_metrics, print_comparison
 from config import cfg
 
 
@@ -23,16 +23,22 @@ with open(test_path) as f:
 
 agent = build_agent()
 
-summary = {k: [] for k in METRIC_NAMES}
+baseline_summary = {k: [] for k in METRIC_NAMES}
+recon_summary = {k: [] for k in METRIC_NAMES}
 
 print(f"Agentic Evaluation ({len(samples)} Samples)")
 print("-" * 60)
 
 for i, sample in enumerate(samples, 1):
     target = sample["ecoli_original"]
-
     fragments = sample["fragments"]
 
+    # Baseline: fragments in their (shuffled) input order
+    baseline_order = list(range(len(fragments)))
+    baseline_recon = "".join(fragments)
+    baseline_metrics = compute_all(target, baseline_recon, fragments, baseline_order)
+
+    # Reconstructed: agent output
     result = agent.invoke(
         {
             "messages": [
@@ -40,25 +46,26 @@ for i, sample in enumerate(samples, 1):
             ]
         }
     )
-
     reconstruction, order = extract_reconstruction(result)
-    metrics = compute_all(target, reconstruction, fragments, order)
+    recon_metrics = compute_all(target, reconstruction, fragments, order)
 
     for k in METRIC_NAMES:
-        summary[k].append(metrics[k])
+        baseline_summary[k].append(baseline_metrics[k])
+        recon_summary[k].append(recon_metrics[k])
 
     print(f"Sample {i}")
-    print(f"  Target: {target}")
+    print(f"  Target:         {target}")
     print(f"  Reconstruction: {reconstruction}")
-    print_metrics(metrics)
+    print_metrics(recon_metrics)
 
 if samples:
     n = len(samples)
-    print(f"\nAverage Results ({n} Samples)")
+    print(f"\nAverage Results ({n} Samples) — Shuffled vs Reconstructed")
     print("-" * 60)
     print(f"  LLM Agent: {cfg['llm_model']['name']}")
     print(f"  PLM Model: {cfg['mlm_model']['name']}")
     print(f"  Beam Size: {cfg['mlm_model'].get('beam_size', 'N/A')}")
     print(f"  Missed Cleavage Ratio: {cfg['data'].get('missed_cleavage_ratio', 'N/A')}")
     print(f"  Minimum Peptide Length: {cfg['data'].get('min_length', 'N/A')}")
-    print_averages(summary, n)
+    print()
+    print_comparison(baseline_summary, recon_summary, n)
