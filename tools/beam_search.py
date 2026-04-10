@@ -7,15 +7,16 @@ from tools.state import state
 def beam_search() -> dict:
     """Find the optimal fragment ordering via beam search over junction scores.
 
-    Uses scored junctions and trypsin constraints to reconstruct the protein.
-    Reads from shared state — call junction_scorer first.
-    Returns the reconstructed protein sequence and fragment order.
+    Uses scored junctions, the trypsin impossible-junction set, and the
+    N-terminal start hint to reconstruct the protein. Reads from shared
+    state — call junction_scorer first. Returns the reconstructed protein
+    sequence and fragment order.
     """
     fragments = state["fragments"]
     order = beam_order(
         state["scores"],
+        impossible_junctions=state.get("impossible_junctions"),
         start_candidates=state.get("start_candidates"),
-        terminal_candidates=state.get("terminal_candidates"),
     )
     reconstruction = "".join(fragments[i] for i in order)
 

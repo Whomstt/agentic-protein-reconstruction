@@ -5,11 +5,16 @@ from tools.state import state
 
 @tool
 def trypsin_filter(fragments: list[str]) -> dict:
-    """Filter impossible fragment orderings based on trypsin digestion rules.
+    """Identify trypsin-rule junction constraints over the fragment set.
 
-    Trypsin cleaves after K/R, so internal fragments must end with K or R.
-    Fragments violating this are eliminated from internal positions and
-    constrained to the C-terminal (last) position only. Call this first.
+    Does NOT discard fragments. Flags adjacent-pair junctions that are
+    chemically impossible:
+      - K/R → P: trypsin would not have cleaved at a K/R-P site.
+      - Non-K/R-ending fragments: must be C-terminal, so all outgoing
+        junctions from them are impossible.
+    Also marks fragments that are confirmed missed-cleavage products and
+    emits an N-terminal start hint (M-starting fragments). Call this first;
+    the constraints are used by beam_search to prune candidate orderings.
     """
     state.clear()
     state["fragments"] = fragments
@@ -18,16 +23,22 @@ def trypsin_filter(fragments: list[str]) -> dict:
     state.update(constraints)
 
     n = len(fragments)
-    eliminated = constraints["eliminated_from_internal"]
+    impossible = constraints["impossible_junctions"]
+    missed = constraints["missed_cleavage_fragments"]
+    starts = constraints["start_candidates"]
+    total_pairs = n * (n - 1)
 
     return {
         "num_fragments": n,
-        "start_candidates": constraints["start_candidates"],
-        "terminal_candidates": constraints["terminal_candidates"],
-        "eliminated_from_internal": eliminated,
-        "eliminated_fragments": [fragments[i] for i in eliminated],
+        "num_impossible_junctions": len(impossible),
+        "num_total_junctions": total_pairs,
+        "num_missed_cleavage_fragments": len(missed),
+        "start_candidates": starts,
+        "missed_cleavage_fragments": sorted(missed),
         "message": (
-            f"{len(eliminated)}/{n} fragment(s) eliminated from internal positions "
-            f"(don't end in K/R). {len(constraints['start_candidates'])} N-terminal candidate(s) (start with M)."
+            f"{len(impossible)}/{total_pairs} junction(s) pruned "
+            f"(K/R→P + non-K/R outgoing). "
+            f"{len(missed)}/{n} fragment(s) are missed-cleavage products. "
+            f"{len(starts)} N-terminal candidate(s) (M-starting)."
         ),
     }

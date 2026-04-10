@@ -1,10 +1,10 @@
 from config import cfg
 
 
-def beam_order(scores, start_candidates=None, terminal_candidates=None):
+def beam_order(scores, impossible_junctions=None, start_candidates=None):
     n = scores.shape[0]
     beam_size = cfg["mlm_model"]["beam_size"]
-    terminal_set = set(terminal_candidates) if terminal_candidates else set()
+    impossible = impossible_junctions or set()
 
     if start_candidates:
         beams = [(0.0, [i], {i}) for i in start_candidates]
@@ -13,18 +13,15 @@ def beam_order(scores, start_candidates=None, terminal_candidates=None):
 
     for step in range(n - 1):
         candidates = []
-        is_last_step = step == n - 2
 
         for cum_score, order, used in beams:
-            row = scores[order[-1]]
+            last = order[-1]
+            row = scores[last]
             for nxt in range(n):
                 if nxt in used:
                     continue
-                # Trypsin constraints: terminal-only fragments cannot appear in internal positions
-                if not is_last_step and nxt in terminal_set:
-                    continue
-                # On last step, only terminal candidates are valid (if any identified)
-                if is_last_step and terminal_set and nxt not in terminal_set:
+                # Trypsin chemistry: K/R → P and non-K/R outgoing are impossible
+                if (last, nxt) in impossible:
                     continue
                 new_score = cum_score + row[nxt].item()
                 candidates.append((new_score, order + [nxt], used | {nxt}))

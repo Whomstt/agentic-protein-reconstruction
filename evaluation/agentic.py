@@ -1,6 +1,11 @@
 import json
 from agents.react_agent import build_agent
-from evaluation.metrics import METRIC_NAMES, compute_all, print_metrics, print_comparison
+from evaluation.metrics import (
+    METRIC_NAMES,
+    compute_all,
+    print_metrics,
+    print_comparison,
+)
 from config import cfg
 
 
@@ -16,7 +21,7 @@ def extract_reconstruction(result):
 
 
 test_path = cfg["data"]["ecoli_test_split"]
-sample_count = 10  # set to None to evaluate all samples
+sample_count = 1  # set to None to evaluate all samples
 
 with open(test_path) as f:
     samples = [json.loads(l) for l in f if l.strip()][:sample_count]
