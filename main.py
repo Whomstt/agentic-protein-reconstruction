@@ -78,7 +78,7 @@ def main():
         sample = json.loads(f.readline())
 
     fragments = sample["fragments"]
-    original = sample["ecoli_original"]
+    target = sample["target_reconstruction"]
 
     print(f"\n{BOLD}  Input: {len(fragments)} fragments{RESET}")
     for i, frag in enumerate(fragments):
@@ -110,9 +110,9 @@ def main():
     print(f"{'─' * 60}")
 
     if reconstruction:
-        match = original == reconstruction
+        match = target == reconstruction
         status = f"{GREEN}✓ Exact match{RESET}" if match else f"{YELLOW}✗ Mismatch{RESET}"
-        print(f"  Original:      {DIM}{original[:70]}{'...' if len(original) > 70 else ''}{RESET}")
+        print(f"  Target:        {DIM}{target[:70]}{'...' if len(target) > 70 else ''}{RESET}")
         print(f"  Reconstructed: {DIM}{reconstruction[:70]}{'...' if len(reconstruction) > 70 else ''}{RESET}")
         print(f"  {status}")
     else:

@@ -4,10 +4,11 @@ misc:
 
 mlm_model:
   type: "esm" # prot or esm
-  name: "facebook/esm2_t33_650M_UR50D" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D or facebook/esm2_t33_650M_UR50D
-  batch_size: 8 # batch size for scoring junctions - lower for larger models to avoid OOM errors
+  name: "facebook/esm2_t6_8M_UR50D" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D or facebook/esm2_t33_650M_UR50D
+  batch_size: 64 # batch size for scoring junctions - lower for larger models to avoid OOM errors
   max_length: 1024 # max sequence length for the MLM model (512 for ProtBert, 1024 for ESM-2)
-  beam_size: 50 # beam size for scoring junctions
+  beam_size: 100  # beam size for scoring junctions
+  junction_window: 1 # number of residues masked at the start of the next fragment when scoring a junction (1 = legacy single-residue)
 
 folding_model:
   type: "esm"
@@ -19,8 +20,8 @@ llm_model:
 
 data:
   test_ratio: 0.2 # ratio of data to hold out for testing (0.2 means 20% test, 80% train)
-  missed_cleavage_ratio: 0.5 # ratio of missed cleavages to simulate in the fragmentation process (0.5 means 50% of cleavage sites will be missed on average)
-  min_length: 7 # minimum length of peptide fragments to keep
+  missed_cleavage_ratio: 0.3 # ratio of missed cleavages to simulate in the fragmentation process (0.5 means 50% of cleavage sites will be missed on average)
+  min_length: 6 # minimum length of peptide fragments to keep
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
   raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
   fragmented_ecoli: "data/ecoli/fragmented_ecoli.jsonl"

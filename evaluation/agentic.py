@@ -35,7 +35,7 @@ print(f"Agentic Evaluation ({len(samples)} Samples)")
 print("-" * 60)
 
 for i, sample in enumerate(samples, 1):
-    target = sample["ecoli_original"]
+    target = sample["target_reconstruction"]
     fragments = sample["fragments"]
 
     # Baseline: fragments in their (shuffled) input order
@@ -70,6 +70,7 @@ if samples:
     print(f"  LLM Agent: {cfg['llm_model']['name']}")
     print(f"  PLM Model: {cfg['mlm_model']['name']}")
     print(f"  Beam Size: {cfg['mlm_model'].get('beam_size', 'N/A')}")
+    print(f"  Junction Window: {cfg['mlm_model'].get('junction_window', 'N/A')}")
     print(f"  Missed Cleavage Ratio: {cfg['data'].get('missed_cleavage_ratio', 'N/A')}")
     print(f"  Minimum Peptide Length: {cfg['data'].get('min_length', 'N/A')}")
     print()

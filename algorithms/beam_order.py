@@ -11,16 +11,14 @@ def beam_order(scores, impossible_junctions=None, start_candidates=None):
     else:
         beams = [(0.0, [i], {i}) for i in range(n)]
 
-    for step in range(n - 1):
+    for _ in range(n - 1):
         candidates = []
-
         for cum_score, order, used in beams:
             last = order[-1]
             row = scores[last]
             for nxt in range(n):
                 if nxt in used:
                     continue
-                # Trypsin chemistry: K/R → P and non-K/R outgoing are impossible
                 if (last, nxt) in impossible:
                     continue
                 new_score = cum_score + row[nxt].item()
@@ -31,4 +29,24 @@ def beam_order(scores, impossible_junctions=None, start_candidates=None):
         candidates.sort(key=lambda x: x[0], reverse=True)
         beams = candidates[:beam_size]
 
-    return beams[0][1]
+    if beams and len(beams[0][1]) == n:
+        return beams[0][1]
+
+    # Fallback: constraints cut off the search before covering every fragment.
+    # Extend the best partial beam greedily by raw score, ignoring the
+    # impossible set (it has already proven infeasible).
+    best = max(beams, key=lambda x: x[0]) if beams else (0.0, [], set())
+    order = list(best[1])
+    used = set(best[2])
+    while len(order) < n:
+        remaining = [i for i in range(n) if i not in used]
+        if not remaining:
+            break
+        if order:
+            last = order[-1]
+            nxt = max(remaining, key=lambda i: scores[last, i].item())
+        else:
+            nxt = remaining[0]
+        order.append(nxt)
+        used.add(nxt)
+    return order
