@@ -5,3 +5,13 @@ mlm_bert
 __pycache__
 CLAUDE.md
 .claude
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.blg
+*.bbl
+*.pdf
