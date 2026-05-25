@@ -15,10 +15,10 @@ folding_model:
   name: "facebook/esmfold_v1" # facebook/esmfold_v1
 
 llm_model:
-  name: "gpt-5.4-nano" # the brain of the reasoning agent
+  name: "gpt-5.4-mini" # the brain of the reasoning agent
   temperature: 0.0 # temperature for the LLM
 
-data:
+data: # Note: must rerun data processing steps if any of these parameters are changed
   test_ratio: 0.2 # ratio of data to hold out for testing (0.2 means 20% test, 80% train)
   missed_cleavage_ratio: 0.3 # ratio of missed cleavages to simulate in the fragmentation process (0.5 means 50% of cleavage sites will be missed on average)
   min_length: 6 # minimum length of peptide fragments to keep

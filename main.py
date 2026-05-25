@@ -1,6 +1,11 @@
 import json
+import os
+
+from dotenv import load_dotenv
 from agents.react_agent import build_agent
 from config import cfg
+
+load_dotenv()
 
 DIM = "\033[2m"
 BOLD = "\033[1m"
@@ -65,11 +70,22 @@ def print_event(event):
 
 
 def main():
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip().strip("'\"")
+    if not api_key:
+        print(
+            f"\n{YELLOW}OPENAI_API_KEY is not set in your environment or .env file.{RESET}"
+        )
+        return
+
+    os.environ["OPENAI_API_KEY"] = api_key
+
     print(f"\n{BOLD}{'═' * 60}{RESET}")
     print(f"{BOLD}  Protein Reconstruction Agent{RESET}")
-    print(f"{DIM}  Device: {cfg['misc']['device']}  │  "
-          f"MLM: {cfg['mlm_model']['name'].split('/')[-1]}  │  "
-          f"LLM: {cfg['llm_model']['name']}{RESET}")
+    print(
+        f"{DIM}  Device: {cfg['misc']['device']}  │  "
+        f"MLM: {cfg['mlm_model']['name'].split('/')[-1]}  │  "
+        f"LLM: {cfg['llm_model']['name']}{RESET}"
+    )
     print(f"{BOLD}{'═' * 60}{RESET}")
 
     agent = build_agent()
@@ -89,18 +105,23 @@ def main():
 
     reconstruction = None
     for event in agent.stream(
-        {"messages": [("user", f"Reconstruct the protein from these fragments: {fragments}")]},
+        {
+            "messages": [
+                ("user", f"Reconstruct the protein from these fragments: {fragments}")
+            ]
+        },
         stream_mode="updates",
     ):
         print_event(event)
 
-        # Capture reconstruction from beam_search result
         if "tools" in event:
             for msg in event["tools"].get("messages", []):
                 if hasattr(msg, "name") and msg.name == "beam_search":
                     content = msg.content if hasattr(msg, "content") else str(msg)
                     try:
-                        data = json.loads(content) if isinstance(content, str) else content
+                        data = (
+                            json.loads(content) if isinstance(content, str) else content
+                        )
                         reconstruction = data.get("reconstruction", "")
                     except (json.JSONDecodeError, TypeError):
                         pass
@@ -111,9 +132,15 @@ def main():
 
     if reconstruction:
         match = target == reconstruction
-        status = f"{GREEN}✓ Exact match{RESET}" if match else f"{YELLOW}✗ Mismatch{RESET}"
-        print(f"  Target:        {DIM}{target[:70]}{'...' if len(target) > 70 else ''}{RESET}")
-        print(f"  Reconstructed: {DIM}{reconstruction[:70]}{'...' if len(reconstruction) > 70 else ''}{RESET}")
+        status = (
+            f"{GREEN}✓ Exact match{RESET}" if match else f"{YELLOW}✗ Mismatch{RESET}"
+        )
+        print(
+            f"  Target:        {DIM}{target[:70]}{'...' if len(target) > 70 else ''}{RESET}"
+        )
+        print(
+            f"  Reconstructed: {DIM}{reconstruction[:70]}{'...' if len(reconstruction) > 70 else ''}{RESET}"
+        )
         print(f"  {status}")
     else:
         print(f"  {YELLOW}No reconstruction produced{RESET}")
