@@ -466,12 +466,13 @@ agentic AI, protein language models, protein design, de novo protein reconstruct
 % 
 % Here we have the typical use of a "T" for an initial drop letter
 % and "HIS" in caps to complete the first word.
-\IEEEPARstart{T}{his} demo file is intended to serve as a ``starter file''
-for IEEE journal papers produced under \LaTeX\ using
-IEEEtran.cls version 1.8b and later.
-% You must have at least 2 lines in the paragraph with the drop letter
-% (should never be an issue)
-I wish you the best of success.
+\IEEEPARstart{O}{ur} understanding of proteins has been critical in the discovery of
+much of modern therapeutics and biotechnology which we benefit from today.
+Artificial intelligence is increasingly being applied to the field of proteomics,
+enabling unprecedented breakthroughs in structural prediction and functional analysis.
+However, a critical unsolved problem remains open in the reconstruction of de novo proteins.
+Agentic AI has already proven useful for similar problems in the field of proteomics,
+so we aim to investigate its applicability to this specific problem.
 
 
 % An example of a floating figure using the graphicx package.
@@ -571,10 +572,25 @@ I wish you the best of success.
 
 \section{Literature Review}
 The literature review goes here.
-\subsection{Topic 1}
-Subsection text here.
-\subsubsection{Subsubsection Heading Here}
-Subsubsection text here.
+\subsection{Protein Language Models}
+Advances in Natural Language Processing (NLP) through Large Language Models (LLMs) have enabled a 
+better appreciation of the "language of life" \cite{9477085}
+through training on large datasets of proteins. Protein Language Models (pLMs) transfer the notion of using
+tokens to represent amino acids in a self-supervised process, effectively learning to predict
+masked amino acids from known sequences instead of words \cite{9477085}.
+
+While the training objective remains simple in nature, when performed over millions of proteins
+the model begins to internalise more than just sequence patterns, but also the evolutionary structure
+\cite{lin2023esmfold}. Training an additional folding head on top of the base pLM allows us to transfer
+knowledge from cheaply learned internal representations before making expensive 3D structure predictions
+\cite{lin2023esmfold}.
+
+Recurrent Neural Networks (RNNs) have been almost entirely replaced by the transformer architecture
+in the field of protein-sequence modeling since ProtBert \cite{9477085} highlighted the benefits 
+of self-attention in capturing long range dependencies of proteins on a large-scale. Our structural understanding
+of proteins has been enabled through models like ESMFold \cite{lin2023esmfold} which allows for
+prediction of 3d structures directly from single sequences efficiently.
+
 \subsection{Comparative Analysis}
 Subsection text here.
 \subsection{Research Gap}
@@ -658,13 +674,8 @@ AI tools were use to support this project. Claude (Anthropic) assisted with brai
 % <OR> manually copy in the resultant .bbl file
 % set second argument of \begin to the number of references
 % (used to reserve space for the reference number labels box)
-\begin{thebibliography}{1}
-
-\bibitem{IEEEhowto:kopka}
-H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
-
-\end{thebibliography}
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,references}
 
 
 % that's all folks
