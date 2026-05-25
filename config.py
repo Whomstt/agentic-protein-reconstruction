@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import yaml
 import torch
 
-with open("config.yaml") as f:
+with open(Path(__file__).resolve().parent / "config.yaml") as f:
     cfg = yaml.safe_load(f)
 
 if cfg["misc"]["device"] == "auto":

@@ -3,7 +3,7 @@ name = "agentic-protein-reconstruction"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "accelerate==1.12.0",
     "biopython==1.86",
@@ -15,6 +15,26 @@ dependencies = [
     "openai==2.38.0",
     "python-dotenv==1.2.2",
     "sympy==1.13.3",
-    "torch==2.10.0",
+    "torch==2.12.0+cu132",
     "transformers==5.2.0",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu132" }
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["config", "main"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agents*", "algorithms*", "evaluation*", "models*", "tools*"]
+namespaces = true
+
+[[tool.uv.index]]
+name = "pytorch-cu132"
+url = "https://download.pytorch.org/whl/cu132"
+explicit = true

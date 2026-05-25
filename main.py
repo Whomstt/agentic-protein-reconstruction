@@ -2,10 +2,11 @@ import json
 import os
 
 from dotenv import load_dotenv
+from openai import AuthenticationError
 from agents.react_agent import build_agent
 from config import cfg
 
-load_dotenv()
+load_dotenv(override=True)
 
 DIM = "\033[2m"
 BOLD = "\033[1m"
@@ -88,13 +89,19 @@ def main():
     )
     print(f"{BOLD}{'═' * 60}{RESET}")
 
-    agent = build_agent()
+    try:
+        agent = build_agent()
+    except AuthenticationError:
+        print(
+            f"\n{YELLOW}OPENAI_API_KEY was rejected by OpenAI. Check that the key is current and copied exactly.{RESET}"
+        )
+        return
 
     with open(cfg["data"]["fragmented_ecoli"]) as f:
         sample = json.loads(f.readline())
 
     fragments = sample["fragments"]
-    target = sample["target_reconstruction"]
+    target = sample.get("ecoli_original", sample.get("target_reconstruction"))
 
     print(f"\n{BOLD}  Input: {len(fragments)} fragments{RESET}")
     for i, frag in enumerate(fragments):
@@ -104,27 +111,38 @@ def main():
     print(f"\n{'─' * 60}")
 
     reconstruction = None
-    for event in agent.stream(
-        {
-            "messages": [
-                ("user", f"Reconstruct the protein from these fragments: {fragments}")
-            ]
-        },
-        stream_mode="updates",
-    ):
-        print_event(event)
+    try:
+        for event in agent.stream(
+            {
+                "messages": [
+                    (
+                        "user",
+                        f"Reconstruct the protein from these fragments: {fragments}",
+                    )
+                ]
+            },
+            stream_mode="updates",
+        ):
+            print_event(event)
 
-        if "tools" in event:
-            for msg in event["tools"].get("messages", []):
-                if hasattr(msg, "name") and msg.name == "beam_search":
-                    content = msg.content if hasattr(msg, "content") else str(msg)
-                    try:
-                        data = (
-                            json.loads(content) if isinstance(content, str) else content
-                        )
-                        reconstruction = data.get("reconstruction", "")
-                    except (json.JSONDecodeError, TypeError):
-                        pass
+            if "tools" in event:
+                for msg in event["tools"].get("messages", []):
+                    if hasattr(msg, "name") and msg.name == "beam_search":
+                        content = msg.content if hasattr(msg, "content") else str(msg)
+                        try:
+                            data = (
+                                json.loads(content)
+                                if isinstance(content, str)
+                                else content
+                            )
+                            reconstruction = data.get("reconstruction", "")
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+    except AuthenticationError:
+        print(
+            f"\n{YELLOW}OpenAI rejected the API key during the agent run. Update OPENAI_API_KEY and try again.{RESET}"
+        )
+        return
 
     print(f"\n{'═' * 60}")
     print(f"{BOLD}  Result{RESET}")

@@ -25,7 +25,7 @@ def trypsin_filter(fragments):
 
     impossible_junctions = set()
     for i in range(n):
-        ends_kr = fragments[i][-1] in ("K", "R")
+        ends_kr = bool(fragments[i]) and fragments[i][-1] in ("K", "R")
         for j in range(n):
             if i == j:
                 continue
@@ -34,7 +34,7 @@ def trypsin_filter(fragments):
                 impossible_junctions.add((i, j))
                 continue
             # Trypsin does not cleave K/R-P junctions
-            if fragments[j][0] == "P":
+            if fragments[j] and fragments[j][0] == "P":
                 impossible_junctions.add((i, j))
 
     missed_cleavage_fragments = set()
@@ -44,7 +44,7 @@ def trypsin_filter(fragments):
                 missed_cleavage_fragments.add(i)
                 break
 
-    start_candidates = [i for i in range(n) if fragments[i][0] == "M"]
+    start_candidates = [i for i in range(n) if fragments[i] and fragments[i][0] == "M"]
 
     return {
         "impossible_junctions": impossible_junctions,
