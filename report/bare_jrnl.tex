@@ -571,7 +571,6 @@ so we aim to investigate its applicability to this specific problem.
 
 
 \section{Literature Review}
-The literature review goes here.
 \subsection{Protein Language Models}
 Advances in Natural Language Processing (NLP) through Large Language Models (LLMs) have enabled a 
 better appreciation of the "language of life" \cite{9477085}
@@ -589,7 +588,45 @@ Recurrent Neural Networks (RNNs) have been almost entirely replaced by the trans
 in the field of protein-sequence modeling since ProtBert \cite{9477085} highlighted the benefits 
 of self-attention in capturing long range dependencies of proteins on a large-scale. Our structural understanding
 of proteins has been enabled through models like ESMFold \cite{lin2023esmfold} which allows for
-prediction of 3d structures directly from single sequences efficiently.
+prediction of 3d structures directly from single sequences.
+
+Despite these major advances, pLMs remain limited in their functionality. While folding models like ESMFold are
+exceptionally more efficient at structural predictions than their alignment-based counterparts; performing up
+60x faster in inference time compared with the likes of AlphaFold and RosettaFold \cite{lin2023esmfold}, these models
+focus on predicting structures from known sequences rather than designing or inferring novel ones. Moreover,
+current pLMs are fundamentally restricted by our limited viewpoint from data on known existing proteins 
+which have already been produced by nature, inhibiting us from potentially uncovering proteins which differ
+from these captured patterns.
+
+\subsection{Agentic AI in Proteomics}
+Agentic AI has seen great success in recent times, particularly in the field of programming with tools
+such as Claude Code completely changing the way that we build software. Traditional rule-based pipelines struggle with handling noisy feedback signals and
+when things don't go as expected. An agentic system is controlled by an LLM "brain", which is granted access to "tools". Most agentic pipelines follow the ReAct pattern
+where an LLM receives a prompt and "reacts" by executing the most relevant tools respective to the query
+and its instruction. Sometimes tasks are so complex that it makes sense to have multiple agents acting together for a shared
+objective. 
+
+ProtAgents proposed a multi-agent system for de novo protein design which involved multiple
+agents collaborating autonomously. A "Planner" agent develops a plan to solve the task, an "Assistant"
+executes APIs and custom functions to compute the relevant data required to proceed, and a "Critic" is
+responsible for giving feedback about the plan and analysing results produced by tools 
+\cite{ghafarollahi2024protagentsproteindiscoverylarge}. Integration of diverse tools such as
+OmegaFold and Chroma, physics-based simulations, and retrieval-augmented generation (RAG) from
+relevant scientfic literature provide direct feedback signals to the GPT-4 powered agents, 
+allowing them to cooperate and design novel proteins with minimal human intervention \cite{ghafarollahi2024protagentsproteindiscoverylarge}.
+In several experiments the "Critic" agent was able to correct JSON formatting errors from resulting tool
+calls and plan accordingly, something which would have needed to be explicitly handled in a sequential
+end-to-end pipeline \cite{ghafarollahi2024protagentsproteindiscoverylarge}.
+
+VibeGen follows in the footsteps of ProtAgents, making use of multiple agents to generate de novo proteins,
+but instead makes use of protein language diffusion models (pLDMs) \cite{ni2025agenticendtoendnovoprotein}.
+Proteins designed by the system are created by targeted vibrational properties where the "Protein Designer"
+agent generates sequence candidates given the target properties and the "Protein Predictor" evaluates these
+candidates from their normal mode shapes without requiring expensive physics simulations \cite{ni2025agenticendtoendnovoprotein}.
+While VibeGen is not agentic in terms of LLMs, it proves that even a relatively simple two-agent system produces 
+considerably better outcomes than a single actor. The authors even suggest that LLM-powered behaviour could
+enhance predictive power and mechanistic interpretability, further incentivising more work to be done in
+this field \cite{ni2025agenticendtoendnovoprotein}.
 
 \subsection{Comparative Analysis}
 Subsection text here.
@@ -641,7 +678,7 @@ I would like to thank my supervisors Enda Howley and Florence Abram for their ex
 
 
 \section*{Use of AI}
-AI tools were use to support this project. Claude (Anthropic) assisted with brainstorming and refining ideas during the research process. Claude Code and GitHub Copilot provided code suggestions during implementation. All experimental design, analysis, and written content remain the original work of the author.
+AI tools were used to support this project. Claude (Anthropic) assisted with brainstorming and refining ideas during the research process. Claude Code and GitHub Copilot provided code suggestions during implementation. All experimental design, analysis, and written content remain the original work of the author.
 
 
 % Can use something like this to put references on a page
