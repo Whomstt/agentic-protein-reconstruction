@@ -598,6 +598,34 @@ current pLMs are fundamentally restricted by our limited viewpoint from data on 
 which have already been produced by nature, inhibiting us from potentially uncovering proteins which differ
 from these captured patterns.
 
+\subsection{De Novo Protein Identification}
+Identifying proteins is a non-trivial task, we typically perform a bottom-up strategy where 
+peptides are matched using a database with an average 75\% of spectra obtained
+through experimentation remaining unidentified \cite{MCDONNELL20232732}. During an enzymatic
+digestion such as a trypsin digestion, proteins are decomposed into peptide fragments which
+break at certain points called cleavage sites. Peptides do not always fragment as expected, 
+or aren't fully cleaved during enzymatic digestion. This poses the greatest challenge in 
+peptide identification when fragments are incomplete or ambiguous \cite{MCDONNELL20232732}.
+
+Machine learning has been successful in recovering structural information from incomplete signals
+on several accounts in proteomics. Traditional CNNs such as DeepNovo only look at local neighbours
+within a spectrum, where hybrid CNN-GNN models allow for long-range interconnections \cite{MCDONNELL20232732};
+demonstrating that new architectures which combine existing ideas in new ways
+are always being introduced and improving results.
+
+Uncertainties in protein identification do not only appear on the spectrum level but also often on the sequence level.
+In real world experimentation, only partial views of proteins and their respective peptide chains
+are visible due to noise or errors occuring. Masked language modeling helps to simulate and train
+a network to complete peptides with noise through randomly masking residues or single amino acids
+and inferring their proper values through the surrounding context \cite{kharkar2024llmproteins}.
+Fine-tuning transformer models like BERT and RoBERTa that were originally trained purely on natural language are capable
+of adapting to the task of predicting missing amino acids, while pLMs including ProteinBERT
+which have already been trained on millions of protein sequences can be fine-tuned further
+to improve their performance on identifying specific species \cite{kharkar2024llmproteins}.
+
+\subsection{De Novo Protein Design}
+text
+
 \subsection{Agentic AI in Proteomics}
 Agentic AI has seen great success in recent times, particularly in the field of programming with tools
 such as Claude Code completely changing the way that we build software. Traditional rule-based pipelines struggle with handling noisy feedback signals and
