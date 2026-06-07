@@ -624,7 +624,31 @@ which have already been trained on millions of protein sequences can be fine-tun
 to improve their performance on identifying specific species \cite{kharkar2024llmproteins}.
 
 \subsection{De Novo Protein Design}
-text
+De novo protein design involves creating proteins from scratch rather than making changes to existing ones
+that occur naturally. While creating untargeted de novo proteins is an interesting and useful exercise,
+we consider the design of de novo proteins that match desirable structural makeups or 
+useful properties as a much more challenging, and important task \cite{doi:10.1126/sciadv.adl4000}.
+Proteins that occur naturally represent only a fraction of the theoretical potential number of possible
+sequences; A peptide of length $L$ offers approximately $20^L$ possible sequences, most of which 
+have never been observed in nature \cite{xia2025apexgensimultaneousdesignpeptide}.
+
+ForceGen takes an interesting approach to design through mapping desired mechanical properties such as
+toughness and strength rather than structural properties \cite{doi:10.1126/sciadv.adl4000}. Through a
+combination of a frozen pretrained pLM (ESM-2) and a diffusion model developed to operate within the pLM's
+probability latent space, this protein language diffusion model (pLDM) architecture was capable of creating
+novel proteins through mapping a dataset of only 7,026 curated proteins \cite{doi:10.1126/sciadv.adl4000}.
+As a measure of novelty, a BLAST validation was done to observe whether there was a significant similarity
+to known proteins from the ones generated; they found many of the generated sequences did not match any
+sequences in the database of known proteins \cite{doi:10.1126/sciadv.adl4000}.
+
+A newer alternative to diffusion-based generative models is that of flow matching models. Flow matching
+is supposed to bridge the gap between stochastic diffusion and domains which require more deterministic
+outcomes \cite{xia2025apexgensimultaneousdesignpeptide}. ApexGen makes use a receptor-conditioned,
+manifold-aware conditional flow matching framework capable of ensuring that the 3D structures of
+generated de novo sequences will properly map to target binding sites \cite{xia2025apexgensimultaneousdesignpeptide}.
+A template modeling (TM) score of 0.99 against the baseline comparison of PepFlow with 0.33 indicates ApexGen's
+ability to generate near-perfect folds and a better global topology alignment \cite{xia2025apexgensimultaneousdesignpeptide}.
+
 
 \subsection{Agentic AI in Proteomics}
 Agentic AI has seen great success in recent times, particularly in the field of programming with tools
@@ -647,7 +671,7 @@ calls and plan accordingly, something which would have needed to be explicitly h
 end-to-end pipeline \cite{ghafarollahi2024protagentsproteindiscoverylarge}.
 
 VibeGen follows in the footsteps of ProtAgents, making use of multiple agents to generate de novo proteins,
-but instead makes use of protein language diffusion models (pLDMs) \cite{ni2025agenticendtoendnovoprotein}.
+but instead makes use of pLDMs \cite{ni2025agenticendtoendnovoprotein}.
 Proteins designed by the system are created by targeted vibrational properties where the "Protein Designer"
 agent generates sequence candidates given the target properties and the "Protein Predictor" evaluates these
 candidates from their normal mode shapes without requiring expensive physics simulations \cite{ni2025agenticendtoendnovoprotein}.
