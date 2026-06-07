@@ -649,6 +649,30 @@ generated de novo sequences will properly map to target binding sites \cite{xia2
 A template modeling (TM) score of 0.99 against the baseline comparison of PepFlow with 0.33 indicates ApexGen's
 ability to generate near-perfect folds and a better global topology alignment \cite{xia2025apexgensimultaneousdesignpeptide}.
 
+\subsection{Sequence Assembly Algorithms}
+The problem of reconstructing original protein sequences from their fragmented peptides requires the use of
+sophisticated sequence assembly algorithms to be done effectively. Standard approaches to proteomic assembly
+make use of software which will match against known proteins from a database. Alternative approaches
+often involve overlap-layout-consensus (OLC) and string graph approaches, spectral-network-based methods
+and de Brujin graphs. The alternative graph-based approaches which do not rely on existing knowledge of
+proteins existing is much more suitable for our problem.
+
+A string graph is a representation of all that is inferable about a sequence from a collection of fragmented
+readings collected from it \cite{10.1093/bioinformatics/bti1114}. String graphs are capable of removing
+redundant edges from graphs without loss of sequence information, furthermore, we can filter out "contained
+reads"; a reduction of roughly 40\% of reads in assembly data and 64\% of overlaps providing a significant
+reduction in the size and complexity of the problem \cite{10.1093/bioinformatics/bti1114}. This graph
+approach allows for a collapse of all reptitive elements into singular edges and ensures that the final
+graph is "read coherent"; or a viable biological sequence formation \cite{10.1093/bioinformatics/bti1114}.
+
+MS/MS database tools (e.g. SEQUEST, Mascot, and modern alternatives) often face computational
+limitations when handling massive datasets of proteins, but where they struggle especially today is when it comes to 
+the task of identifying unknown or modified proteins without a reference \cite{doi:10.1073/pnas.0701130104}.
+Spectral networks bypass the use of databases completely through alignment of "spectral pairs"
+(overlapping pairs of peptides or modified versions of the same) to form a full "spectral network" \cite{doi:10.1073/pnas.0701130104}.
+Analysing the entire "spectral network" at once was shown to increase the confidence of peptide identifications
+considerably, opening the door for shotgun protein sequencing \cite{doi:10.1073/pnas.0701130104}.
+
 
 \subsection{Agentic AI in Proteomics}
 Agentic AI has seen great success in recent times, particularly in the field of programming with tools
