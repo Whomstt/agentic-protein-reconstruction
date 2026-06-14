@@ -705,17 +705,65 @@ enhance predictive power and mechanistic interpretability, further incentivising
 this field \cite{ni2025agenticendtoendnovoprotein}.
 
 \subsection{Comparative Analysis}
-Subsection text here.
-\subsection{Research Gap}
-Subsection text here.
+While pLMs such as ProtBERT \cite{9477085} and ESMFold \cite{lin2023esmfold} are excellent models
+for understanding the sequences and structures of proteins, they rely on the assumption that we are
+dealing with a protein which is complete and perfectly ordered; this is not enough alone for us
+to unpack a mixture of peptide fragments and piece them back together to reconstruct the original
+protein.
 
+Masked language modeling has demonstrated success in predicting missing amino acids from surrounding
+context using Transformer-based models \cite{kharkar2024llmproteins}, this means we can effectively
+make use of a junction scoring mechanism to find plausible pairings of peptides, guiding the reconstruction
+process.
+
+Generative implementations like ApexGen \cite{xia2025apexgensimultaneousdesignpeptide} and
+ForceGen \cite{doi:10.1126/sciadv.adl4000} are effective systems capable of designing de novo
+proteins, however, they are not directed at reconstructing fragmented observed proteins which are
+novel.
+
+The application of agentic and multi-agent pipelines has shown great success for ProtAgents \cite{ghafarollahi2024protagentsproteindiscoverylarge}
+and VibeGen \cite{ni2025agenticendtoendnovoprotein}, highlighting the power of granting agents
+access to "tools" and having multiple agents cooperating to design targeted de novo proteins. VibeGen
+particularly praises the capacity of an "LLM brain" in terms of coordinating the design of a novel
+protein from scratch \cite{ni2025agenticendtoendnovoprotein}; while not at once relating to
+our reassembly problem, its success implicitly indicates usefulness of agentic AI in other regions
+of proteomics.
+
+\subsection{Research Gap}
+pLMs are effective at filling in gaps in unified protein sequences, however they have not previously
+been used as a method to determine how fragments might join together.
+
+Graph-based assembly approaches including spectral \cite{doi:10.1073/pnas.0701130104} and 
+string graphs \cite{10.1093/bioinformatics/bti1114} are capable at reducing the
+search space of potential fragment pairings that are feasible significantly without a database, but they should be paired
+with AI models which understand the structural and sequential order of amino acids and peptides
+which form a biologically plausible protein.
+
+Agentic AI has worked well on several fronts already in the field of proteomics, usage of
+tools providing relevant feedback and multiple agents working together have allowed for a more
+hands-off approach in designing de novo proteins from scratch. We have not however previously
+seen its usage in reconstruction of observed proteins from their fragments.
+
+This makes for an exciting opportunity to combine the power of pLMs, agentic AI, and graph-assembly
+techniques to investigate whether this combination of technology is effective in
+guiding an accurate de novo protein reconstruction.
 
 \section{Methodology}
-The methodology goes here.
 \subsection{Proposed Approach}
 Subsection text here.
 \subsection{Datasets}
-Subsection text here.
+As a source of data for experimentation and testing, UniProt Reviewed (Swiss-Prot) \cite{10.1093/nar/gkae1010}
+served as an excellent resource for well-curated proteins. To condense the scope of the project
+into something feasible, we decided to focus on only two organisms, Escherichia coli (E. coli) and Saccharomyces cerevisiae (yeast)
+as they are well-studied and have a substantial amount of data publicly available on them.
+
+Filtering the UniProt curated dataset left us with ~23,000 e. coli molecules and
+~8,000 records for yeast. After filtering we fragment each molecule into appropriate
+peptides according to trypsin digestion; an enzymatic process in which a trypsin protease
+cuts the molecule into small peptide fragments by cleaving after lysine (K)
+or arginine(R) residues, unless they are followed by proline(P). To simulate
+a more realistic environement, we assume that 30\% of the time, the molecule
+will not be cut at a given target site; i.e. will have a missed cleavage.
 \subsection{Evaluation Metrics}
 Subsection text here.
 
