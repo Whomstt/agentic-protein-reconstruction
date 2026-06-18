@@ -112,7 +112,7 @@
 % *** GRAPHICS RELATED PACKAGES ***
 %
 \ifCLASSINFOpdf
-  % \usepackage[pdftex]{graphicx}
+  \usepackage[pdftex]{graphicx}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../pdf/}{../jpeg/}}
   % and their extensions so you won't have to specify these with
@@ -122,7 +122,7 @@
   % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
   % will default to the driver specified in the system graphics.cfg if no
   % driver is specified.
-  % \usepackage[dvips]{graphicx}
+  \usepackage[dvips]{graphicx}
   % declare the path(s) where your graphic files are
   % \graphicspath{{../eps/}}
   % and their extensions so you won't have to specify these with
@@ -767,6 +767,11 @@ will not be cut at a given target site; i.e. will have a missed cleavage.
 \subsection{Evaluation Metrics}
 Subsection text here.
 
+\begin{figure*}[h]
+\includegraphics[width=\linewidth]{./images/gantt.png}
+\caption{Project Plan: Agentic De Novo Protein Reconstruction (June - September 2026).}
+\label{fig:gantt}
+\end{figure*}
 
 \section{Implementation}
 The implementation goes here.
