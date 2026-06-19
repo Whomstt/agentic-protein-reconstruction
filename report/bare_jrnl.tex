@@ -571,8 +571,37 @@ so we aim to investigate its applicability to this specific problem.
 
 
 \section{Literature Review}
+\subsection{Proteins, Peptides and Proteomics}
+Proteins are made up of chains of amino acids, often formed from smaller peptides with the complete set
+expressed by an organism considered as its proteome \cite{https://doi.org/10.1002/imt2.70031}. The sequence
+in which amino acids occur in a protein captures enough information to determine its structure and biological function
+\cite{Dinh2026}. Proteins are often seen as the "language of life", capable of 
+carrying out instructions that are found within our DNA, serving as enzymes for biochemical
+reactions and providing the necessary support for cellular life structures \cite{https://doi.org/10.1002/imt2.70031}.
+All of this complexity and diversity in functionality is captured within an alphabet consisting of 20 standard amino acids, motivating
+the development of sequence models inspired by Natural Language Processing (NLP) approaches \cite{Dinh2026}.
+
+In proteomics, the analysis of proteins is typically not completed on their full form, but rather through a bottom-up
+approach involving an enzymatic digestion causing a decomposition of proteins into framgented peptides \cite{https://doi.org/10.1002/imt2.70031}.
+The trypsin enzyme is often used for this process due its specificity in terms of splitting (cleaving)
+proteins at terminal sites of lysine (K) and arginine (R) amino acids (residues) respectively \cite{https://doi.org/10.1002/imt2.70031}.
+As the proteins under analysis can only be observed from a second-hand point of view through its
+cleaved peptide fragments, bioinformatics software must be used to infer a mapping to the most likely
+parent candidates \cite{https://doi.org/10.1002/imt2.70031}.
+
+Enzymatic digestions are not perfect and often result in "missed cleavages"; when the protein
+is not cut at the site it should have been; leaving us with longer sequences which can make
+matching more difficult \cite{MCDONNELL20232732}. A significant portion of peptides observed in
+a sample remain unidentified, in fact on average as little as 25\% of spectra obtained through
+experimentation can be identified, while the rest is discarded. \cite{MCDONNELL20232732}. It is
+common in proteomics for there to be an ambiguous mapping between peptides and proteins as they
+are not unique, making it considerably difficult to classify which parent protein the candidate peptide
+belongs to \cite{MCDONNELL20232732}. This further motivates a need for more advanced reconstruction
+algorithms, capable of mapping fragments from noisy signals to their original form, especially when
+considering under-documented or undiscovered proteomes that often occurs during pure culture experimentation.
+
 \subsection{Protein Language Models}
-Advances in Natural Language Processing (NLP) through Large Language Models (LLMs) have enabled a 
+Advances in NLP through Large Language Models (LLMs) have enabled a 
 better appreciation of the "language of life" \cite{9477085}
 through training on large datasets of proteins. Protein Language Models (pLMs) transfer the notion of using
 tokens to represent amino acids in a self-supervised process, effectively learning to predict
@@ -767,12 +796,6 @@ will not be cut at a given target site; i.e. will have a missed cleavage.
 \subsection{Evaluation Metrics}
 Subsection text here.
 
-\begin{figure*}[h]
-\includegraphics[width=\linewidth]{./images/gantt.png}
-\caption{Project Plan: Agentic De Novo Protein Reconstruction (June - September 2026).}
-\label{fig:gantt}
-\end{figure*}
-
 \section{Implementation}
 The implementation goes here.
 \subsection{Tools and Frameworks}
@@ -843,6 +866,11 @@ AI tools were used to support this project. Claude (Anthropic) assisted with bra
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,references}
 
+\begin{figure*}[h]
+\includegraphics[width=\linewidth]{./images/gantt.png}
+\caption{Project Plan: Agentic De Novo Protein Reconstruction (June - September 2026).}
+\label{fig:gantt}
+\end{figure*}
 
 % that's all folks
 \end{document}
