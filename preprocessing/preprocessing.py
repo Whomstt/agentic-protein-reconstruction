@@ -17,10 +17,46 @@ def repo_path(value: str) -> Path:
     return ROOT / value
 
 
+def _selected_organism() -> str:
+    return cfg["data"].get("organism", "ecoli")
+
+
+def _organism_pattern() -> str:
+    organism = _selected_organism()
+    if organism == "yeast":
+        return "Saccharomyces cerevisiae"
+    if organism == "mixture":
+        return ""
+    return "Escherichia coli"
+
+
+def _filter_patterns() -> list[str]:
+    organism = _selected_organism()
+    if organism == "mixture":
+        return ["Escherichia coli", "Saccharomyces cerevisiae"]
+    return [_organism_pattern()]
+
+
+def _original_key() -> str:
+    return cfg["data"].get("active_target_key", "ecoli_original")
+
+
+def _active_fragmented_output() -> Path:
+    return repo_path(cfg["data"]["active_fragmented_split"])
+
+
+def _active_train_split() -> Path:
+    return repo_path(cfg["data"]["active_train_split"])
+
+
+def _active_test_split() -> Path:
+    return repo_path(cfg["data"]["active_test_split"])
+
+
 def run_filter() -> None:
     data_dir = repo_path(cfg["data"]["raw_uniprot"])
     output_dir = repo_path(cfg["data"]["raw_ecoli_yeast"])
-    patterns = ["Escherichia coli", "Saccharomyces cerevisiae"]
+    patterns = _filter_patterns()
     record_iterator = SeqIO.parse(data_dir, "fasta")
 
     counts = {pattern: 0 for pattern in patterns}
@@ -95,12 +131,14 @@ def glu_c_digest(sequence: str, missed_cleavage_ratio: float) -> list[str]:
 
 def run_fragment() -> None:
     data_dir = repo_path(cfg["data"]["raw_ecoli_yeast"])
-    ecoli_output_file = repo_path(cfg["data"]["fragmented_ecoli"])
-    yeast_output_file = repo_path(cfg["data"]["fragmented_yeast"])
-    mixture_output_file = repo_path(cfg["data"]["fragmented_mixture"])
     records = list(SeqIO.parse(data_dir, "fasta"))
-    ecoli = [r for r in records if "Escherichia coli" in r.description]
-    yeast = [r for r in records if "Saccharomyces cerevisiae" in r.description]
+    organism = _selected_organism()
+    pattern = _organism_pattern()
+    if organism == "mixture":
+        ecoli = [r for r in records if "Escherichia coli" in r.description]
+        yeast = [r for r in records if "Saccharomyces cerevisiae" in r.description]
+    else:
+        selected_records = [r for r in records if pattern in r.description]
 
     random.seed(cfg["misc"]["seed"])
     missed_cleavage_ratio = cfg["data"]["missed_cleavage_ratio"]
@@ -121,68 +159,51 @@ def run_fragment() -> None:
                     unique_fragments.append(fragment)
         return unique_fragments
 
-    fragmented_ecoli = []
-    fragmented_yeast = []
-    fragmented_mixture = []
+    fragmented_records = []
 
-    for record in ecoli:
-        fragment_samples = generate_fragment_samples(str(record.seq))
-        fragments = flatten_unique(fragment_samples)
-        random.shuffle(fragments)
-        fragmented_ecoli.append(
-            {
-                "ecoli_original": str(record.seq),
-                "fragments": fragments,
-                "fragment_samples": fragment_samples,
-                "num_fragments": len(fragments),
-                "sample_count": sample_count,
-                "missed_cleavage_ratio": missed_cleavage_ratio,
-            }
-        )
+    if organism == "mixture":
+        for record_ecoli, record_yeast in zip(ecoli, yeast):
+            ecoli_samples = generate_fragment_samples(str(record_ecoli.seq))
+            yeast_samples = generate_fragment_samples(str(record_yeast.seq))
+            mixed_samples = ecoli_samples + yeast_samples
+            mixed_fragments = flatten_unique(mixed_samples)
+            random.shuffle(mixed_fragments)
+            fragmented_records.append(
+                {
+                    "ecoli_original": str(record_ecoli.seq),
+                    "yeast_original": str(record_yeast.seq),
+                    "target_reconstruction": str(record_ecoli.seq)
+                    + str(record_yeast.seq),
+                    "fragments": mixed_fragments,
+                    "fragment_samples": mixed_samples,
+                    "num_fragments": len(mixed_fragments),
+                    "sample_count": sample_count,
+                    "missed_cleavage_ratio": missed_cleavage_ratio,
+                }
+            )
+    else:
+        for record in selected_records:
+            fragment_samples = generate_fragment_samples(str(record.seq))
+            fragments = flatten_unique(fragment_samples)
+            random.shuffle(fragments)
+            fragmented_records.append(
+                {
+                    _original_key(): str(record.seq),
+                    "target_reconstruction": str(record.seq),
+                    "fragments": fragments,
+                    "fragment_samples": fragment_samples,
+                    "num_fragments": len(fragments),
+                    "sample_count": sample_count,
+                    "missed_cleavage_ratio": missed_cleavage_ratio,
+                }
+            )
 
-    for record in yeast:
-        fragment_samples = generate_fragment_samples(str(record.seq))
-        fragments = flatten_unique(fragment_samples)
-        random.shuffle(fragments)
-        fragmented_yeast.append(
-            {
-                "yeast_original": str(record.seq),
-                "fragments": fragments,
-                "fragment_samples": fragment_samples,
-                "num_fragments": len(fragments),
-                "sample_count": sample_count,
-                "missed_cleavage_ratio": missed_cleavage_ratio,
-            }
-        )
-
-    for record_ecoli, record_yeast in zip(ecoli, yeast):
-        ecoli_samples = generate_fragment_samples(str(record_ecoli.seq))
-        yeast_samples = generate_fragment_samples(str(record_yeast.seq))
-        mixed_samples = ecoli_samples + yeast_samples
-        mixed_fragments = flatten_unique(mixed_samples)
-        random.shuffle(mixed_fragments)
-        fragmented_mixture.append(
-            {
-                "ecoli_original": str(record_ecoli.seq),
-                "yeast_original": str(record_yeast.seq),
-                "fragments": mixed_fragments,
-                "fragment_samples": mixed_samples,
-                "num_fragments": len(mixed_fragments),
-                "sample_count": sample_count,
-                "missed_cleavage_ratio": missed_cleavage_ratio,
-            }
-        )
-
-    for path, data in [
-        (ecoli_output_file, fragmented_ecoli),
-        (yeast_output_file, fragmented_yeast),
-        (mixture_output_file, fragmented_mixture),
-    ]:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("w") as handle:
-            for record in data:
-                handle.write(json.dumps(record) + "\n")
-        print(f"Wrote {len(data)} records to {path}")
+    output_file = _active_fragmented_output()
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    with output_file.open("w") as handle:
+        for record in fragmented_records:
+            handle.write(json.dumps(record) + "\n")
+    print(f"Wrote {len(fragmented_records)} records to {output_file}")
 
 
 def split_data(
@@ -210,20 +231,12 @@ def split_data(
 def run_split() -> None:
     random.seed(cfg["misc"]["seed"])
 
-    ecoli_input_file = repo_path(cfg["data"]["fragmented_ecoli"])
-    yeast_input_file = repo_path(cfg["data"]["fragmented_yeast"])
-    mixture_input_file = repo_path(cfg["data"]["fragmented_mixture"])
-    ecoli_train_split = repo_path(cfg["data"]["ecoli_train_split"])
-    yeast_train_split = repo_path(cfg["data"]["yeast_train_split"])
-    mixture_train_split = repo_path(cfg["data"]["mixture_train_split"])
-    ecoli_test_split = repo_path(cfg["data"]["ecoli_test_split"])
-    yeast_test_split = repo_path(cfg["data"]["yeast_test_split"])
-    mixture_test_split = repo_path(cfg["data"]["mixture_test_split"])
+    input_file = _active_fragmented_output()
+    train_split = _active_train_split()
+    test_split = _active_test_split()
     test_ratio = cfg["data"]["test_ratio"]
 
-    split_data(ecoli_input_file, ecoli_train_split, ecoli_test_split, test_ratio)
-    split_data(yeast_input_file, yeast_train_split, yeast_test_split, test_ratio)
-    split_data(mixture_input_file, mixture_train_split, mixture_test_split, test_ratio)
+    split_data(input_file, train_split, test_split, test_ratio)
 
 
 def main() -> None:

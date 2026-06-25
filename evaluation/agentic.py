@@ -26,9 +26,10 @@ def extract_reconstruction(result):
     return result["messages"][-1].content, []
 
 
-test_path = cfg["data"]["ecoli_test_split"]
+test_path = cfg["data"]["active_test_split"]
 test_samples = cfg["data"].get("test_samples")
 config_snapshot = build_config_snapshot(cfg)
+run_name = f"Agentic Evaluation ({cfg['data']['organism_display_name']})"
 
 with open(test_path) as f:
     samples = [json.loads(l) for l in f if l.strip()][:test_samples]
@@ -38,11 +39,13 @@ agent = build_agent()
 baseline_summary = {k: [] for k in METRIC_NAMES}
 recon_summary = {k: [] for k in METRIC_NAMES}
 
-print_run_header(f"Agentic Evaluation ({len(samples)} Samples)", config_snapshot)
+print_run_header(f"{run_name} ({len(samples)} Samples)", config_snapshot)
 
 sample_reports = []
 for i, sample in enumerate(samples, 1):
-    target = sample.get("ecoli_original", sample.get("target_reconstruction"))
+    target = sample.get(
+        cfg["data"]["active_target_key"], sample.get("target_reconstruction")
+    )
     fragment_samples = sample.get("fragment_samples") or [sample["fragments"]]
     fragments = fragment_samples[0]
 
@@ -97,7 +100,7 @@ if samples:
     print_summary(baseline_summary, recon_summary, n)
 
     run_payload = {
-        "run_name": "Agentic Evaluation",
+        "run_name": run_name,
         "config": config_snapshot,
         "sample_count": n,
         "avg_pruned": 0.0,

@@ -28,12 +28,14 @@ def build_config_snapshot(cfg: dict) -> dict:
             "temperature": cfg["llm_model"].get("temperature"),
         },
         "data": {
+            "organism": cfg["data"].get("organism"),
+            "organism_display_name": cfg["data"].get("organism_display_name"),
             "test_ratio": cfg["data"].get("test_ratio"),
             "test_samples": cfg["data"].get("test_samples"),
             "sample_count": cfg["data"].get("sample_count"),
             "missed_cleavage_ratio": cfg["data"].get("missed_cleavage_ratio"),
-            "ecoli_test_split": cfg["data"].get("ecoli_test_split"),
-            "fragmented_ecoli": cfg["data"].get("fragmented_ecoli"),
+            "active_test_split": cfg["data"].get("active_test_split"),
+            "active_fragmented_split": cfg["data"].get("active_fragmented_split"),
         },
     }
 
@@ -60,6 +62,13 @@ def _format_config_rows(config: dict) -> list[list[str]]:
     return [
         ["Device", str(config["misc"]["device"])],
         ["Seed", str(config["misc"]["seed"])],
+        [
+            "Dataset",
+            str(
+                config["data"].get("organism_display_name")
+                or config["data"].get("organism")
+            ),
+        ],
         ["Test Ratio", str(config["data"]["test_ratio"])],
         ["Test Samples", str(config["data"]["test_samples"])],
         ["Sample Count", str(config["data"]["sample_count"])],
@@ -106,6 +115,9 @@ def print_run_header(title: str, config_snapshot: dict) -> None:
     print("-" * 13)
     print(f"  Device: {config_snapshot['misc']['device']}")
     print(f"  Seed: {config_snapshot['misc']['seed']}")
+    print(
+        f"  Dataset: {config_snapshot['data'].get('organism_display_name') or config_snapshot['data'].get('organism')}"
+    )
     print(f"  Test Ratio: {config_snapshot['data']['test_ratio']}")
     print(f"  Test Samples: {config_snapshot['data']['test_samples']}")
     print(f"  Sample Count: {config_snapshot['data']['sample_count']}")

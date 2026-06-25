@@ -87,6 +87,7 @@ def main():
     print(f"{BOLD}  Protein Reconstruction Agent{RESET}")
     print(
         f"{DIM}  Device: {cfg['misc']['device']}  │  "
+        f"Dataset: {cfg['data']['organism_display_name']}  │  "
         f"MLM: {cfg['mlm_model']['name'].split('/')[-1]}  │  "
         f"LLM: {cfg['llm_model']['name']}{RESET}"
     )
@@ -100,12 +101,14 @@ def main():
         )
         return
 
-    with open(cfg["data"]["fragmented_ecoli"]) as f:
+    with open(cfg["data"]["active_fragmented_split"]) as f:
         sample = json.loads(f.readline())
 
     fragment_samples = sample.get("fragment_samples")
     fragments = sample["fragments"]
-    target = sample.get("ecoli_original", sample.get("target_reconstruction"))
+    target = sample.get(
+        cfg["data"]["active_target_key"], sample.get("target_reconstruction")
+    )
 
     if fragment_samples:
         print(

@@ -19,8 +19,9 @@ llm_model:
   temperature: 0.0 # temperature for the LLM
 
 data: # Note: must rerun data processing steps if any of these parameters are changed
+  organism: "ecoli" # select the active dataset to evaluate: ecoli, yeast, or mixture
   test_ratio: 0.2 # ratio of data to hold out for testing (0.2 means 20% test, 80% train)
-  test_samples: 10 # number of protein records to evaluate in sequential/agentic runs
+  test_samples: 100 # number of protein records to evaluate in sequential/agentic runs
   sample_count: 100 # number of digestion samples to generate per protein during preprocessing (rerun preprocessing if changed)
   missed_cleavage_ratio: 0.3 # base missed-cleavage ratio; K sites are sampled at 1.5x this rate
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
