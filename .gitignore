@@ -1,5 +1,6 @@
 .env
 .venv
+results
 data
 mlm_bert
 __pycache__

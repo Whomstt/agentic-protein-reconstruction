@@ -7,8 +7,13 @@ from algorithms.beam_order import beam_order
 from evaluation.metrics import (
     METRIC_NAMES,
     compute_all,
-    print_metrics,
-    print_comparison,
+)
+from evaluation.reporting import (
+    build_config_snapshot,
+    print_run_header,
+    print_sample_result,
+    print_summary,
+    write_run_results,
 )
 from config import cfg
 
@@ -38,6 +43,7 @@ def reconstruct(fragment_samples):
 
 test_path = cfg["data"]["ecoli_test_split"]
 test_samples = cfg["data"].get("test_samples")
+config_snapshot = build_config_snapshot(cfg)
 
 with open(test_path) as f:
     samples = [json.loads(l) for l in f if l.strip()][:test_samples]
@@ -46,9 +52,9 @@ baseline_summary = {k: [] for k in METRIC_NAMES}
 recon_summary = {k: [] for k in METRIC_NAMES}
 pruned_pcts = []
 
-print(f"Sequential Evaluation ({len(samples)} Samples)")
-print("-" * 60)
+print_run_header(f"Sequential Evaluation ({len(samples)} Samples)", config_snapshot)
 
+sample_reports = []
 for i, sample in enumerate(samples, 1):
     target = sample.get("ecoli_original", sample.get("target_reconstruction"))
     fragment_samples = sample.get("fragment_samples") or [sample["fragments"]]
@@ -73,25 +79,42 @@ for i, sample in enumerate(samples, 1):
     pruned = len(constraints["impossible_junctions"])
     pct = (pruned / total_junctions * 100) if total_junctions else 0.0
     pruned_pcts.append(pct)
-
-    print(f"Sample {i}")
-    print(f"  Target:         {target}")
-    print(f"  Reconstruction: {reconstruction}")
-    print(f"  Filter: {pruned}/{total_junctions} junctions pruned ({pct:.1f}%)")
-    print(
-        f"  Graph: {len(graph['confirmed_adjacencies'])} confirmed adjacencies, {len(graph['unscored_junctions'])} pairs pending scoring"
-    )
-    print_metrics(recon_metrics)
+    sample_report = {
+        "index": i,
+        "target": target,
+        "reconstruction": reconstruction,
+        "baseline_order": baseline_order,
+        "order": order,
+        "baseline_metrics": baseline_metrics,
+        "recon_metrics": recon_metrics,
+        "num_pruned": pruned,
+        "total_junctions": total_junctions,
+        "pruned_pct": pct,
+        "graph": {
+            "num_confirmed_adjacencies": len(graph["confirmed_adjacencies"]),
+            "unscored_junctions": graph["unscored_junctions"],
+        },
+    }
+    sample_reports.append(sample_report)
+    print_sample_result(i, sample_report)
 
 if samples:
     n = len(samples)
-    print(f"\nAverage Results ({n} Samples) — Shuffled vs Reconstructed")
-    print("-" * 60)
-    print(f"  Model: {cfg['mlm_model']['name']}")
-    print(f"  Beam Size: {cfg['mlm_model'].get('beam_size', 'N/A')}")
-    print(f"  Junction Window: {cfg['mlm_model'].get('junction_window', 'N/A')}")
-    print(f"  Missed Cleavage Ratio: {cfg['data'].get('missed_cleavage_ratio', 'N/A')}")
     avg_pruned = sum(pruned_pcts) / len(pruned_pcts)
-    print(f"  Avg Junctions Pruned: {avg_pruned:.1f}%")
-    print()
-    print_comparison(baseline_summary, recon_summary, n)
+    baseline_averages = {k: sum(v) / n for k, v in baseline_summary.items()}
+    recon_averages = {k: sum(v) / n for k, v in recon_summary.items()}
+    delta = {k: recon_averages[k] - baseline_averages[k] for k in METRIC_NAMES}
+    print_summary(baseline_summary, recon_summary, n)
+
+    run_payload = {
+        "run_name": "Sequential Evaluation",
+        "config": config_snapshot,
+        "sample_count": n,
+        "avg_pruned": avg_pruned,
+        "baseline_averages": baseline_averages,
+        "recon_averages": recon_averages,
+        "delta": delta,
+        "samples": sample_reports,
+    }
+    run_dir = write_run_results("sequential", run_payload)
+    print(f"\nSaved run artifacts to {run_dir}")
