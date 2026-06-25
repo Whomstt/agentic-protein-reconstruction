@@ -9,7 +9,7 @@ def format_sequence(seq, is_prot):
     return " ".join(list(seq)) if is_prot else seq
 
 
-def score_junctions(fragments):
+def score_junctions(fragments, unscored_pairs=None, confirmed_junctions=None):
     model_type = cfg["mlm_model"]["type"]
     batch_size = cfg["mlm_model"]["batch_size"]
     max_length = cfg["mlm_model"]["max_length"]
@@ -25,7 +25,11 @@ def score_junctions(fragments):
         is_prot = False
 
     n = len(fragments)
-    pairs = list(itertools.permutations(range(n), 2))
+    all_pairs = list(itertools.permutations(range(n), 2))
+    if unscored_pairs is not None:
+        pairs = [pair for pair in all_pairs if pair in set(unscored_pairs)]
+    else:
+        pairs = all_pairs
     mask = tokeniser.mask_token
     sep = " " if is_prot else ""
 
@@ -80,5 +84,9 @@ def score_junctions(fragments):
         counts[i, j] += 1
     counts = counts.clamp(min=1)
     mat = mat / counts  # average log-prob per masked position
+
+    if confirmed_junctions:
+        for i, j in confirmed_junctions:
+            mat[i, j] = 1_000.0
 
     return mat

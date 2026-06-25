@@ -1,4 +1,5 @@
 import json
+import random
 from agents.react_agent import build_agent
 from evaluation.metrics import (
     METRIC_NAMES,
@@ -21,10 +22,10 @@ def extract_reconstruction(result):
 
 
 test_path = cfg["data"]["ecoli_test_split"]
-sample_count = 1  # set to None to evaluate all samples
+test_samples = cfg["data"].get("test_samples")
 
 with open(test_path) as f:
-    samples = [json.loads(l) for l in f if l.strip()][:sample_count]
+    samples = [json.loads(l) for l in f if l.strip()][:test_samples]
 
 agent = build_agent()
 
@@ -36,18 +37,27 @@ print("-" * 60)
 
 for i, sample in enumerate(samples, 1):
     target = sample.get("ecoli_original", sample.get("target_reconstruction"))
-    fragments = sample["fragments"]
+    fragment_samples = sample.get("fragment_samples") or [sample["fragments"]]
+    fragments = fragment_samples[0]
 
-    # Baseline: fragments in their (shuffled) input order
+    # Baseline: a fresh random permutation of the fragments.
     baseline_order = list(range(len(fragments)))
-    baseline_recon = "".join(fragments)
+    random.Random(cfg["misc"].get("seed", 0) + i).shuffle(baseline_order)
+    baseline_recon = "".join(fragments[idx] for idx in baseline_order)
     baseline_metrics = compute_all(target, baseline_recon, fragments, baseline_order)
 
     # Reconstructed: agent output
     result = agent.invoke(
         {
             "messages": [
-                ("user", f"Reconstruct the protein from these fragments: {fragments}")
+                (
+                    "user",
+                    (
+                        f"Reconstruct the protein from these digestion samples: {fragment_samples}"
+                        if sample.get("fragment_samples")
+                        else f"Reconstruct the protein from these fragments: {fragments}"
+                    ),
+                )
             ]
         }
     )

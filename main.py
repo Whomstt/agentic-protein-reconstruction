@@ -16,6 +16,7 @@ YELLOW = "\033[33m"
 RESET = "\033[0m"
 
 TOOL_ICONS = {
+    "overlap_graph": "🕸",
     "trypsin_filter": "🔬",
     "junction_scorer": "🧬",
     "beam_search": "🔍",
@@ -30,6 +31,8 @@ def fmt_tool_result(name, content):
         return str(content)
 
     if name == "trypsin_filter":
+        return data.get("message", str(data))
+    elif name == "overlap_graph":
         return data.get("message", str(data))
     elif name == "junction_scorer":
         n = data.get("num_fragments", "?")
@@ -100,10 +103,16 @@ def main():
     with open(cfg["data"]["fragmented_ecoli"]) as f:
         sample = json.loads(f.readline())
 
+    fragment_samples = sample.get("fragment_samples")
     fragments = sample["fragments"]
     target = sample.get("ecoli_original", sample.get("target_reconstruction"))
 
-    print(f"\n{BOLD}  Input: {len(fragments)} fragments{RESET}")
+    if fragment_samples:
+        print(
+            f"\n{BOLD}  Input: {len(fragment_samples)} digestion sample(s), {len(fragments)} unique fragments{RESET}"
+        )
+    else:
+        print(f"\n{BOLD}  Input: {len(fragments)} fragments{RESET}")
     for i, frag in enumerate(fragments):
         preview = frag[:30] + "..." if len(frag) > 30 else frag
         print(f"{DIM}  [{i}] {preview} ({len(frag)} aa){RESET}")
@@ -117,7 +126,11 @@ def main():
                 "messages": [
                     (
                         "user",
-                        f"Reconstruct the protein from these fragments: {fragments}",
+                        (
+                            f"Reconstruct the protein from these digestion samples: {fragment_samples}"
+                            if fragment_samples
+                            else f"Reconstruct the protein from these fragments: {fragments}"
+                        ),
                     )
                 ]
             },

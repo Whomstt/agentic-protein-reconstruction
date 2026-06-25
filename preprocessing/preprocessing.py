@@ -44,7 +44,9 @@ def cut_at_positions(
     missed_cleavage_ratio: float,
 ) -> list[str]:
     cut_positions = [
-        pos for pos in site_positions if random.random() > missed_cleavage_ratio
+        pos
+        for pos in site_positions
+        if random.random() > missed_cleavage_prob(sequence, pos, missed_cleavage_ratio)
     ]
     fragments: list[str] = []
     prev = 0
@@ -57,6 +59,14 @@ def cut_at_positions(
     if tail:
         fragments.append(tail)
     return fragments
+
+
+def missed_cleavage_prob(sequence: str, pos: int, base_ratio: float) -> float:
+    if pos <= 0:
+        return base_ratio
+    if sequence[pos - 1] == "K":
+        return min(base_ratio * 1.5, 1.0)
+    return base_ratio
 
 
 def trypsin_digest(sequence: str, missed_cleavage_ratio: float) -> list[str]:
@@ -94,46 +104,71 @@ def run_fragment() -> None:
 
     random.seed(cfg["misc"]["seed"])
     missed_cleavage_ratio = cfg["data"]["missed_cleavage_ratio"]
+    sample_count = cfg["data"].get("sample_count", 1)
+
+    def generate_fragment_samples(sequence: str) -> list[list[str]]:
+        return [
+            trypsin_digest(sequence, missed_cleavage_ratio) for _ in range(sample_count)
+        ]
+
+    def flatten_unique(samples: list[list[str]]) -> list[str]:
+        unique_fragments: list[str] = []
+        seen: set[str] = set()
+        for sample in samples:
+            for fragment in sample:
+                if fragment not in seen:
+                    seen.add(fragment)
+                    unique_fragments.append(fragment)
+        return unique_fragments
 
     fragmented_ecoli = []
     fragmented_yeast = []
     fragmented_mixture = []
 
     for record in ecoli:
-        fragments = trypsin_digest(str(record.seq), missed_cleavage_ratio)
+        fragment_samples = generate_fragment_samples(str(record.seq))
+        fragments = flatten_unique(fragment_samples)
         random.shuffle(fragments)
         fragmented_ecoli.append(
             {
                 "ecoli_original": str(record.seq),
                 "fragments": fragments,
+                "fragment_samples": fragment_samples,
                 "num_fragments": len(fragments),
+                "sample_count": sample_count,
                 "missed_cleavage_ratio": missed_cleavage_ratio,
             }
         )
 
     for record in yeast:
-        fragments = trypsin_digest(str(record.seq), missed_cleavage_ratio)
+        fragment_samples = generate_fragment_samples(str(record.seq))
+        fragments = flatten_unique(fragment_samples)
         random.shuffle(fragments)
         fragmented_yeast.append(
             {
                 "yeast_original": str(record.seq),
                 "fragments": fragments,
+                "fragment_samples": fragment_samples,
                 "num_fragments": len(fragments),
+                "sample_count": sample_count,
                 "missed_cleavage_ratio": missed_cleavage_ratio,
             }
         )
 
     for record_ecoli, record_yeast in zip(ecoli, yeast):
-        frags1 = trypsin_digest(str(record_ecoli.seq), missed_cleavage_ratio)
-        frags2 = trypsin_digest(str(record_yeast.seq), missed_cleavage_ratio)
-        mixed_fragments = frags1 + frags2
+        ecoli_samples = generate_fragment_samples(str(record_ecoli.seq))
+        yeast_samples = generate_fragment_samples(str(record_yeast.seq))
+        mixed_samples = ecoli_samples + yeast_samples
+        mixed_fragments = flatten_unique(mixed_samples)
         random.shuffle(mixed_fragments)
         fragmented_mixture.append(
             {
                 "ecoli_original": str(record_ecoli.seq),
                 "yeast_original": str(record_yeast.seq),
                 "fragments": mixed_fragments,
+                "fragment_samples": mixed_samples,
                 "num_fragments": len(mixed_fragments),
+                "sample_count": sample_count,
                 "missed_cleavage_ratio": missed_cleavage_ratio,
             }
         )

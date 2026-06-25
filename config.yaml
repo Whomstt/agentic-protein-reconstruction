@@ -20,7 +20,9 @@ llm_model:
 
 data: # Note: must rerun data processing steps if any of these parameters are changed
   test_ratio: 0.2 # ratio of data to hold out for testing (0.2 means 20% test, 80% train)
-  missed_cleavage_ratio: 0.3 # ratio of missed cleavages to simulate in the fragmentation process (0.5 means 50% of cleavage sites will be missed on average)
+  test_samples: 100 # number of protein records to evaluate in sequential/agentic runs
+  sample_count: 100 # number of digestion samples to generate per protein during preprocessing (rerun preprocessing if changed)
+  missed_cleavage_ratio: 0.3 # base missed-cleavage ratio; K sites are sampled at 1.5x this rate
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
   raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
   fragmented_ecoli: "data/ecoli/fragmented_ecoli.jsonl"

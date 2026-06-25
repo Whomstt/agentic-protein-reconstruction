@@ -17,6 +17,7 @@ def beam_search() -> dict:
         state["scores"],
         impossible_junctions=state.get("impossible_junctions"),
         start_candidates=state.get("start_candidates"),
+        confirmed_successors=state.get("confirmed_successors"),
     )
     reconstruction = "".join(fragments[i] for i in order)
 

@@ -11,7 +11,11 @@ def junction_scorer() -> dict:
     fragment pair. Reads fragments from shared state — call trypsin_filter first.
     """
     fragments = state["fragments"]
-    scores = score_junctions(fragments)
+    scores = score_junctions(
+        fragments,
+        unscored_pairs=state.get("unscored_junctions"),
+        confirmed_junctions=state.get("confirmed_junctions"),
+    )
     state["scores"] = scores
 
     return {

@@ -1,10 +1,16 @@
 from config import cfg
 
 
-def beam_order(scores, impossible_junctions=None, start_candidates=None):
+def beam_order(
+    scores,
+    impossible_junctions=None,
+    start_candidates=None,
+    confirmed_successors=None,
+):
     n = scores.shape[0]
     beam_size = cfg["mlm_model"]["beam_size"]
     impossible = impossible_junctions or set()
+    confirmed_successors = confirmed_successors or {}
 
     if start_candidates:
         beams = [(0.0, [i], {i}) for i in start_candidates]
@@ -16,7 +22,9 @@ def beam_order(scores, impossible_junctions=None, start_candidates=None):
         for cum_score, order, used in beams:
             last = order[-1]
             row = scores[last]
-            for nxt in range(n):
+            allowed = confirmed_successors.get(last)
+            next_indices = allowed if allowed else range(n)
+            for nxt in next_indices:
                 if nxt in used:
                     continue
                 if (last, nxt) in impossible:

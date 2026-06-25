@@ -1,10 +1,11 @@
 from langchain.tools import tool
 from algorithms.trypsin_filter import trypsin_filter as _trypsin_filter
+from tools.sample_utils import normalize_fragment_samples, primary_fragments
 from tools.state import state
 
 
 @tool
-def trypsin_filter(fragments: list[str]) -> dict:
+def trypsin_filter(fragments: list[str] | list[list[str]]) -> dict:
     """Identify trypsin-rule junction constraints over the fragment set.
 
     Does NOT discard fragments. Flags adjacent-pair junctions that are
@@ -17,12 +18,16 @@ def trypsin_filter(fragments: list[str]) -> dict:
     the constraints are used by beam_search to prune candidate orderings.
     """
     state.clear()
-    state["fragments"] = fragments
 
-    constraints = _trypsin_filter(fragments)
+    fragment_samples = normalize_fragment_samples(fragments)
+    primary = primary_fragments(fragment_samples)
+    state["fragment_samples"] = fragment_samples or [primary]
+    state["fragments"] = primary
+
+    constraints = _trypsin_filter(primary)
     state.update(constraints)
 
-    n = len(fragments)
+    n = len(primary)
     impossible = constraints["impossible_junctions"]
     missed = constraints["missed_cleavage_fragments"]
     starts = constraints["start_candidates"]
