@@ -22,7 +22,6 @@ def overlap_graph(fragment_samples: list[list[str]] | list[str] | None = None) -
         "num_fragments": graph["num_fragments"],
         "num_confirmed_adjacencies": len(graph["confirmed_adjacencies"]),
         "num_unscored_pairs": len(graph["unscored_junctions"]),
-        "confirmed_adjacencies": graph["confirmed_adjacencies"],
         "message": (
             f"Built overlap graph from {graph['num_samples']} sample(s); "
             f"confirmed {len(graph['confirmed_adjacencies'])} hard adjacency edge(s) "

@@ -1,9 +1,6 @@
 import json
 import random
-from algorithms.trypsin_filter import trypsin_filter
-from algorithms.overlap_graph import build_overlap_graph
-from algorithms.score_junctions import score_junctions
-from algorithms.beam_order import beam_order
+from evaluation.pipeline import reconstruct
 from evaluation.metrics import (
     METRIC_NAMES,
     compute_all,
@@ -16,30 +13,6 @@ from evaluation.reporting import (
     write_run_results,
 )
 from config import cfg
-
-
-def reconstruct(fragment_samples):
-    """Run the full pipeline directly without the LLM agent."""
-    if fragment_samples and isinstance(fragment_samples[0], str):
-        fragment_samples = [fragment_samples]
-
-    fragments = fragment_samples[0]
-    constraints = trypsin_filter(fragments)
-    graph = build_overlap_graph(fragment_samples)
-    scores = score_junctions(
-        fragments,
-        unscored_pairs=graph["unscored_junctions"],
-        confirmed_junctions=graph["confirmed_junctions"],
-    )
-    order = beam_order(
-        scores,
-        impossible_junctions=constraints["impossible_junctions"],
-        start_candidates=constraints["start_candidates"],
-        confirmed_successors=graph["confirmed_successors"],
-    )
-    reconstruction = "".join(fragments[i] for i in order)
-    return reconstruction, order, constraints, graph
-
 
 test_path = cfg["data"]["active_test_split"]
 test_samples = cfg["data"].get("test_samples")

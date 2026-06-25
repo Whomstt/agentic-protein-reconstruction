@@ -5,7 +5,7 @@ from tools.state import state
 
 
 @tool
-def trypsin_filter(fragments: list[str] | list[list[str]]) -> dict:
+def trypsin_filter(fragments: list[str] | list[list[str]] | None = None) -> dict:
     """Identify trypsin-rule junction constraints over the fragment set.
 
     Does NOT discard fragments. Flags adjacent-pair junctions that are
@@ -14,13 +14,15 @@ def trypsin_filter(fragments: list[str] | list[list[str]]) -> dict:
       - Non-K/R-ending fragments: must be C-terminal, so all outgoing
         junctions from them are impossible.
     Also marks fragments that are confirmed missed-cleavage products and
-    emits an N-terminal start hint (M-starting fragments). Call this first;
-    the constraints are used by beam_search to prune candidate orderings.
+    emits an N-terminal start hint (M-starting fragments). If no fragments are
+    passed, the tool uses the fragment sample already stored in shared state.
     """
-    state.clear()
-
-    fragment_samples = normalize_fragment_samples(fragments)
+    fragment_samples = normalize_fragment_samples(
+        fragments if fragments is not None else state.get("fragment_samples")
+    )
     primary = primary_fragments(fragment_samples)
+
+    state.clear()
     state["fragment_samples"] = fragment_samples or [primary]
     state["fragments"] = primary
 

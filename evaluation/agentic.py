@@ -13,6 +13,7 @@ from evaluation.reporting import (
     write_run_results,
 )
 from config import cfg
+from tools.state import state
 
 
 def extract_reconstruction(result):
@@ -55,22 +56,23 @@ for i, sample in enumerate(samples, 1):
     baseline_recon = "".join(fragments[idx] for idx in baseline_order)
     baseline_metrics = compute_all(target, baseline_recon, fragments, baseline_order)
 
-    # Reconstructed: agent output
+    state.clear()
+    state["fragment_samples"] = fragment_samples
+    state["fragments"] = fragments
+
     result = agent.invoke(
         {
             "messages": [
                 (
                     "user",
-                    (
-                        f"Reconstruct the protein from these digestion samples: {fragment_samples}"
-                        if sample.get("fragment_samples")
-                        else f"Reconstruct the protein from these fragments: {fragments}"
-                    ),
+                    "Reconstruct the protein using the available fragment sample in shared state. Decide which tools are needed.",
                 )
             ]
         }
     )
     reconstruction, order = extract_reconstruction(result)
+
+    state_snapshot = dict(state)
     recon_metrics = compute_all(target, reconstruction, fragments, order)
 
     for k in METRIC_NAMES:
@@ -84,10 +86,21 @@ for i, sample in enumerate(samples, 1):
         "order": order,
         "baseline_metrics": baseline_metrics,
         "recon_metrics": recon_metrics,
-        "num_pruned": None,
-        "total_junctions": None,
-        "pruned_pct": None,
-        "graph": None,
+        "num_pruned": len(state_snapshot.get("impossible_junctions", [])),
+        "total_junctions": len(fragments) * (len(fragments) - 1),
+        "pruned_pct": (
+            len(state_snapshot.get("impossible_junctions", []))
+            / (len(fragments) * (len(fragments) - 1))
+            * 100
+            if len(fragments) > 1
+            else 0.0
+        ),
+        "graph": {
+            "num_confirmed_adjacencies": len(
+                state_snapshot.get("confirmed_adjacencies", [])
+            ),
+            "unscored_junctions": state_snapshot.get("unscored_junctions", []),
+        },
     }
     sample_reports.append(sample_report)
     print_sample_result(i, sample_report)

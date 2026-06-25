@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from openai import AuthenticationError
 from agents.react_agent import build_agent
 from config import cfg
+from tools.state import state
 
 load_dotenv(override=True)
 
@@ -110,6 +111,10 @@ def main():
         cfg["data"]["active_target_key"], sample.get("target_reconstruction")
     )
 
+    state.clear()
+    state["fragment_samples"] = fragment_samples or [fragments]
+    state["fragments"] = fragments
+
     if fragment_samples:
         print(
             f"\n{BOLD}  Input: {len(fragment_samples)} digestion sample(s), {len(fragments)} unique fragments{RESET}"
@@ -129,11 +134,7 @@ def main():
                 "messages": [
                     (
                         "user",
-                        (
-                            f"Reconstruct the protein from these digestion samples: {fragment_samples}"
-                            if fragment_samples
-                            else f"Reconstruct the protein from these fragments: {fragments}"
-                        ),
+                        "Reconstruct the protein using the available fragment sample in shared state. Decide which tools are needed.",
                     )
                 ]
             },
