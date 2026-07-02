@@ -9,19 +9,28 @@ def format_sequence(seq, is_prot):
     return " ".join(list(seq)) if is_prot else seq
 
 
-def score_junctions(fragments, unscored_pairs=None, confirmed_junctions=None):
+def score_junctions(
+    fragments,
+    unscored_pairs=None,
+    confirmed_junctions=None,
+    window=None,
+):
     model_type = cfg["mlm_model"]["type"]
     batch_size = cfg["mlm_model"]["batch_size"]
     max_length = cfg["mlm_model"]["max_length"]
-    window = cfg["mlm_model"].get("junction_window", 3)
+    window = (
+        cfg["mlm_model"].get("junction_window", 3) if window is None else int(window)
+    )
 
     if model_type == "prot":
-        from models.prot import mlm, tokeniser
+        from models.prot import mlm, reset_cache, tokeniser
 
+        reset_cache(mlm)
         is_prot = True
     elif model_type == "esm":
-        from models.esm import mlm, tokeniser
+        from models.esm import mlm, model_lock, reset_cache, tokeniser
 
+        reset_cache(mlm)
         is_prot = False
 
     n = len(fragments)
@@ -52,30 +61,33 @@ def score_junctions(fragments, unscored_pairs=None, confirmed_junctions=None):
             entry_pair.append((i, j))
 
     all_scores = []
-    for start in tqdm(range(0, len(inputs), batch_size), desc="Scoring Junctions"):
-        end = min(start + batch_size, len(inputs))
-        batch_inputs = tokeniser(
-            inputs[start:end],
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=max_length,
-        )
-        batch_inputs = {k: v.to(cfg["misc"]["device"]) for k, v in batch_inputs.items()}
-        with torch.no_grad():
-            logits = mlm(**batch_inputs).logits
-        for k in range(end - start):
-            mask_positions = (
-                batch_inputs["input_ids"][k] == tokeniser.mask_token_id
-            ).nonzero(as_tuple=False)
-            if len(mask_positions) == 0:
-                # Truncated past the mask — treat as no-information.
-                all_scores.append(0.0)
-                continue
-            mask_idx = mask_positions[0, 0]
-            target_id = tokeniser.convert_tokens_to_ids(targets[start + k])
-            score = F.log_softmax(logits[k, mask_idx], dim=-1)[target_id].item()
-            all_scores.append(score)
+    with model_lock:
+        for start in tqdm(range(0, len(inputs), batch_size), desc="Scoring Junctions"):
+            end = min(start + batch_size, len(inputs))
+            batch_inputs = tokeniser(
+                inputs[start:end],
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=max_length,
+            )
+            batch_inputs = {
+                k: v.to(cfg["misc"]["device"]) for k, v in batch_inputs.items()
+            }
+            with torch.no_grad():
+                logits = mlm(**batch_inputs).logits
+            for k in range(end - start):
+                mask_positions = (
+                    batch_inputs["input_ids"][k] == tokeniser.mask_token_id
+                ).nonzero(as_tuple=False)
+                if len(mask_positions) == 0:
+                    # Truncated past the mask — treat as no-information.
+                    all_scores.append(0.0)
+                    continue
+                mask_idx = mask_positions[0, 0]
+                target_id = tokeniser.convert_tokens_to_ids(targets[start + k])
+                score = F.log_softmax(logits[k, mask_idx], dim=-1)[target_id].item()
+                all_scores.append(score)
 
     mat = torch.zeros(n, n)
     counts = torch.zeros(n, n)

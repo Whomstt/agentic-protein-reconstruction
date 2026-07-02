@@ -8,9 +8,9 @@ model_lock = Lock()
 
 
 def load_model():
-    tokeniser = EsmTokenizer.from_pretrained(cfg["mlm_model"]["name"])
+    tokeniser = EsmTokenizer.from_pretrained(cfg["validity_model"]["name"])
     mlm = EsmForMaskedLM.from_pretrained(
-        cfg["mlm_model"]["name"], low_cpu_mem_usage=False
+        cfg["validity_model"]["name"], low_cpu_mem_usage=False
     ).to(cfg["misc"]["device"])
     mlm.eval()
     return mlm, tokeniser

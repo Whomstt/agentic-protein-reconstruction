@@ -6,9 +6,12 @@ def beam_order(
     impossible_junctions=None,
     start_candidates=None,
     confirmed_successors=None,
+    beam_size=None,
+    edge_mode="hard",
+    confirmed_bonus=0.0,
 ):
     n = scores.shape[0]
-    beam_size = cfg["mlm_model"]["beam_size"]
+    beam_size = cfg["mlm_model"]["beam_size"] if beam_size is None else beam_size
     impossible = impossible_junctions or set()
     confirmed_successors = confirmed_successors or {}
 
@@ -23,13 +26,18 @@ def beam_order(
             last = order[-1]
             row = scores[last]
             allowed = confirmed_successors.get(last)
-            next_indices = allowed if allowed else range(n)
+            if edge_mode == "hard":
+                next_indices = allowed if allowed else range(n)
+            else:
+                next_indices = range(n)
             for nxt in next_indices:
                 if nxt in used:
                     continue
                 if (last, nxt) in impossible:
                     continue
                 new_score = cum_score + row[nxt].item()
+                if edge_mode == "soft" and allowed and nxt in allowed:
+                    new_score += confirmed_bonus
                 candidates.append((new_score, order + [nxt], used | {nxt}))
 
         if not candidates:
@@ -52,7 +60,17 @@ def beam_order(
             break
         if order:
             last = order[-1]
-            nxt = max(remaining, key=lambda i: scores[last, i].item())
+            nxt = max(
+                remaining,
+                key=lambda i: scores[last, i].item()
+                + (
+                    confirmed_bonus
+                    if edge_mode == "soft"
+                    and confirmed_successors.get(last)
+                    and i in confirmed_successors[last]
+                    else 0.0
+                ),
+            )
         else:
             nxt = remaining[0]
         order.append(nxt)

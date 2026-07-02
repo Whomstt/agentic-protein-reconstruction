@@ -1,77 +1,19 @@
 import json
 import os
 
-from dotenv import load_dotenv
-from openai import AuthenticationError
+from agents.iterative_runner import run_iterative_reconstruction
 from agents.react_agent import build_agent
 from config import cfg
-from tools.state import state
+from dotenv import load_dotenv
+from openai import AuthenticationError
 
 load_dotenv(override=True)
 
 DIM = "\033[2m"
 BOLD = "\033[1m"
-CYAN = "\033[36m"
 GREEN = "\033[32m"
 YELLOW = "\033[33m"
 RESET = "\033[0m"
-
-TOOL_ICONS = {
-    "overlap_graph": "🕸",
-    "trypsin_filter": "🔬",
-    "junction_scorer": "🧬",
-    "beam_search": "🔍",
-}
-
-
-def fmt_tool_result(name, content):
-    """Summarize tool output concisely."""
-    try:
-        data = json.loads(content) if isinstance(content, str) else content
-    except (json.JSONDecodeError, TypeError):
-        return str(content)
-
-    if name == "trypsin_filter":
-        return data.get("message", str(data))
-    elif name == "overlap_graph":
-        return data.get("message", str(data))
-    elif name == "junction_scorer":
-        n = data.get("num_fragments", "?")
-        return f"{n}x{n} junction score matrix computed"
-    elif name == "beam_search":
-        order = data.get("order", [])
-        seq = data.get("reconstruction", "")
-        return f"Order: {order} ({len(seq)} residues)"
-    return str(data)
-
-
-def print_event(event):
-    if "agent" in event:
-        for msg in event["agent"].get("messages", []):
-            # Agent thinking / reasoning
-            if hasattr(msg, "content") and msg.content:
-                print(f"\n  {YELLOW}💭 {msg.content}{RESET}")
-
-            # Tool calls
-            if hasattr(msg, "tool_calls") and msg.tool_calls:
-                for tc in msg.tool_calls:
-                    name = tc["name"]
-                    icon = TOOL_ICONS.get(name, "⚙")
-                    args = tc.get("args", {})
-                    if args and "fragments" in args:
-                        arg_str = f"[{len(args['fragments'])} fragments]"
-                    elif args:
-                        arg_str = ", ".join(f"{k}={v}" for k, v in args.items())
-                    else:
-                        arg_str = ""
-                    print(f"  {CYAN}{icon} {BOLD}{name}{RESET}{CYAN}({arg_str}){RESET}")
-
-    if "tools" in event:
-        for msg in event["tools"].get("messages", []):
-            name = msg.name if hasattr(msg, "name") else "tool"
-            content = msg.content if hasattr(msg, "content") else str(msg)
-            summary = fmt_tool_result(name, content)
-            print(f"  {GREEN}   ✓ {summary}{RESET}")
 
 
 def main():
@@ -111,10 +53,6 @@ def main():
         cfg["data"]["active_target_key"], sample.get("target_reconstruction")
     )
 
-    state.clear()
-    state["fragment_samples"] = fragment_samples or [fragments]
-    state["fragments"] = fragments
-
     if fragment_samples:
         print(
             f"\n{BOLD}  Input: {len(fragment_samples)} digestion sample(s), {len(fragments)} unique fragments{RESET}"
@@ -125,41 +63,27 @@ def main():
         preview = frag[:30] + "..." if len(frag) > 30 else frag
         print(f"{DIM}  [{i}] {preview} ({len(frag)} aa){RESET}")
 
-    print(f"\n{'─' * 60}")
-
-    reconstruction = None
     try:
-        for event in agent.stream(
-            {
-                "messages": [
-                    (
-                        "user",
-                        "Reconstruct the protein using the available fragment sample in shared state. Decide which tools are needed.",
-                    )
-                ]
-            },
-            stream_mode="updates",
-        ):
-            print_event(event)
-
-            if "tools" in event:
-                for msg in event["tools"].get("messages", []):
-                    if hasattr(msg, "name") and msg.name == "beam_search":
-                        content = msg.content if hasattr(msg, "content") else str(msg)
-                        try:
-                            data = (
-                                json.loads(content)
-                                if isinstance(content, str)
-                                else content
-                            )
-                            reconstruction = data.get("reconstruction", "")
-                        except (json.JSONDecodeError, TypeError):
-                            pass
+        run_result = run_iterative_reconstruction(agent, fragments, fragment_samples)
     except AuthenticationError:
         print(
             f"\n{YELLOW}OpenAI rejected the API key during the agent run. Update OPENAI_API_KEY and try again.{RESET}"
         )
         return
+
+    best_record = run_result.get("best_record", {})
+    iteration_history = run_result.get("iteration_history", [])
+    reconstruction = best_record.get("reconstruction", "")
+    validity_score = best_record.get("validity_score")
+
+    print(f"\n{'─' * 60}")
+    print(f"{BOLD}  Iterations{RESET}")
+    print(f"{'─' * 60}")
+    for record in iteration_history:
+        score = record.get("validity_score")
+        summary = record.get("strategy_summary", "")
+        score_text = f"{score:.4f}" if isinstance(score, (int, float)) else "n/a"
+        print(f"  Iteration {record['iteration']}: score={score_text} | {summary}")
 
     print(f"\n{'═' * 60}")
     print(f"{BOLD}  Result{RESET}")
@@ -176,6 +100,8 @@ def main():
         print(
             f"  Reconstructed: {DIM}{reconstruction[:70]}{'...' if len(reconstruction) > 70 else ''}{RESET}"
         )
+        if isinstance(validity_score, (int, float)):
+            print(f"  Validity score: {DIM}{validity_score:.4f}{RESET}")
         print(f"  {status}")
     else:
         print(f"  {YELLOW}No reconstruction produced{RESET}")

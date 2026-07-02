@@ -10,6 +10,11 @@ mlm_model:
   beam_size: 100  # beam size for scoring junctions
   junction_window: 1 # number of residues masked at the start of the next fragment when scoring a junction (1 = legacy single-residue)
 
+validity_model:
+  name: "facebook/esm2_t6_8M_UR50D" # ESM-2 model used for pseudo-perplexity validity scoring
+  batch_size: 32 # batch size for masked-position scoring
+  max_length: 1024 # maximum sequence length used for validity scoring
+
 folding_model:
   type: "esm"
   name: "facebook/esmfold_v1" # facebook/esmfold_v1
@@ -18,11 +23,16 @@ llm_model:
   name: "gpt-5.4-mini" # the brain of the reasoning agent
   temperature: 0.0 # temperature for the LLM
 
+search:
+  max_iterations: 4 # fixed number of agentic refinement rounds
+  validity_threshold: 12.0 # pseudo-perplexity threshold for an acceptable reconstruction
+  beam_width_step: 25 # beam width adjustment step when the agent changes its search strategy
+
 data: # Note: must rerun data processing steps if any of these parameters are changed
   organism: "ecoli" # select the active dataset to evaluate: ecoli, yeast, or mixture
   test_ratio: 0.2 # ratio of data to hold out for testing (0.2 means 20% test, 80% train)
-  test_samples: 100 # number of protein records to evaluate in sequential/agentic runs
-  sample_count: 100 # number of digestion samples to generate per protein during preprocessing (rerun preprocessing if changed)
+  test_samples: 5 # number of protein records to evaluate in sequential/agentic runs
+  replica_count: 5 # number of digestion replicas to generate per protein during preprocessing (rerun preprocessing if changed)
   missed_cleavage_ratio: 0.3 # base missed-cleavage ratio; K sites are sampled at 1.5x this rate
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
   raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"

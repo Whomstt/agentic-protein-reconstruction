@@ -1,6 +1,8 @@
 import json
 import random
+
 from agents.react_agent import build_agent
+from agents.iterative_runner import run_iterative_reconstruction
 from evaluation.metrics import (
     METRIC_NAMES,
     compute_all,
@@ -13,19 +15,6 @@ from evaluation.reporting import (
     write_run_results,
 )
 from config import cfg
-from tools.state import state
-
-
-def extract_reconstruction(result):
-    """Extract reconstruction and order from the agent's final tool call."""
-    for msg in reversed(result["messages"]):
-        if hasattr(msg, "name") and msg.name == "beam_search":
-            content = (
-                json.loads(msg.content) if isinstance(msg.content, str) else msg.content
-            )
-            return content["reconstruction"], content["order"]
-    return result["messages"][-1].content, []
-
 
 test_path = cfg["data"]["active_test_split"]
 test_samples = cfg["data"].get("test_samples")
@@ -56,23 +45,11 @@ for i, sample in enumerate(samples, 1):
     baseline_recon = "".join(fragments[idx] for idx in baseline_order)
     baseline_metrics = compute_all(target, baseline_recon, fragments, baseline_order)
 
-    state.clear()
-    state["fragment_samples"] = fragment_samples
-    state["fragments"] = fragments
-
-    result = agent.invoke(
-        {
-            "messages": [
-                (
-                    "user",
-                    "Reconstruct the protein using the available fragment sample in shared state. Decide which tools are needed.",
-                )
-            ]
-        }
-    )
-    reconstruction, order = extract_reconstruction(result)
-
-    state_snapshot = dict(state)
+    run_result = run_iterative_reconstruction(agent, fragments, fragment_samples)
+    state_snapshot = run_result["state"]
+    best_record = run_result.get("best_record", {})
+    reconstruction = best_record.get("reconstruction", "")
+    order = best_record.get("order", [])
     recon_metrics = compute_all(target, reconstruction, fragments, order)
 
     for k in METRIC_NAMES:
@@ -86,6 +63,9 @@ for i, sample in enumerate(samples, 1):
         "order": order,
         "baseline_metrics": baseline_metrics,
         "recon_metrics": recon_metrics,
+        "best_iteration": best_record.get("iteration"),
+        "best_validity_score": best_record.get("validity_score"),
+        "iteration_history": run_result.get("iteration_history", []),
         "num_pruned": len(state_snapshot.get("impossible_junctions", [])),
         "total_junctions": len(fragments) * (len(fragments) - 1),
         "pruned_pct": (

@@ -1,11 +1,19 @@
-# Import necessary libraries
 from transformers import BertForMaskedLM, BertTokenizer
+
 from config import cfg
 
 
-# Load the pretrained ProtBERT MLM model
-tokeniser = BertTokenizer.from_pretrained(cfg["mlm_model"]["name"])
-mlm = BertForMaskedLM.from_pretrained(cfg["mlm_model"]["name"]).to(
-    cfg["misc"]["device"]
-)
-mlm.eval()  # evaluation mode
+def load_model():
+    tokeniser = BertTokenizer.from_pretrained(cfg["mlm_model"]["name"])
+    mlm = BertForMaskedLM.from_pretrained(
+        cfg["mlm_model"]["name"], low_cpu_mem_usage=False
+    ).to(cfg["misc"]["device"])
+    mlm.eval()
+    return mlm, tokeniser
+
+
+mlm, tokeniser = load_model()
+
+
+def reset_cache(model=mlm):
+    return None

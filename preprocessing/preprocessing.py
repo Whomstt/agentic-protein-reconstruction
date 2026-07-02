@@ -142,11 +142,12 @@ def run_fragment() -> None:
 
     random.seed(cfg["misc"]["seed"])
     missed_cleavage_ratio = cfg["data"]["missed_cleavage_ratio"]
-    sample_count = cfg["data"].get("sample_count", 1)
+    replica_count = cfg["data"].get("replica_count", cfg["data"].get("sample_count", 1))
 
     def generate_fragment_samples(sequence: str) -> list[list[str]]:
         return [
-            trypsin_digest(sequence, missed_cleavage_ratio) for _ in range(sample_count)
+            trypsin_digest(sequence, missed_cleavage_ratio)
+            for _ in range(replica_count)
         ]
 
     def flatten_unique(samples: list[list[str]]) -> list[str]:
@@ -177,7 +178,7 @@ def run_fragment() -> None:
                     "fragments": mixed_fragments,
                     "fragment_samples": mixed_samples,
                     "num_fragments": len(mixed_fragments),
-                    "sample_count": sample_count,
+                    "replica_count": replica_count,
                     "missed_cleavage_ratio": missed_cleavage_ratio,
                 }
             )
@@ -193,7 +194,7 @@ def run_fragment() -> None:
                     "fragments": fragments,
                     "fragment_samples": fragment_samples,
                     "num_fragments": len(fragments),
-                    "sample_count": sample_count,
+                    "replica_count": replica_count,
                     "missed_cleavage_ratio": missed_cleavage_ratio,
                 }
             )

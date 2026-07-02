@@ -23,16 +23,28 @@ def build_config_snapshot(cfg: dict) -> dict:
             "beam_size": cfg["mlm_model"].get("beam_size"),
             "junction_window": cfg["mlm_model"].get("junction_window"),
         },
+        "validity_model": {
+            "name": cfg.get("validity_model", {}).get("name"),
+            "batch_size": cfg.get("validity_model", {}).get("batch_size"),
+            "max_length": cfg.get("validity_model", {}).get("max_length"),
+        },
         "llm_model": {
             "name": cfg["llm_model"].get("name"),
             "temperature": cfg["llm_model"].get("temperature"),
+        },
+        "search": {
+            "max_iterations": cfg.get("search", {}).get("max_iterations"),
+            "validity_threshold": cfg.get("search", {}).get("validity_threshold"),
+            "beam_width_step": cfg.get("search", {}).get("beam_width_step"),
         },
         "data": {
             "organism": cfg["data"].get("organism"),
             "organism_display_name": cfg["data"].get("organism_display_name"),
             "test_ratio": cfg["data"].get("test_ratio"),
             "test_samples": cfg["data"].get("test_samples"),
-            "sample_count": cfg["data"].get("sample_count"),
+            "replica_count": cfg["data"].get(
+                "replica_count", cfg["data"].get("sample_count")
+            ),
             "missed_cleavage_ratio": cfg["data"].get("missed_cleavage_ratio"),
             "active_test_split": cfg["data"].get("active_test_split"),
             "active_fragmented_split": cfg["data"].get("active_fragmented_split"),
@@ -71,7 +83,7 @@ def _format_config_rows(config: dict) -> list[list[str]]:
         ],
         ["Test Ratio", str(config["data"]["test_ratio"])],
         ["Test Samples", str(config["data"]["test_samples"])],
-        ["Sample Count", str(config["data"]["sample_count"])],
+        ["Replica Count", str(config["data"]["replica_count"])],
         ["Missed Cleavage Ratio", str(config["data"]["missed_cleavage_ratio"])],
         ["MLM Model", str(config["mlm_model"]["name"])],
         ["MLM Type", str(config["mlm_model"]["type"])],
@@ -79,6 +91,13 @@ def _format_config_rows(config: dict) -> list[list[str]]:
         ["MLM Max Length", str(config["mlm_model"]["max_length"])],
         ["Beam Size", str(config["mlm_model"]["beam_size"])],
         ["Junction Window", str(config["mlm_model"]["junction_window"])],
+        ["Validity Model", str(config.get("validity_model", {}).get("name"))],
+        ["Max Iterations", str(config.get("search", {}).get("max_iterations"))],
+        [
+            "Validity Threshold",
+            str(config.get("search", {}).get("validity_threshold")),
+        ],
+        ["Beam Width Step", str(config.get("search", {}).get("beam_width_step"))],
         ["LLM Model", str(config["llm_model"]["name"])],
         ["LLM Temperature", str(config["llm_model"]["temperature"])],
     ]
@@ -120,7 +139,7 @@ def print_run_header(title: str, config_snapshot: dict) -> None:
     )
     print(f"  Test Ratio: {config_snapshot['data']['test_ratio']}")
     print(f"  Test Samples: {config_snapshot['data']['test_samples']}")
-    print(f"  Sample Count: {config_snapshot['data']['sample_count']}")
+    print(f"  Replica Count: {config_snapshot['data']['replica_count']}")
     print(
         f"  Missed Cleavage Ratio: {config_snapshot['data']['missed_cleavage_ratio']}"
     )
@@ -130,6 +149,10 @@ def print_run_header(title: str, config_snapshot: dict) -> None:
     print(f"  MLM Max Length: {config_snapshot['mlm_model']['max_length']}")
     print(f"  Beam Size: {config_snapshot['mlm_model']['beam_size']}")
     print(f"  Junction Window: {config_snapshot['mlm_model']['junction_window']}")
+    print(f"  Validity Model: {config_snapshot['validity_model']['name']}")
+    print(f"  Max Iterations: {config_snapshot['search']['max_iterations']}")
+    print(f"  Validity Threshold: {config_snapshot['search']['validity_threshold']}")
+    print(f"  Beam Width Step: {config_snapshot['search']['beam_width_step']}")
     print(f"  LLM Model: {config_snapshot['llm_model']['name']}")
     print()
 
@@ -139,6 +162,10 @@ def print_sample_result(index: int, sample_report: dict) -> None:
     print("-" * 7)
     print(f"  Target:         {sample_report['target']}")
     print(f"  Reconstruction: {sample_report['reconstruction']}")
+    if sample_report.get("best_iteration") is not None:
+        score = sample_report.get("best_validity_score")
+        score_text = f"{score:.4f}" if isinstance(score, (int, float)) else "n/a"
+        print(f"  Best iteration:  {sample_report['best_iteration']} ({score_text})")
     print(f"  Shuffled order:  {sample_report['baseline_order']}")
     print(f"  Reconstructed:   {sample_report['order']}")
     if sample_report.get("num_pruned") is not None:
