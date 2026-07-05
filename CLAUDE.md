@@ -22,6 +22,16 @@ agents/react_agent.py  →  LangGraph ReAct agent (GPT-5.4-mini)
 
 The important change is that the agent no longer does one pass and stops. It runs for up to `search.max_iterations` rounds, and each round is supposed to try a materially different strategy based on why the previous candidate was weak.
 
+The finalized agent control surface is limited to five levers only:
+
+- junction masking window via `junction_scorer(window=...)` or `beam_search(window=...)`
+- search mode via `beam_search(search_mode="beam"|"greedy")`
+- beam width via `beam_search(beam_width=...)`
+- edge mode via `beam_search(edge_mode="hard"|"soft")`
+- confirmed-edge bonus via `beam_search(confirmed_bonus=...)`
+
+All other experiment controls are fixed and off-limits to the agent, including `search.validity_threshold`, `search.max_iterations`, PLM/model choice, `max_length`, `batch_size`, and replica selection.
+
 ## System Layers
 
 - `tools/` — LangChain `@tool` wrappers. They are thin adapters around the algorithms and store run-time artifacts in `tools/state.py`.
@@ -34,10 +44,13 @@ The important change is that the agent no longer does one pass and stops. It run
 Each iteration builds a prompt that explicitly tells the LLM to:
 
 - explain why the previous attempt likely failed,
-- choose a different tactic, not just a bigger beam,
+- choose a different tactic using only the five levers above,
+- use targeted junction rescoring when only a few pairs need fresh scores,
 - run the needed tools for a fresh candidate,
 - call `validity_scorer` on the candidate, and
 - stop early only if the validity score is at or below `search.validity_threshold`.
+
+Per-iteration results now record `lever_values` and `changed_levers` so runs remain auditable after the fact.
 
 The shared state records:
 
@@ -78,7 +91,7 @@ The shared state records:
 
   Scores ordered fragment pairs with a masked language model. The first `W` residues of the successor fragment are masked one at a time and averaged, where `W` defaults to `cfg["mlm_model"]["junction_window"]`.
 
-  The LLM can intentionally vary the window to probe a different local context. The tool stores the resulting score matrix in shared state.
+  The LLM can intentionally vary the window to probe a different local context. The tool can also accept a targeted subset of junction pairs to rescore and merges those results into the existing score matrix in shared state.
 
 4. `beam_search(search_mode="beam", beam_width=None, edge_mode="hard", confirmed_bonus=0.0, window=None)`
 
@@ -87,7 +100,7 @@ The shared state records:
   Supported strategy variations:
 
   - `search_mode="beam"` or `"greedy"`
-  - custom `beam_width`
+  - arbitrary `beam_width`
   - `edge_mode="hard"` or `"soft"`
   - `confirmed_bonus` for soft-rewarding overlap-confirmed edges
   - `window` to deliberately rescore junctions with a different masking window

@@ -241,6 +241,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
             "## Quick Read",
             "- Higher is better for all metrics except normalized edit distance.",
             "- A positive delta means the reconstruction improved over the shuffled baseline.",
+            "- Each entry in samples.jsonl includes iteration_history with per-iteration lever_values and changed_levers for auditability.",
             "- Use this report for side-by-side benchmarking; the raw per-sample data is in `samples.jsonl`.",
         ]
     )

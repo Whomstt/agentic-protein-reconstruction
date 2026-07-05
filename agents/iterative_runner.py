@@ -15,6 +15,22 @@ TOOL_NAMES = {
     "validity_scorer",
 }
 
+LEVER_KEYS = (
+    "junction_window",
+    "search_mode",
+    "beam_width",
+    "edge_mode",
+    "confirmed_bonus",
+)
+
+DEFAULT_LEVER_VALUES = {
+    "junction_window": cfg["mlm_model"].get("junction_window", 3),
+    "search_mode": "beam",
+    "beam_width": cfg["mlm_model"].get("beam_size"),
+    "edge_mode": "hard",
+    "confirmed_bonus": 0.0,
+}
+
 
 def _parse_content(content):
     if isinstance(content, (dict, list, int, float)):
@@ -45,6 +61,9 @@ def _strategy_summary(tool_summary: dict) -> str:
         window = tool_summary["junction_scorer"].get("window")
         if window is not None:
             pieces.append(f"junction_window={window}")
+        junction_pairs = tool_summary["junction_scorer"].get("junction_pairs")
+        if junction_pairs:
+            pieces.append(f"rescored_pairs={len(junction_pairs)}")
     if "beam_search" in tool_summary:
         beam_args = tool_summary["beam_search"]
         mode = beam_args.get("search_mode")
@@ -64,15 +83,64 @@ def _strategy_summary(tool_summary: dict) -> str:
     return ", ".join(pieces)
 
 
+def _effective_lever_values(tool_summary: dict, previous_values: dict | None) -> dict:
+    lever_values = dict(previous_values or DEFAULT_LEVER_VALUES)
+
+    junction_args = tool_summary.get("junction_scorer", {})
+    if junction_args:
+        window = junction_args.get("window")
+        if window is None:
+            window = DEFAULT_LEVER_VALUES["junction_window"]
+        lever_values["junction_window"] = window
+
+    beam_args = tool_summary.get("beam_search", {})
+    if beam_args:
+        window = beam_args.get("window")
+        if window is not None:
+            lever_values["junction_window"] = window
+        search_mode = beam_args.get("search_mode")
+        if search_mode is None:
+            search_mode = DEFAULT_LEVER_VALUES["search_mode"]
+        lever_values["search_mode"] = search_mode
+
+        beam_width = beam_args.get("beam_width")
+        if beam_width is None:
+            beam_width = DEFAULT_LEVER_VALUES["beam_width"]
+        lever_values["beam_width"] = beam_width
+
+        edge_mode = beam_args.get("edge_mode")
+        if edge_mode is None:
+            edge_mode = DEFAULT_LEVER_VALUES["edge_mode"]
+        lever_values["edge_mode"] = edge_mode
+
+        confirmed_bonus = beam_args.get("confirmed_bonus")
+        if confirmed_bonus is None:
+            confirmed_bonus = DEFAULT_LEVER_VALUES["confirmed_bonus"]
+        lever_values["confirmed_bonus"] = confirmed_bonus
+
+    return lever_values
+
+
+def _changed_levers(previous_values: dict | None, current_values: dict) -> dict:
+    previous_values = previous_values or {}
+    return {
+        key: current_values[key]
+        for key in LEVER_KEYS
+        if previous_values.get(key) != current_values.get(key)
+    }
+
+
 def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str:
     threshold = cfg["search"]["validity_threshold"]
     max_iterations = cfg["search"]["max_iterations"]
-    beam_step = cfg["search"]["beam_width_step"]
 
     if previous_record is None:
         return (
             f"Iteration {iteration}/{max_iterations}. Build an initial reconstruction hypothesis from the shared fragment sample. "
             "Use the smallest useful set of tools, but make sure you produce a candidate reconstruction and then run validity_scorer on it. "
+            "The only controllable strategy levers are junction masking window, search mode, beam width, edge mode, and confirmed-edge bonus. "
+            "Use junction_scorer(window=...) or beam_search(window=...) to change the masking window, beam_search(search_mode='beam'|'greedy') to change search mode, beam_search(beam_width=...) to choose any beam width, beam_search(edge_mode='hard'|'soft') to switch overlap handling, and beam_search(confirmed_bonus=...) to soften confirmed edges. "
+            "If junction scores look weak, rescore a targeted subset of pairs rather than recomputing everything. "
             f"The validity target is pseudo-perplexity <= {threshold}. "
             "If the first candidate looks weak, use a different tactic on the next iteration rather than repeating the same setup."
         )
@@ -87,8 +155,12 @@ def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str
     return (
         f"Iteration {iteration}/{max_iterations}. The previous attempt scored {previous_score:.4f} pseudo-perplexity, which is above the target of {threshold}. "
         f"Previous strategy: {previous_strategy}. Previous reconstruction preview: {preview}. "
-        f"Explain briefly why that attempt likely failed, then choose a materially different tactic this round. Do not simply increase beam width; change the reasoning path. "
-        f"Useful moves include rerunning junction_scorer with a different window, switching beam_search to greedy, increasing or decreasing beam_width by {beam_step}, or softening confirmed overlap edges with edge_mode='soft'. "
+        "Explain briefly why that attempt likely failed, then choose a materially different tactic this round. "
+        "Use only these five levers: junction masking window, search mode, beam width, edge mode, and confirmed-edge bonus. "
+        "If junction scores look weak, change the masking window or rescore just the suspect junction pairs. "
+        "If the search cut off early or collapsed to a partial path, change search_mode or choose a different beam_width. "
+        "If the overlap graph and MLM disagree, switch edge_mode or adjust confirmed_bonus. "
+        "Do not simply increase beam width or repeat the same setup. "
         "After the new candidate reconstruction, call validity_scorer again."
     )
 
@@ -134,6 +206,7 @@ def _extract_record(result: dict, iteration: int, prompt: str) -> dict:
         "prompt": prompt,
         "strategy": tool_summary,
         "strategy_summary": strategy_summary,
+        "lever_values": _effective_lever_values(tool_summary, None),
         "reconstruction": reconstruction,
         "order": order,
         "validity_score": validity_score,
@@ -152,6 +225,7 @@ def run_iterative_reconstruction(agent, fragments, fragment_samples=None) -> dic
     history = []
     best_record = None
     previous_record = None
+    previous_levers = None
     max_iterations = cfg["search"]["max_iterations"]
     threshold = cfg["search"]["validity_threshold"]
 
@@ -159,8 +233,15 @@ def run_iterative_reconstruction(agent, fragments, fragment_samples=None) -> dic
         prompt = _build_iteration_prompt(iteration, previous_record)
         result = agent.invoke({"messages": [("user", prompt)]})
         record = _extract_record(result, iteration, prompt)
+        record["lever_values"] = _effective_lever_values(
+            record["strategy"], previous_levers
+        )
+        record["changed_levers"] = _changed_levers(
+            previous_levers, record["lever_values"]
+        )
         history.append(record)
         state["iteration_history"] = history
+        previous_levers = record["lever_values"]
 
         if (
             best_record is None

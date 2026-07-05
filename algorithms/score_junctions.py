@@ -14,6 +14,8 @@ def score_junctions(
     unscored_pairs=None,
     confirmed_junctions=None,
     window=None,
+    junction_pairs=None,
+    existing_scores=None,
 ):
     model_type = cfg["mlm_model"]["type"]
     batch_size = cfg["mlm_model"]["batch_size"]
@@ -21,6 +23,17 @@ def score_junctions(
     window = (
         cfg["mlm_model"].get("junction_window", 3) if window is None else int(window)
     )
+
+    def _normalize_pairs(pairs):
+        if not pairs:
+            return set()
+        normalized = set()
+        for pair in pairs:
+            if len(pair) != 2:
+                continue
+            i, j = pair
+            normalized.add((int(i), int(j)))
+        return normalized
 
     if model_type == "prot":
         from models.prot import mlm, reset_cache, tokeniser
@@ -35,7 +48,10 @@ def score_junctions(
 
     n = len(fragments)
     all_pairs = list(itertools.permutations(range(n), 2))
-    if unscored_pairs is not None:
+    if junction_pairs is not None and existing_scores is not None:
+        pair_filter = _normalize_pairs(junction_pairs)
+        pairs = [pair for pair in all_pairs if pair in pair_filter]
+    elif unscored_pairs is not None:
         pairs = [pair for pair in all_pairs if pair in set(unscored_pairs)]
     else:
         pairs = all_pairs
@@ -89,13 +105,15 @@ def score_junctions(
                 score = F.log_softmax(logits[k, mask_idx], dim=-1)[target_id].item()
                 all_scores.append(score)
 
-    mat = torch.zeros(n, n)
-    counts = torch.zeros(n, n)
+    mat = existing_scores.clone() if existing_scores is not None else torch.zeros(n, n)
+    pair_scores = {}
+    pair_counts = {}
     for idx, (i, j) in enumerate(entry_pair):
-        mat[i, j] += all_scores[idx]
-        counts[i, j] += 1
-    counts = counts.clamp(min=1)
-    mat = mat / counts  # average log-prob per masked position
+        pair_scores[(i, j)] = pair_scores.get((i, j), 0.0) + all_scores[idx]
+        pair_counts[(i, j)] = pair_counts.get((i, j), 0) + 1
+
+    for (i, j), score_sum in pair_scores.items():
+        mat[i, j] = score_sum / pair_counts[(i, j)]
 
     if confirmed_junctions:
         for i, j in confirmed_junctions:

@@ -4,6 +4,7 @@ from algorithms.greedy_order import greedy_order
 from algorithms.overlap_graph import build_overlap_graph
 from algorithms.score_junctions import score_junctions
 from algorithms.trypsin_filter import trypsin_filter as _trypsin_filter
+from config import cfg
 from tools.state import state
 
 
@@ -47,16 +48,19 @@ def beam_search(
         window is not None and state.get("junction_window") != window
     )
     if needs_rescore:
+        effective_window = (
+            cfg["mlm_model"].get("junction_window", 3)
+            if window is None
+            else int(window)
+        )
         scores = score_junctions(
             fragments,
             unscored_pairs=state.get("unscored_junctions"),
             confirmed_junctions=state.get("confirmed_junctions"),
-            window=window,
+            window=effective_window,
         )
         state["scores"] = scores
-        state["junction_window"] = (
-            window if window is not None else state.get("junction_window")
-        )
+        state["junction_window"] = effective_window
 
     if search_mode == "greedy":
         order = greedy_order(
