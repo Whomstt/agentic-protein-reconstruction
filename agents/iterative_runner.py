@@ -169,8 +169,37 @@ def _extract_record(result: dict, iteration: int, prompt: str) -> dict:
     messages = result.get("messages", [])
     tool_calls = []
     tool_results = {}
+    reasoning_steps = []
 
     for message in messages:
+        msg_type = getattr(message, "type", None)
+
+        if msg_type == "ai":
+            text = getattr(message, "content", None)
+            if isinstance(text, str) and text.strip():
+                reasoning_steps.append(text.strip())
+            calls_for_step = [
+                {"name": c.get("name"), "args": c.get("args", {})}
+                for c in (getattr(message, "tool_calls", None) or [])
+                if c.get("name") in TOOL_NAMES
+            ]
+            if calls_for_step:
+                reasoning_steps.append({"tool_calls": calls_for_step})
+
+        if msg_type == "tool":
+            name = getattr(message, "name", None)
+            if name in TOOL_NAMES:
+                reasoning_steps.append(
+                    {
+                        "tool_result": {
+                            "name": name,
+                            "content": _parse_content(
+                                getattr(message, "content", None)
+                            ),
+                        }
+                    }
+                )
+
         if hasattr(message, "tool_calls") and message.tool_calls:
             tool_calls.extend(message.tool_calls)
         name = getattr(message, "name", None)
@@ -204,6 +233,7 @@ def _extract_record(result: dict, iteration: int, prompt: str) -> dict:
     return {
         "iteration": iteration,
         "prompt": prompt,
+        "reasoning_steps": reasoning_steps,
         "strategy": tool_summary,
         "strategy_summary": strategy_summary,
         "lever_values": _effective_lever_values(tool_summary, None),
@@ -213,7 +243,51 @@ def _extract_record(result: dict, iteration: int, prompt: str) -> dict:
     }
 
 
-def run_iterative_reconstruction(agent, fragments, fragment_samples=None) -> dict:
+def _stream_agent(agent, prompt: str, on_event=None) -> dict:
+    """Streams the agent's steps, optionally calling on_event(kind, payload) live,
+    and returns a {"messages": [...]} dict compatible with _extract_record."""
+    all_messages = []
+    for chunk in agent.stream(
+        {"messages": [("user", prompt)]},
+        stream_mode="values",
+    ):
+        messages = chunk.get("messages", [])
+        if not messages:
+            continue
+        latest = messages[-1]
+        all_messages = messages
+
+        if on_event is None:
+            continue
+
+        msg_type = getattr(latest, "type", None)
+        if msg_type == "ai":
+            text = getattr(latest, "content", None)
+            if isinstance(text, str) and text.strip():
+                on_event("thought", text.strip())
+            for call in getattr(latest, "tool_calls", None) or []:
+                if call.get("name") in TOOL_NAMES:
+                    on_event(
+                        "tool_call",
+                        {"name": call["name"], "args": call.get("args", {})},
+                    )
+        elif msg_type == "tool":
+            name = getattr(latest, "name", None)
+            if name in TOOL_NAMES:
+                on_event(
+                    "tool_result",
+                    {
+                        "name": name,
+                        "content": _parse_content(getattr(latest, "content", None)),
+                    },
+                )
+
+    return {"messages": all_messages}
+
+
+def run_iterative_reconstruction(
+    agent, fragments, fragment_samples=None, on_event=None
+) -> dict:
     state.clear()
     state["fragment_samples"] = fragment_samples or [fragments]
     state["fragments"] = fragments
@@ -231,7 +305,12 @@ def run_iterative_reconstruction(agent, fragments, fragment_samples=None) -> dic
 
     for iteration in range(1, max_iterations + 1):
         prompt = _build_iteration_prompt(iteration, previous_record)
-        result = agent.invoke({"messages": [("user", prompt)]})
+        if on_event:
+            on_event(
+                "iteration_start",
+                {"iteration": iteration, "max_iterations": max_iterations},
+            )
+        result = _stream_agent(agent, prompt, on_event=on_event)
         record = _extract_record(result, iteration, prompt)
         record["lever_values"] = _effective_lever_values(
             record["strategy"], previous_levers
@@ -253,9 +332,11 @@ def run_iterative_reconstruction(agent, fragments, fragment_samples=None) -> dic
             state["best_validity_score"] = record["validity_score"]
             state["best_order"] = record["order"]
 
+        if on_event:
+            on_event("iteration_end", record)
+
         if record["validity_score"] <= threshold:
             break
-
         previous_record = record
 
     state["iteration_history"] = history

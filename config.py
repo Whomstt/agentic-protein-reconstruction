@@ -51,4 +51,54 @@ def _configure_active_dataset(config: dict) -> None:
     config["data"]["active_target_key"] = active["target_key"]
 
 
+def _configure_model_profile(config: dict, section_name: str) -> None:
+    section = config.get(section_name, {})
+    profiles = section.get("profiles")
+    selected_profile = section.get("profile")
+
+    if not profiles:
+        return
+
+    if selected_profile not in profiles:
+        valid = ", ".join(sorted(profiles))
+        raise ValueError(
+            f"Unknown {section_name}.profile '{selected_profile}'. Expected one of: {valid}"
+        )
+
+    resolved = {key: value for key, value in section.items() if key != "profiles"}
+    profile_config = profiles[selected_profile]
+
+    for key, value in profile_config.items():
+        if key == "validity_model":
+            continue
+        resolved[key] = value
+
+    resolved["profile"] = selected_profile
+    config[section_name] = resolved
+
+    if section_name == "llm_model":
+        kind = resolved.get("kind")
+        if kind == "microsoft_foundry":
+            if "endpoint_env" not in resolved:
+                raise ValueError(
+                    f"llm_model.profile '{selected_profile}' must define endpoint_env"
+                )
+            if "token_scope" not in resolved:
+                raise ValueError(
+                    f"llm_model.profile '{selected_profile}' must define token_scope"
+                )
+
+    if section_name == "mlm_model":
+        validity_model = profile_config.get("validity_model")
+        if not validity_model:
+            raise ValueError(
+                f"mlm_model.profile '{selected_profile}' must define validity_model settings"
+            )
+        config["validity_model"] = dict(validity_model)
+
+
+_configure_model_profile(cfg, "llm_model")
+_configure_model_profile(cfg, "mlm_model")
+
+
 _configure_active_dataset(cfg)

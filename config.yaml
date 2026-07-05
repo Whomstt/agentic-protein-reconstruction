@@ -3,24 +3,49 @@ misc:
   device: "auto"
 
 mlm_model:
-  type: "esm" # prot or esm
-  name: "facebook/esm2_t6_8M_UR50D" # Rostlab/prot_bert or facebook/esm2_t6_8M_UR50D or facebook/esm2_t33_650M_UR50D
-  batch_size: 64 # batch size for scoring junctions - lower for larger models to avoid OOM errors
-  max_length: 1024 # max sequence length for the MLM model (512 for ProtBert, 1024 for ESM-2)
-  beam_size: 100  # beam size for scoring junctions
-  junction_window: 1 # number of residues masked at the start of the next fragment when scoring a junction (1 = legacy single-residue)
-
-validity_model:
-  name: "facebook/esm2_t6_8M_UR50D" # ESM-2 model used for pseudo-perplexity validity scoring
-  batch_size: 32 # batch size for masked-position scoring
-  max_length: 1024 # maximum sequence length used for validity scoring
+  profile: "esm_small" # switch this between esm_small and protbert
+  profiles:
+    esm_small:
+      type: "esm"
+      name: "facebook/esm2_t6_8M_UR50D"
+      batch_size: 64 # batch size for scoring junctions - lower for larger models to avoid OOM errors
+      max_length: 1024 # max sequence length for the MLM model
+      beam_size: 100 # beam size for scoring junctions
+      junction_window: 1 # number of residues masked at the start of the next fragment when scoring a junction
+      validity_model:
+        name: "facebook/esm2_t6_8M_UR50D" # ESM-2 model used for pseudo-perplexity validity scoring
+        batch_size: 64 # batch size for masked-position scoring
+        max_length: 1024 # maximum sequence length used for validity scoring
+    protbert:
+      type: "prot"
+      name: "Rostlab/prot_bert"
+      batch_size: 32 # ProtBert is heavier, so keep batches smaller
+      max_length: 512 # ProtBert max sequence length
+      beam_size: 100
+      junction_window: 1
+      validity_model:
+        name: "Rostlab/prot_bert"
+        batch_size: 32
+        max_length: 512
 
 folding_model:
   type: "esm"
   name: "facebook/esmfold_v1" # facebook/esmfold_v1
 
 llm_model:
-  name: "gpt-5.4-mini" # the brain of the reasoning agent
+  profile: "microsoft_foundry" # switch this between microsoft_foundry and openai_api
+  profiles:
+    openai_api:
+      kind: "openai"
+      model: "gpt-5.4-mini" # OpenAI brain of the reasoning agent
+      api_key_env: "OPENAI_API_KEY"
+    microsoft_foundry:
+      kind: "microsoft_foundry"
+      model: "gpt-5-mini" # Azure Foundry deployment name
+      endpoint_env: "AZURE_ENDPOINT"
+      api_key_env: "AZURE_API_KEY"
+      auth_mode: "auto" # auto prefers AZURE_API_KEY, otherwise uses DefaultAzureCredential
+      token_scope: "https://ai.azure.com/.default"
   temperature: 0.0 # temperature for the LLM
 
 search:

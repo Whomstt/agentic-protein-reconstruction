@@ -1,4 +1,6 @@
-from langchain_openai import ChatOpenAI
+import os
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from langchain_openai import ChatOpenAI, AzureChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from tools.trypsin_filter import trypsin_filter
 from tools.overlap_graph import overlap_graph
@@ -25,9 +27,46 @@ SYSTEM_PROMPT = (
 
 
 def build_agent():
-    llm = ChatOpenAI(
-        model=cfg["llm_model"]["name"], temperature=cfg["llm_model"]["temperature"]
-    )
+    llm_config = cfg["llm_model"]
+    api_key_env = llm_config.get("api_key_env", "OPENAI_API_KEY")
+    api_key = os.environ.get(api_key_env, "").strip()
+
+    if llm_config.get("kind") == "microsoft_foundry":
+        endpoint = os.environ.get(llm_config["endpoint_env"], "").strip()
+        # Ensure the endpoint points to the v1 path
+        if not endpoint.endswith("/openai/v1"):
+            endpoint = f"{endpoint.rstrip('/')}/openai/v1"
+
+        auth_mode = llm_config.get("auth_mode", "auto")
+        final_key = (
+            api_key
+            if (auth_mode == "api_key" or (auth_mode == "auto" and api_key))
+            else get_bearer_token_provider(
+                DefaultAzureCredential(), llm_config["token_scope"]
+            )()
+        )
+
+        # Use standard ChatOpenAI for Foundry-hosted models
+        llm = ChatOpenAI(
+            model=llm_config["model"],
+            base_url=endpoint,
+            api_key=final_key,
+            default_query={
+                "api-version": os.environ.get(
+                    "AZURE_OPENAI_API_VERSION", "2025-11-15-preview"
+                )
+            },
+            temperature=llm_config.get("temperature", 0.0),
+        )
+    else:
+        if not api_key:
+            raise ValueError(f"{api_key_env} is not set.")
+        llm = ChatOpenAI(
+            model=llm_config["model"],
+            api_key=api_key,
+            temperature=llm_config.get("temperature", 0.0),
+        )
+
     tools = [
         trypsin_filter,
         overlap_graph,
@@ -35,5 +74,4 @@ def build_agent():
         beam_search,
         validity_scorer,
     ]
-    agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)
-    return agent
+    return create_react_agent(llm, tools, prompt=SYSTEM_PROMPT)

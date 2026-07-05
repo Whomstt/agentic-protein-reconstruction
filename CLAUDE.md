@@ -11,7 +11,7 @@ main.py / evaluation/agentic.py
 agents/iterative_runner.py
       │
       ▼
-agents/react_agent.py  →  LangGraph ReAct agent (GPT-5.4-mini)
+agents/react_agent.py  →  LangGraph ReAct agent (Morph DeepSeek V4 Flash)
       │
       ├── trypsin_filter
       ├── overlap_graph
