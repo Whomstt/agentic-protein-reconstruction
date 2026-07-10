@@ -1,13 +1,38 @@
+import os
+import random
 from pathlib import Path
 
+import numpy as np
 import yaml
 import torch
 
-with open(Path(__file__).resolve().parent / "config.yaml") as f:
+# Sweeps (see evaluation/sweep.py) point this at a generated per-combo
+# config file so each subprocess run reads its own overrides without ever
+# touching the checked-in config.yaml.
+CONFIG_PATH = Path(
+    os.environ.get("AGENTIC_CONFIG_PATH")
+    or Path(__file__).resolve().parent / "config.yaml"
+)
+
+with open(CONFIG_PATH) as f:
     cfg = yaml.safe_load(f)
 
 if cfg["misc"]["device"] == "auto":
     cfg["misc"]["device"] = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def _seed_everything(seed: int) -> None:
+    """Single source of truth for randomness. Every module that needs a
+    random draw should use the plain global random/numpy/torch APIs (not its
+    own seeded instance) so misc.seed fully determines the run."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+_seed_everything(cfg["misc"]["seed"])
 
 
 def _configure_active_dataset(config: dict) -> None:
@@ -16,22 +41,16 @@ def _configure_active_dataset(config: dict) -> None:
         "ecoli": {
             "display_name": "E. coli",
             "fragmented_split": config["data"]["fragmented_ecoli"],
-            "test_split": config["data"]["ecoli_test_split"],
-            "train_split": config["data"].get("ecoli_train_split"),
             "target_key": "ecoli_original",
         },
         "yeast": {
             "display_name": "Yeast",
             "fragmented_split": config["data"]["fragmented_yeast"],
-            "test_split": config["data"]["yeast_test_split"],
-            "train_split": config["data"].get("yeast_train_split"),
             "target_key": "yeast_original",
         },
         "mixture": {
             "display_name": "Mixture",
             "fragmented_split": config["data"].get("fragmented_mixture"),
-            "test_split": config["data"].get("mixture_test_split"),
-            "train_split": config["data"].get("mixture_train_split"),
             "target_key": "target_reconstruction",
         },
     }
@@ -46,8 +65,6 @@ def _configure_active_dataset(config: dict) -> None:
     config["data"]["organism"] = dataset_name
     config["data"]["organism_display_name"] = active["display_name"]
     config["data"]["active_fragmented_split"] = active["fragmented_split"]
-    config["data"]["active_test_split"] = active["test_split"]
-    config["data"]["active_train_split"] = active["train_split"]
     config["data"]["active_target_key"] = active["target_key"]
 
 

@@ -4,6 +4,7 @@ import json
 import math
 
 from config import cfg
+from models.memory import free_gpu_memory, log_memory
 from tools.state import state
 from tools.validity_scorer import validity_scorer
 
@@ -26,7 +27,7 @@ LEVER_KEYS = (
 DEFAULT_LEVER_VALUES = {
     "junction_window": cfg["mlm_model"].get("junction_window", 3),
     "search_mode": "beam",
-    "beam_width": cfg["mlm_model"].get("beam_size"),
+    "beam_width": cfg["mlm_model"].get("beam_width"),
     "edge_mode": "hard",
     "confirmed_bonus": 0.0,
 }
@@ -131,8 +132,9 @@ def _changed_levers(previous_values: dict | None, current_values: dict) -> dict:
 
 
 def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str:
-    threshold = cfg["search"]["validity_threshold"]
+    patience = cfg["search"]["early_stop_patience"]
     max_iterations = cfg["search"]["max_iterations"]
+    beam_width_step = cfg["search"]["beam_width_step"]
 
     if previous_record is None:
         return (
@@ -141,7 +143,7 @@ def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str
             "The only controllable strategy levers are junction masking window, search mode, beam width, edge mode, and confirmed-edge bonus. "
             "Use junction_scorer(window=...) or beam_search(window=...) to change the masking window, beam_search(search_mode='beam'|'greedy') to change search mode, beam_search(beam_width=...) to choose any beam width, beam_search(edge_mode='hard'|'soft') to switch overlap handling, and beam_search(confirmed_bonus=...) to soften confirmed edges. "
             "If junction scores look weak, rescore a targeted subset of pairs rather than recomputing everything. "
-            f"The validity target is pseudo-perplexity <= {threshold}. "
+            f"The run stops early once the best validity score (pseudo-perplexity, lower is better) fails to improve for {patience} consecutive iterations, otherwise it continues until iteration {max_iterations}. "
             "If the first candidate looks weak, use a different tactic on the next iteration rather than repeating the same setup."
         )
 
@@ -153,14 +155,15 @@ def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str
     )
 
     return (
-        f"Iteration {iteration}/{max_iterations}. The previous attempt scored {previous_score:.4f} pseudo-perplexity, which is above the target of {threshold}. "
+        f"Iteration {iteration}/{max_iterations}. The previous attempt scored {previous_score:.4f} pseudo-perplexity. "
         f"Previous strategy: {previous_strategy}. Previous reconstruction preview: {preview}. "
         "Explain briefly why that attempt likely failed, then choose a materially different tactic this round. "
         "Use only these five levers: junction masking window, search mode, beam width, edge mode, and confirmed-edge bonus. "
         "If junction scores look weak, change the masking window or rescore just the suspect junction pairs. "
-        "If the search cut off early or collapsed to a partial path, change search_mode or choose a different beam_width. "
+        f"If the search cut off early or collapsed to a partial path, change search_mode or adjust beam_width by roughly {beam_width_step} at a time. "
         "If the overlap graph and MLM disagree, switch edge_mode or adjust confirmed_bonus. "
-        "Do not simply increase beam width or repeat the same setup. "
+        "Do not simply increase beam width monotonically or repeat the same setup. "
+        f"The run stops early once the best validity score hasn't improved for {patience} consecutive iterations, so aim to improve on the best score seen so far. "
         "After the new candidate reconstruction, call validity_scorer again."
     )
 
@@ -301,7 +304,8 @@ def run_iterative_reconstruction(
     previous_record = None
     previous_levers = None
     max_iterations = cfg["search"]["max_iterations"]
-    threshold = cfg["search"]["validity_threshold"]
+    early_stop_patience = cfg["search"]["early_stop_patience"]
+    non_improving_streak = 0
 
     for iteration in range(1, max_iterations + 1):
         prompt = _build_iteration_prompt(iteration, previous_record)
@@ -331,17 +335,24 @@ def run_iterative_reconstruction(
             state["best_reconstruction"] = record["reconstruction"]
             state["best_validity_score"] = record["validity_score"]
             state["best_order"] = record["order"]
+            non_improving_streak = 0
+        else:
+            non_improving_streak += 1
 
         if on_event:
             on_event("iteration_end", record)
 
-        if record["validity_score"] <= threshold:
+        free_gpu_memory()
+        log_memory(f"iter {iteration}/{max_iterations}")
+
+        if non_improving_streak >= early_stop_patience:
             break
         previous_record = record
 
     state["iteration_history"] = history
     return {
         "best_record": best_record or {},
+        "first_record": history[0] if history else {},
         "iteration_history": history,
         "state": dict(state),
     }

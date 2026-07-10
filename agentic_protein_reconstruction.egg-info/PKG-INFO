@@ -17,6 +17,7 @@ Requires-Dist: python-dotenv==1.2.2
 Requires-Dist: sympy==1.13.3
 Requires-Dist: torch==2.12.0+cu132
 Requires-Dist: transformers==5.2.0
+Requires-Dist: reportlab>=5.0.0
 
 # agentic-protein-reconstruction
 ## Agentic De Novo Protein Reconstruction from Fragmented Sequence Mixtures

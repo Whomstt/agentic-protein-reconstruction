@@ -5,19 +5,25 @@ Reconstruct protein sequences from unordered digestion fragments using an LLM ag
 ## Current Architecture
 
 ```
-main.py / evaluation/agentic.py
+main.py
       │
-      ▼
-agents/iterative_runner.py
+      ├── sweep.enabled: true  → evaluation/sweep.py loops config.yaml's sweep.grid,
+      │                          each combo re-running main.py as a subprocess
       │
-      ▼
-agents/react_agent.py  →  LangGraph ReAct agent (Morph DeepSeek V4 Flash)
-      │
-      ├── trypsin_filter
-      ├── overlap_graph
-      ├── junction_scorer
-      ├── beam_search
-      └── validity_scorer
+      └── sweep.enabled: false → evaluation/runner.py::run_agentic() or run_sequential()
+                  │             (picked by run.method)
+                  ▼
+      agents/iterative_runner.py
+                  │
+                  ▼
+      agents/react_agent.py  →  LangGraph ReAct agent (LLM picked by llm_model.profile:
+                                 microsoft_foundry or openai_api)
+                  │
+                  ├── trypsin_filter
+                  ├── overlap_graph
+                  ├── junction_scorer
+                  ├── beam_search
+                  └── validity_scorer
 ```
 
 The important change is that the agent no longer does one pass and stops. It runs for up to `search.max_iterations` rounds, and each round is supposed to try a materially different strategy based on why the previous candidate was weak.
@@ -30,7 +36,7 @@ The finalized agent control surface is limited to five levers only:
 - edge mode via `beam_search(edge_mode="hard"|"soft")`
 - confirmed-edge bonus via `beam_search(confirmed_bonus=...)`
 
-All other experiment controls are fixed and off-limits to the agent, including `search.validity_threshold`, `search.max_iterations`, PLM/model choice, `max_length`, `batch_size`, and replica selection.
+All other experiment controls are fixed and off-limits to the agent, including `search.early_stop_patience`, `search.max_iterations`, PLM/model choice, `max_length`, `batch_size`, and replica selection.
 
 ## System Layers
 
@@ -38,6 +44,9 @@ All other experiment controls are fixed and off-limits to the agent, including `
 - `algorithms/` — Pure computation. No LangChain dependencies.
 - `models/` — HuggingFace model loaders for ESM-2 or ProtBERT. Junction scoring and validity scoring use shared model instances and reset the ESM rotary cache between calls.
 - `agents/iterative_runner.py` — Orchestrates the multi-iteration loop, prompts the LLM with the previous validity score and strategy, and stores per-iteration history.
+- `evaluation/runner.py` — Single source of truth for running an evaluation over the active test split (both `run_sequential` and `run_agentic`); `main.py`, `evaluation/sequential.py`, and `evaluation/agentic.py` all call into it instead of duplicating the sample loop.
+- `evaluation/sweep.py` — Loops every combination in `sweep.grid` (+ `sweep.extra_runs`), overriding `data.organism`/`data.replica_count`/`mlm_model.profile` per combo and running `python -m main` as its own subprocess against a generated override config (`AGENTIC_CONFIG_PATH`). The checked-in `config.yaml` is never modified.
+- `evaluation/sweep_report.py` / `evaluation/sweep_pdf.py` — After a sweep finishes, build one combined `report.md`/`report.pdf` across all combos: a quick-glance comparison table plus a full per-metric "Iterative Reasoning Gain" table (baseline → first-pass → best) for every combo, pulled from each combo's own `summary.json`.
 
 ## Iterative Agent Loop
 
@@ -48,7 +57,7 @@ Each iteration builds a prompt that explicitly tells the LLM to:
 - use targeted junction rescoring when only a few pairs need fresh scores,
 - run the needed tools for a fresh candidate,
 - call `validity_scorer` on the candidate, and
-- stop early only if the validity score is at or below `search.validity_threshold`.
+- stop early once the best validity score hasn't improved for `search.early_stop_patience` consecutive iterations, otherwise run until `search.max_iterations`.
 
 Per-iteration results now record `lever_values` and `changed_levers` so runs remain auditable after the fact.
 
@@ -130,10 +139,13 @@ Important: this is a plausibility score, not an exact-match oracle. A candidate 
 
 Key config values in [config.yaml](config.yaml):
 
-- `data.test_samples` — number of evaluation samples to run in sequential/agentic evaluation
+- `run.method` — `"agentic"` (LLM-driven) or `"sequential"` (deterministic, no LLM); read by `main.py` when `sweep.enabled` is false
+- `sweep.enabled` — `false` runs once via `run.method` above; `true` loops the cartesian product of `sweep.grid` (+ `sweep.extra_runs`) instead
+- `sweep.grid` — axes to sweep, e.g. `organism`, `replica_count`, `mlm_profile`; each combo gets its own `results/` folder plus one combined cross-combo report
+- `data.test_samples` — number of evaluation samples to draw per run (random, see below)
 - `data.replica_count` — number of digestion replicas to generate per protein during preprocessing
 - `search.max_iterations` — number of iterative agent rounds
-- `search.validity_threshold` — early-stop gate for pseudo-perplexity
+- `search.early_stop_patience` — consecutive non-improving iterations before stopping early (set equal to `max_iterations` to disable early stopping, so every sample always runs the full budget)
 - `search.beam_width_step` — suggested beam-width adjustment granularity
 - `mlm_model.junction_window` — default masking window for junction scoring
 - `validity_model.*` — model settings for the validity scorer
@@ -149,33 +161,38 @@ Data is JSONL with fields like:
 - `replica_count`
 - `missed_cleavage_ratio`
 
-The preprocessing pipeline keeps all surviving fragments and now generates `replica_count` digestion replicas per protein.
+`preprocessing/preprocessing.py` filters the raw UniProt fasta to the active organism, deduplicates by gene (`GN=` tag) so the same protein isn't repeated across near-identical bacterial strains, then generates `replica_count` digestion replicas per protein. There is no train/test split — no training happens in this project, so preprocessing writes one deduped fragmented file per organism (`data.fragmented_ecoli` etc.) and evaluation draws directly from it.
+
+Each fragmented output has a sidecar `.meta.json` recording the `organism`/`replica_count`/`missed_cleavage_ratio` it was generated with. `preprocessing.preprocessing.ensure_fresh_dataset()` compares that against the active config and regenerates the dataset if any of the three changed; `main.py` calls this automatically before every non-sweep run, so editing `data.replica_count` (or organism, or missed-cleavage ratio) and just running `python main.py` picks it up without a manual `python -m preprocessing.preprocessing` step. Each sweep combo re-enters `main.py` as its own subprocess against its per-combo config, so this check naturally re-runs preprocessing once per distinct combination in `sweep.grid` (e.g. once per `replica_count` value per organism), not on every combo.
+
+`evaluation/runner.py::_load_test_samples` shuffles that pool (using the global `misc.seed`, set once in `config.py` for `random`/`numpy`/`torch`) and takes the first `data.test_samples` records. If `test_samples` is unset, the whole pool is used.
 
 `target_reconstruction` is the ground truth target for both evaluation modes.
 
 ## Evaluation
 
-- `evaluation/sequential.py` — deterministic baseline using the algorithm pipeline directly.
-- `evaluation/agentic.py` — runs the iterative agent on each sample, then scores the best reconstruction it found.
+- `evaluation/runner.py` — shared sample loop for both `run_sequential` (deterministic baseline) and `run_agentic` (iterative agent, then scores the best reconstruction found, plus a first-pass/iteration-1 comparison to isolate what refinement added).
+- `evaluation/sequential.py` / `evaluation/agentic.py` — thin CLI wrappers around `run_sequential`/`run_agentic`, independent of `run.method`.
 - `evaluation/metrics.py` — shared metrics: `exact_match`, `similarity`, `fragment_acc`, `norm_edit_distance`, `lcs_ratio`, `adjacent_pair_acc`, `kendall_tau`.
-- `evaluation/reporting.py` — prints config snapshots, per-sample results, and summary tables.
+- `evaluation/reporting.py` — per-run config snapshots, per-sample results, distribution stats, and the SVG charts/markdown/PDF report for a single run.
+- `evaluation/sweep.py` + `evaluation/sweep_report.py` + `evaluation/sweep_pdf.py` — grid sweep orchestration and the combined cross-combo report.
 
-The agentic evaluation stores the full iteration history per sample in the results payload.
+Each run's `results/<timestamp>_<name>/` folder contains `summary.json`, `samples.jsonl` (full per-sample + per-iteration history for auditability), `report.md`, `report.pdf`, and chart SVGs. The agentic evaluation stores the full iteration history (including `lever_values`/`changed_levers`) per sample in the results payload.
 
 ## Recent Observations
 
-- Lowering `search.validity_threshold` from 25.0 to 12.0 made later iterations actually run on some samples.
+- Replaced the fixed `search.validity_threshold` early-stop gate with a patience-based rule: the run stops once `best_validity_score` fails to improve for `search.early_stop_patience` consecutive iterations, otherwise it runs the full `search.max_iterations`. This removes the need to hand-tune an absolute pseudo-perplexity cutoff per dataset/model.
+- The combined sweep report now includes the full per-metric "Iterative Reasoning Gain" table for every combo (previously only exact match/similarity/Kendall tau made it into the cross-combo table; the full baseline→first-pass→best breakdown lived only in each combo's own report).
 - The best iteration is often not the first one anymore.
 - Exact match is still rare; the validity score is helping with plausibility, not guaranteeing perfect reconstruction.
-- The current 5-sample agentic run improved over shuffled baseline on all reported metrics, but it did not make exact reconstruction easy.
 
 ## Commands
 
 ```bash
-python main.py
-python -m preprocessing.preprocessing
-python -m evaluation.sequential
-python -m evaluation.agentic
+python main.py                       # single entry point; behavior fully controlled by config.yaml
+python -m preprocessing.preprocessing # regenerate the fragmented dataset for the active organism
+python -m evaluation.sequential       # deterministic baseline only, bypassing run.method
+python -m evaluation.agentic          # agentic evaluation only, bypassing run.method
 ```
 
 ## Conventions

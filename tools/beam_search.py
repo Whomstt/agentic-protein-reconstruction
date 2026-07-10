@@ -77,7 +77,7 @@ def beam_search(
             impossible_junctions=state.get("impossible_junctions"),
             start_candidates=state.get("start_candidates"),
             confirmed_successors=state.get("confirmed_successors"),
-            beam_size=beam_width,
+            beam_width=beam_width,
             edge_mode=edge_mode,
             confirmed_bonus=confirmed_bonus,
         )

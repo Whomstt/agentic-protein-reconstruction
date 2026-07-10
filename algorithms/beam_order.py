@@ -6,12 +6,12 @@ def beam_order(
     impossible_junctions=None,
     start_candidates=None,
     confirmed_successors=None,
-    beam_size=None,
+    beam_width=None,
     edge_mode="hard",
     confirmed_bonus=0.0,
 ):
     n = scores.shape[0]
-    beam_size = cfg["mlm_model"]["beam_size"] if beam_size is None else beam_size
+    beam_width = cfg["mlm_model"]["beam_width"] if beam_width is None else beam_width
     impossible = impossible_junctions or set()
     confirmed_successors = confirmed_successors or {}
 
@@ -43,7 +43,7 @@ def beam_order(
         if not candidates:
             break
         candidates.sort(key=lambda x: x[0], reverse=True)
-        beams = candidates[:beam_size]
+        beams = candidates[:beam_width]
 
     if beams and len(beams[0][1]) == n:
         return beams[0][1]

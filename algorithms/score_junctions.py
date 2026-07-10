@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from tqdm.auto import tqdm
 from config import cfg
+from models.memory import free_gpu_memory
 
 
 def format_sequence(seq, is_prot):
@@ -78,7 +79,9 @@ def score_junctions(
 
     all_scores = []
     with model_lock:
-        for start in tqdm(range(0, len(inputs), batch_size), desc="Scoring Junctions"):
+        for batch_idx, start in enumerate(
+            tqdm(range(0, len(inputs), batch_size), desc="Scoring Junctions")
+        ):
             end = min(start + batch_size, len(inputs))
             batch_inputs = tokeniser(
                 inputs[start:end],
@@ -104,6 +107,14 @@ def score_junctions(
                 target_id = tokeniser.convert_tokens_to_ids(targets[start + k])
                 score = F.log_softmax(logits[k, mask_idx], dim=-1)[target_id].item()
                 all_scores.append(score)
+            del batch_inputs, logits
+            # A high replica_count inflates the unique-fragment count, which
+            # inflates the number of junction pairs quadratically — a single
+            # call here can run thousands of batches. Without periodically
+            # clearing, PyTorch's caching allocator keeps growing its reserved
+            # pool across all of them instead of reusing freed blocks.
+            if batch_idx % 50 == 0:
+                free_gpu_memory()
 
     mat = existing_scores.clone() if existing_scores is not None else torch.zeros(n, n)
     pair_scores = {}

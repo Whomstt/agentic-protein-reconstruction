@@ -2,6 +2,9 @@ misc:
   seed: 42
   device: "auto"
 
+run: # main.py reads this to decide what to run when sweep.enabled is false
+  method: "agentic" # "agentic" (LLM-driven iterative agent) or "sequential" (deterministic pipeline, no LLM)
+
 mlm_model:
   profile: "esm_small" # switch this between esm_small and protbert
   profiles:
@@ -10,7 +13,7 @@ mlm_model:
       name: "facebook/esm2_t6_8M_UR50D"
       batch_size: 64 # batch size for scoring junctions - lower for larger models to avoid OOM errors
       max_length: 1024 # max sequence length for the MLM model
-      beam_size: 100 # beam size for scoring junctions
+      beam_width: 100 # default number of candidate orderings kept at each step of beam_order's beam search
       junction_window: 1 # number of residues masked at the start of the next fragment when scoring a junction
       validity_model:
         name: "facebook/esm2_t6_8M_UR50D" # ESM-2 model used for pseudo-perplexity validity scoring
@@ -21,7 +24,7 @@ mlm_model:
       name: "Rostlab/prot_bert"
       batch_size: 32 # ProtBert is heavier, so keep batches smaller
       max_length: 512 # ProtBert max sequence length
-      beam_size: 100
+      beam_width: 100
       junction_window: 1
       validity_model:
         name: "Rostlab/prot_bert"
@@ -49,24 +52,28 @@ llm_model:
   temperature: 0.0 # temperature for the LLM
 
 search:
-  max_iterations: 4 # fixed number of agentic refinement rounds
-  validity_threshold: 12.0 # pseudo-perplexity threshold for an acceptable reconstruction
+  max_iterations: 3 # fixed number of agentic refinement rounds
+  early_stop_patience: 3 # set equal to max_iterations to disable early stopping entirely (non-improving streak can never reach max_iterations within the iteration budget) - every sample now always runs all 3 iterations, so first-pass-vs-best comparisons are consistent across samples
   beam_width_step: 25 # beam width adjustment step when the agent changes its search strategy
 
-data: # Note: must rerun data processing steps if any of these parameters are changed
-  organism: "ecoli" # select the active dataset to evaluate: ecoli, yeast, or mixture
-  test_ratio: 0.2 # ratio of data to hold out for testing (0.2 means 20% test, 80% train)
-  test_samples: 5 # number of protein records to evaluate in sequential/agentic runs
-  replica_count: 5 # number of digestion replicas to generate per protein during preprocessing (rerun preprocessing if changed)
+data: # organism, replica_count, missed_cleavage_ratio require rerunning preprocessing
+  organism: "ecoli" # active dataset: ecoli, yeast, or mixture
+  test_samples: 3 # samples drawn per run, shuffled with misc.seed
+  replica_count: 5 # number of digestion replicas to generate per protein during preprocessing
   missed_cleavage_ratio: 0.3 # base missed-cleavage ratio; K sites are sampled at 1.5x this rate
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
   raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
   fragmented_ecoli: "data/ecoli/fragmented_ecoli.jsonl"
   fragmented_yeast: "data/yeast/fragmented_yeast.jsonl"
   fragmented_mixture: "data/mixture/fragmented_mixture.jsonl"
-  ecoli_train_split: "data/ecoli/ecoli_train.jsonl"
-  yeast_train_split: "data/yeast/yeast_train.jsonl"
-  mixture_train_split: "data/mixture/mixture_train.jsonl"
-  ecoli_test_split: "data/ecoli/ecoli_test.jsonl"
-  yeast_test_split: "data/yeast/yeast_test.jsonl"
-  mixture_test_split: "data/mixture/mixture_test.jsonl"
+
+sweep: # main.py reads this; enabled: false runs once via run.method above ("current" mode)
+  enabled: true # true = loop every combination in grid (+ extra_runs) instead of running once
+  test_samples: 5 # samples per combo when sweep is enabled (each combo gets its own results/ folder)
+  # cartesian product of the axes below: 2 organisms x 3 replica_counts x 2 mlm_profiles = 12 combos.
+  # organism/replica_count listed before mlm_profile, since only those two trigger reprocessing.
+  grid:
+    organism: [ecoli] # ecoli, yeast, mixture
+    replica_count: [5, 20, 100]
+    mlm_profile: [esm_small] # esm_small, protbert
+  extra_runs: [] # one-off combos, e.g. [{organism: mixture, replica_count: 5, mlm_profile: esm_small, method: sequential, test_samples: 5}]
