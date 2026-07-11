@@ -61,6 +61,8 @@ Each iteration builds a prompt that explicitly tells the LLM to:
 
 Per-iteration results now record `lever_values` and `changed_levers` so runs remain auditable after the fact.
 
+**Best-candidate selection is hysteretic, not raw argmin.** Iteration 1's candidate (canonical strategy) is the incumbent; a later iteration only replaces it when its validity score is lower by more than `search.improvement_margin` (relative). The validity signal is the junction+overlap blend above (`algorithms/score_validity.blended_validity`), a much more reliable ordering signal than the old whole-sequence pseudo-perplexity but still imperfect (~57–61% concordant with true quality), so raw argmin over a few deliberately-diverse candidates is still a winner's curse that can swap to a noise-lower candidate. The margin keeps iteration 1 unless a later round clearly beats it, so the iterated result is `>=` the first pass on average.
+
 The shared state records:
 
 - `fragment_samples`
@@ -118,22 +120,27 @@ The shared state records:
 
 5. `validity_scorer(reconstruction=None)`
 
-  Computes ESM-2 pseudo-perplexity for a reconstructed sequence. Lower is better.
+  Scores the ordering currently in shared state as the basis for best-candidate selection. Lower is better. It combines two junction-focused signals (see `algorithms/score_validity.blended_validity`) rather than whole-sequence pseudo-perplexity:
 
-  The tool scores the explicit reconstruction passed in, or the reconstruction stored in shared state if none is passed.
+  - **junction-local pseudo-perplexity** — masked-LM plausibility of only the fragment junctions the ordering uses (reuses the junction-scoring model on the order's consecutive pairs, fixed `search.validity_junction_window`), and
+  - **confirmed-adjacency agreement** — how well the ordering respects the overlap graph's confirmed adjacencies (`state["confirmed_junctions"]`), applied as a multiplicative penalty weighted by `search.validity_confirmed_penalty`.
 
-## Validity Score
+  If an explicit reconstruction different from state's is passed (its ordering is unknown), the tool falls back to whole-sequence pseudo-perplexity on that string.
 
-The validity score is pseudo-perplexity computed from an ESM-2 masked language model:
+## Validity Score (best-candidate selection signal)
 
-- mask one residue at a time,
-- get the log probability of the true residue at that position,
-- average those log probabilities,
-- exponentiate the negative mean.
+Candidate orderings reuse the same fragments and differ only at the junctions, so the selection signal scores only what varies. It is:
 
-Lower values mean the reconstruction looks more linguistically plausible to the protein MLM.
+```
+junction_local_ppl * (1 + confirmed_penalty * (1 - confirmed_adjacency_agreement))
+```
 
-Important: this is a plausibility score, not an exact-match oracle. A candidate can have a good validity score and still be wrong in sequence order.
+- **junction_local_ppl** = `exp(-mean_junction_logprob)` over the ordering's boundaries only. Whole-sequence pseudo-perplexity was ~95% invariant across orderings (the within-fragment residues are identical), which drowned the ordering signal and made it a near-random selector — worse than a coin flip on yeast. Scoring only the junctions keeps the residues whose likelihood actually depends on the order.
+- **confirmed_adjacency_agreement** = fraction of the overlap graph's confirmed directed edges realized as consecutive in the ordering. A near-ground-truth structural signal (real multi-replica overlaps) that strengthens with replica count.
+
+Offline validation (junction window 5, confirmed penalty 0.75): concordance with true reconstruction quality is ~57% on yeast (vs ~47% for the old whole-sequence pseudo-perplexity, i.e. below chance) and ~61% on E. coli, and it flips the iterated-vs-first-pass result on yeast from worse (−0.026) to better (+0.006).
+
+Important: this is still a plausibility/consistency score, not an exact-match oracle. A candidate can score well and still be wrong in sequence order.
 
 ## Configuration
 
@@ -147,8 +154,11 @@ Key config values in [config.yaml](config.yaml):
 - `search.max_iterations` — number of iterative agent rounds
 - `search.early_stop_patience` — consecutive non-improving iterations before stopping early (set equal to `max_iterations` to disable early stopping, so every sample always runs the full budget)
 - `search.beam_width_step` — suggested beam-width adjustment granularity
+- `search.improvement_margin` — minimum *relative* validity drop a later iteration must clear to replace the incumbent best (default `0.030`, tuned on a small offline set to keep the iterated result `>=` first-pass on **both** ecoli and yeast; lower values ~0.010–0.015 give a bigger yeast gain but let ecoli regress). Guards against winner's-curse swaps on validity noise (see Iterative Agent Loop); `0.0` restores raw-argmin selection
+- `search.validity_junction_window` — residues of each junction scored for the validity/selection signal (default `5`)
+- `search.validity_confirmed_penalty` — weight on `(1 - confirmed_adjacency_agreement)` in the validity signal; inflates junction PPL when the ordering violates overlap-confirmed edges (default `0.75`)
 - `mlm_model.junction_window` — default masking window for junction scoring
-- `validity_model.*` — model settings for the validity scorer
+- `validity_model.*` — model settings used only for the whole-sequence pseudo-perplexity fallback (when an explicit reconstruction with no known ordering is scored)
 
 ## Data
 
@@ -185,6 +195,7 @@ Each run's `results/<timestamp>_<name>/` folder contains `summary.json`, `sample
 - The combined sweep report now includes the full per-metric "Iterative Reasoning Gain" table for every combo (previously only exact match/similarity/Kendall tau made it into the cross-combo table; the full baseline→first-pass→best breakdown lived only in each combo's own report).
 - The best iteration is often not the first one anymore.
 - Exact match is still rare; the validity score is helping with plausibility, not guaranteeing perfect reconstruction.
+- Raw-argmin selection over iterations was a winner's curse: because whole-sequence pseudo-perplexity barely varies with fragment order (only the ~few junction positions differ), picking the lowest score across diverse candidates sometimes chose a noise-lower-but-worse ordering, so the iterated result underperformed the first pass on some combos. Added `search.improvement_margin` (hysteresis): a later iteration must beat the incumbent by a relative margin to be adopted. On the r5/r20/r100 ecoli sweep this moved the iterated result from mixed (worse than the 1st iteration on the r20 combo) to `>=` the first pass on ~6/7 metrics in aggregate.
 
 ## Commands
 

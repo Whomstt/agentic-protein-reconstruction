@@ -425,12 +425,19 @@
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-The abstract goes here.
+Microbial communities play a crucial role in processes from organic matter decomposition to keeping our guts healthy.
+Protein profiling (proteomics) is a necessary step to understand the function within an ecosystem. The reconstruction
+of proteins from unordered tryptic fragments is a bottleneck which is limiting our ability to perform proteomic profiling.
+An agentic AI approach using Protein Language Models (PLMs) and Large Language Models (LLMs) was built combining several
+tools which allow for more effective protein reconstruction. Results from the experiments confirm that the iterated, agentic
+approach performs better on average than manually predefined system parameters. This research indicates that there is
+a much larger potential gain to come of agentic AI in the field of proteomics, especially for environments with fewer
+computational constraints.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-agentic AI, protein language models, protein design, de novo protein reconstruction.
+agentic AI, protein language models, proteomics, de novo protein reconstruction.
 \end{IEEEkeywords}
 
 
@@ -471,8 +478,8 @@ much of modern therapeutics and biotechnology which we benefit from today.
 Artificial intelligence is increasingly being applied to the field of proteomics,
 enabling unprecedented breakthroughs in structural prediction and functional analysis.
 However, a critical unsolved problem remains open in the reconstruction of de novo proteins.
-Agentic AI has already proven useful for similar problems in the field of proteomics,
-so we aim to investigate its applicability to this specific problem.
+Agentic AI has already proven useful for similar problems in the field of proteomics, as such,
+the aim of this project was to investigate its applicability to this specific problem.
 
 
 % An example of a floating figure using the graphicx package.
@@ -577,7 +584,7 @@ Papers suitable for this research paper were obtained through searching keywords
 Additionally some of my references include suggestions from my capstone supervisors Enda Howley and Florence Abram,
 whom have previously worked heavily in this domain.
 Relevant papers were selected based on the value they added to the conversation and their diverse
-coverage of topics. Additionally We aimed for $\sim$10 papers to be included in this section to abide by the provided capstone guidelines.
+coverage of topics. Additionally, an aim for $\sim$10 papers to be included in this section was to abide by the provided capstone guidelines.
 
 
 \subsection{Proteins, Peptides and Proteomics}
@@ -599,7 +606,7 @@ cleaved peptide fragments, bioinformatics software must be used to infer a mappi
 parent candidates \cite{https://doi.org/10.1002/imt2.70031}.
 
 Enzymatic digestions are not perfect and often result in "missed cleavages"; when the protein
-is not cut at the site it should have been; leaving us with longer sequences which can make
+is not cut at the site it should have been; leaving longer sequences which can make
 matching more difficult \cite{MCDONNELL20232732}. A significant portion of peptides observed in
 a sample remain unidentified, in fact on average as little as 25\% of spectra obtained through
 experimentation can be identified, while the rest is discarded. \cite{MCDONNELL20232732}. It is
@@ -637,7 +644,7 @@ which have already been produced by nature, inhibiting us from potentially uncov
 from these captured patterns.
 
 \subsection{De Novo Protein Identification}
-Identifying proteins is a non-trivial task, we typically perform a bottom-up strategy where 
+Identifying proteins is a non-trivial task, typically a bottom-up strategy is performed where 
 peptides are matched using a database with an average 75\% of spectra obtained
 through experimentation remaining unidentified \cite{MCDONNELL20232732}. During an enzymatic
 digestion such as a trypsin digestion, proteins are decomposed into peptide fragments which
@@ -664,8 +671,8 @@ to improve their performance on identifying specific species \cite{kharkar2024ll
 \subsection{De Novo Protein Design}
 De novo protein design involves creating proteins from scratch rather than making changes to existing ones
 that occur naturally. While creating untargeted de novo proteins is an interesting and useful exercise,
-we consider the design of de novo proteins that match desirable structural makeups or 
-useful properties as a much more challenging, and important task \cite{doi:10.1126/sciadv.adl4000}.
+the design of de novo proteins that match desirable structural makeups or 
+useful properties can be considered as a much more challenging, but rewarding task \cite{doi:10.1126/sciadv.adl4000}.
 Proteins that occur naturally represent only a fraction of the theoretical potential number of possible
 sequences; A peptide of length $L$ offers approximately $20^L$ possible sequences, most of which 
 have never been observed in nature \cite{xia2025apexgensimultaneousdesignpeptide}.
@@ -697,7 +704,7 @@ proteins existing is much more suitable for our problem.
 
 A string graph is a representation of all that is inferable about a sequence from a collection of fragmented
 readings collected from it \cite{10.1093/bioinformatics/bti1114}. String graphs are capable of removing
-redundant edges from graphs without loss of sequence information, furthermore, we can filter out "contained
+redundant edges from graphs without loss of sequence information, furthermore, they can filter out "contained
 reads"; a reduction of roughly 40\% of reads in assembly data and 64\% of overlaps providing a significant
 reduction in the size and complexity of the problem \cite{10.1093/bioinformatics/bti1114}. This graph
 approach allows for a collapse of all reptitive elements into singular edges and ensures that the final
@@ -744,14 +751,14 @@ this field \cite{ni2025agenticendtoendnovoprotein}.
 
 \subsection{Comparative Analysis}
 While pLMs such as ProtBERT \cite{9477085} and ESMFold \cite{lin2023esmfold} are excellent models
-for understanding the sequences and structures of proteins, they rely on the assumption that we are
-dealing with a protein which is complete and perfectly ordered; this is not enough alone for us
+for understanding the sequences and structures of proteins, they rely on the assumption that the problem being 
+dealt with involves a protein which is complete and perfectly ordered; this is not enough alone
 to unpack a mixture of peptide fragments and piece them back together to reconstruct the original
 protein.
 
 Masked language modeling has demonstrated success in predicting missing amino acids from surrounding
-context using Transformer-based models \cite{kharkar2024llmproteins}, this means we can effectively
-make use of a junction scoring mechanism to find plausible pairings of peptides, guiding the reconstruction
+context using Transformer-based models \cite{kharkar2024llmproteins}, this means that it can be effectively
+made use of in a junction scoring mechanism to find plausible pairings of peptides, guiding the reconstruction
 process.
 
 Generative implementations like ApexGen \cite{xia2025apexgensimultaneousdesignpeptide} and
@@ -768,7 +775,7 @@ our reassembly problem, its success implicitly indicates usefulness of agentic A
 of proteomics.
 
 \subsection{Key Findings}
-We note from the literature that pLMs have been successful in learning biological information
+From the literature review, it is known that pLMs have been successful in learning biological information
 through sequential modeling. MLM methods can be used to infer missing residues, and that larger
 models typically capture more biological information than smaller ones. Existing applications
 of pLMs often assume complete, correctly-ordered sequences to perform an action upon; not exactly
@@ -796,14 +803,14 @@ which form a biologically plausible protein.
 
 Agentic AI has worked well on several fronts already in the field of proteomics, usage of
 tools providing relevant feedback and multiple agents working together have allowed for a more
-hands-off approach in designing de novo proteins from scratch. We have not however previously
+hands-off approach in designing de novo proteins from scratch. It has not however, previously
 seen its usage in reconstruction of observed proteins from their fragments.
 
 This makes for an exciting opportunity to combine the power of pLMs, agentic AI, and graph-assembly
 techniques to investigate whether this combination of technology is effective in
 guiding an accurate de novo protein reconstruction.
 
-We hope to answer the following questions through this research: Can we reconstruct undiscovered proteins from
+The hope of this work is to answer the following questions: Can we reconstruct undiscovered proteins from
 fragments using agentic AI? Can we separate and reconstruct proteins from mixtures of fragments
 using agentic AI? How does a sequential vs agentic approach compare in the protein reconstruction
 process?
@@ -820,11 +827,11 @@ In essence the pipeline is structured around filtering impossible pairings of pe
 junctions are between the remaining peptides, and finally returning the "optimal" or most confident ordering
 of peptides which is believed to be the closest match to the original protein subject.
 
-In this approach, we aim to investigate the potential advantages or disadvantages of handing off control 
+In this approach, the aim is to investigate the potential advantages or disadvantages of handing off control 
 of the reconstruction process to an LLM brain and see how it compares against a baseline sequential approach.
 
 \subsection{System Architecture}
-We have built two pipelines in parallel; one sequential, and one agentic, where the former relies
+Two pipelines were built in parallel; one sequential, and one agentic, where the former relies
 on a rigid tool execution to reconstruct while the agentic implementation is given liberty over
 its chosen tool choice and execution path.
 
@@ -862,7 +869,7 @@ Fig.~\ref{fig:trypsin_filter} illustrates the trypsin filter tool and how imposs
 
 The junction scorer tool's objective is to score all pairwise fragment permutation junctions using
 masked language modelling (MLM). This involves creating an n*n matrix (n is the count of
-tryptic peptides) The first amino acid of fragment B is masked, and we attempt to unmask it
+tryptic peptides) The first amino acid of fragment B is masked, then the MLM attempts to unmask it
 when given the sequence A + MASK [1:B].
 The MLM functionality is provided by the pLMs ESM-2 / ProtBERT. The
 model returns a probability distribution of likely amino acids which would best fill this mask.
@@ -878,11 +885,11 @@ Fig.~\ref{fig:junction_scoring} illustrates the process of junction scoring acro
 \end{figure}
 
 After obtaining our score matrix from the junction scorer and considering impossible
-candidates from the trypsin filter, we have greedy and beam search tools which
+candidates from the trypsin filter, there are greedy and beam search tools which
 can be performed on the scored junction matrix.
-In greedy search we pick the most likely next fragment given its score without considering
-other potential paths which may lead to more probable sequences. In beam search we
-consider k best paths at each step, expanding upon each to discover stronger candidates than
+In greedy search the most likely next fragment is picked given its score without considering
+other potential paths which may lead to more probable sequences. In beam search, the k best paths
+are considered at each step, expanding upon each to discover stronger candidates than
 initially apparent. Setting the k to one effectively acts as a greedy search for the system.
 Fig.~\ref{fig:greedy_beam_search} illustrates the method of selecting the best pairing paths to form a complete
 protein.
@@ -897,16 +904,16 @@ protein.
 \subsection{Datasets}
 As a source of data for experimentation and testing, UniProt Reviewed (Swiss-Prot) \cite{10.1093/nar/gkae1010}
 served as an excellent resource for well-curated proteins. To condense the scope of the project
-into something feasible, we decided to focus on only two organisms, Escherichia coli (E. coli) and Saccharomyces cerevisiae (yeast)
+into something feasible, a decision was made to focus on only two organisms, Escherichia coli (E. coli) and Saccharomyces cerevisiae (yeast)
 as they are well-studied and have a substantial amount of data publicly available on them.
 
-Filtering the UniProt curated dataset left us with $\sim$23,000 e. coli molecules and
-$\sim$8,000 records for yeast. After filtering we fragment each molecule into appropriate
+Filtering the UniProt curated dataset left $\sim$23,000 e. coli molecules and
+$\sim$8,000 records for yeast. After filtering, each molecule is fragmented into appropriate
 peptides according to trypsin digestion; an enzymatic process in which a trypsin protease
 cuts the molecule into small peptide fragments by cleaving after lysine (K)
 or arginine(R) residues, unless they are followed by proline(P). To simulate
-a more realistic environment without adding unnecessary complexity, we assume that 30\% and 45\% of the time, the molecule
-will not be cut at a given target site for arginine (R) and lysine (K) respectively; i.e. will have a missed cleavage.
+a more realistic environment without adding unnecessary complexity, an assumption that 30\% and 45\% of the time, the molecule
+will not be cut at a given target site for arginine (R) and lysine (K) is made respectively; i.e. will have a missed cleavage.
 
 \subsection{Experimental Setup}
 Subsection text here.
@@ -976,44 +983,6 @@ AI tools were used to support this project. Claude (Anthropic) assisted with bra
 % (used to reserve space for the reference number labels box)
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,references}
-
-% to remove before final submission
-\clearpage
-\onecolumn
-\section{Project Plan}
-
-\begin{figure}[H]
-\includegraphics[width=\linewidth]{./images/gantt.png}
-\caption{Project Plan: Agentic De Novo Protein Reconstruction (June - September 2026).}
-\label{fig:gantt}
-\end{figure}
-
-\section{Potential Challenges and Constraints}
-
-One of the biggest challenges of this project is in justifying the usage of an agentic approach. The
-inference latency between LLM calls is significant and as of now is difficult to justify. Noisier signals
-that are not easily sequentially interpretable would showcase more impact here and would provide an incentive,
-this is currently missing.
-
-Even with all of the current tools being used for reconstruction, the accuracy of it remains
-quite low < 10\% exact matching across initial experimentation. It should be noted that the problem
-is fundamentally hard to achieve a pure exact reconstruction everytime, but these results do not
-give confidence in the approach being feasible for full reconstruction. Partial reconstruction success
-can still be useful in disambiguating peptides which are not unique to match their original parent,
-however, this was not the original intention of the research.
-
-Many assumptions have been made on the data which would be fed to the system in real-world conditions,
-we can not be sure that these are correct; for example mixed samples, multiple proteomes, and
-missing cleavage rates that vary drastically under different circumstances. Our simplified approach
-simply cannot guarantee that performance will directly transfer under real-world conditions.
-
-Validity signals from folding models such as ESMFold or AlphaFold are excellent at guiding reconstruction,
-however, they are incredibly computationally expensive, and infeasible for large search spaces which
-we are dealing with.
-
-Not relying on a database is a huge constraint we face, as we want the system to be capable of identifying
-unrecorded proteins observed on the field, which while novel poses many challenges in that we cannot
-directly infer a reconstructive approach from a known protein on record.
 
 % that's all folks
 \end{document}

@@ -143,7 +143,7 @@ def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str
             "The only controllable strategy levers are junction masking window, search mode, beam width, edge mode, and confirmed-edge bonus. "
             "Use junction_scorer(window=...) or beam_search(window=...) to change the masking window, beam_search(search_mode='beam'|'greedy') to change search mode, beam_search(beam_width=...) to choose any beam width, beam_search(edge_mode='hard'|'soft') to switch overlap handling, and beam_search(confirmed_bonus=...) to soften confirmed edges. "
             "If junction scores look weak, rescore a targeted subset of pairs rather than recomputing everything. "
-            f"The run stops early once the best validity score (pseudo-perplexity, lower is better) fails to improve for {patience} consecutive iterations, otherwise it continues until iteration {max_iterations}. "
+            f"The run stops early once the best validity score (a junction+overlap plausibility score, lower is better) fails to improve for {patience} consecutive iterations, otherwise it continues until iteration {max_iterations}. "
             "If the first candidate looks weak, use a different tactic on the next iteration rather than repeating the same setup."
         )
 
@@ -155,7 +155,7 @@ def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str
     )
 
     return (
-        f"Iteration {iteration}/{max_iterations}. The previous attempt scored {previous_score:.4f} pseudo-perplexity. "
+        f"Iteration {iteration}/{max_iterations}. The previous attempt scored {previous_score:.4f} validity (junction+overlap plausibility, lower is better). "
         f"Previous strategy: {previous_strategy}. Previous reconstruction preview: {preview}. "
         "Explain briefly why that attempt likely failed, then choose a materially different tactic this round. "
         "Use only these five levers: junction masking window, search mode, beam width, edge mode, and confirmed-edge bonus. "
@@ -305,6 +305,18 @@ def run_iterative_reconstruction(
     previous_levers = None
     max_iterations = cfg["search"]["max_iterations"]
     early_stop_patience = cfg["search"]["early_stop_patience"]
+    # Minimum *relative* validity improvement (lower is better) a later iteration
+    # must clear to displace the incumbent best. The incumbent starts as
+    # iteration 1's candidate, produced by the canonical strategy. The validity
+    # signal (junction-local pseudo-perplexity + overlap-confirmed-adjacency
+    # agreement; see algorithms/score_validity.blended_validity) is a much more
+    # reliable ordering signal than the old whole-sequence pseudo-perplexity, but
+    # it is still imperfect (~57-62% concordant with true quality), so raw argmin
+    # over a handful of deliberately-diverse candidates can still swap to a
+    # noise-lower candidate. Requiring a real margin keeps iteration 1 unless a
+    # later round clearly beats it, so the iterated result is >= the first pass
+    # on average.
+    improvement_margin = cfg["search"].get("improvement_margin", 0.0)
     non_improving_streak = 0
 
     for iteration in range(1, max_iterations + 1):
@@ -326,10 +338,15 @@ def run_iterative_reconstruction(
         state["iteration_history"] = history
         previous_levers = record["lever_values"]
 
-        if (
-            best_record is None
-            or record["validity_score"] < best_record["validity_score"]
-        ):
+        if best_record is None:
+            improved = True
+        else:
+            # Must beat the incumbent by more than the margin to count as a real
+            # improvement (guards against selecting proxy noise; see above).
+            threshold = best_record["validity_score"] * (1.0 - improvement_margin)
+            improved = record["validity_score"] < threshold
+
+        if improved:
             best_record = record
             state["best_iteration"] = iteration
             state["best_reconstruction"] = record["reconstruction"]

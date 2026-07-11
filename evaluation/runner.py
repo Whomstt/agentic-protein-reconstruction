@@ -281,7 +281,6 @@ def run_sequential() -> Path | None:
             }
         )
         print(f"\n{DIM}  Sample {i}/{n} finished in {_format_duration(sample_duration)}{RESET}")
-        del run_result
         free_gpu_memory()
         log_memory(f"after sample {i}/{n}")
 
@@ -321,44 +320,9 @@ def run_sequential() -> Path | None:
     return run_dir
 
 
-def _run_sample_in_subprocess(sample: dict, index: int) -> dict:
-    """Run one sample's agent evaluation in a short-lived subprocess and return
-    its result dict. Each worker frees the LLM stack's native memory on exit, so
-    the long-running combo process never accumulates it across samples."""
-    import subprocess
-    import sys
-    import tempfile
-
-    tmp_dir = Path(tempfile.gettempdir()) / "agentic_sample_workers"
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    sample_path = tmp_dir / f"sample_{os.getpid()}_{index}.json"
-    result_path = tmp_dir / f"result_{os.getpid()}_{index}.json"
-    with sample_path.open("w", encoding="utf-8") as f:
-        json.dump(sample, f)
-
-    env = dict(os.environ)
-    env["PYTHONIOENCODING"] = "utf-8"
-    try:
-        # Inherit stdout/stderr so the worker's live agent reasoning streams
-        # straight through to this run's console/log exactly as before.
-        proc = subprocess.run(
-            [sys.executable, "-m", "evaluation.sample_worker",
-             str(sample_path), str(result_path)],
-            env=env,
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"sample worker exited with code {proc.returncode}"
-            )
-        with result_path.open(encoding="utf-8") as f:
-            return json.load(f)
-    finally:
-        sample_path.unlink(missing_ok=True)
-        result_path.unlink(missing_ok=True)
-
-
 def run_agentic() -> Path | None:
     """LLM-driven iterative agent evaluation, run once per test sample."""
+    from agents.iterative_runner import run_iterative_reconstruction
     from agents.react_agent import build_agent
 
     llm_config = cfg["llm_model"]
@@ -380,20 +344,13 @@ def run_agentic() -> Path | None:
     if api_key:
         os.environ[api_key_env] = api_key
 
-    # Validate credentials / config up front by building one agent, then drop
-    # it. The actual per-sample agent runs happen in short-lived subprocesses
-    # (see _run_sample_in_subprocess): the LLM stack grows native host memory
-    # that only a process exit reclaims, so isolating each sample keeps this
-    # long-running combo process flat instead of climbing past 24 GB over a run.
     try:
-        _validation_agent = build_agent()
+        agent = build_agent()
     except AuthenticationError:
         print(
             f"\n{YELLOW}{api_key_env} was rejected by the selected LLM provider. Check that the key is current and copied exactly.{RESET}"
         )
         return None
-    del _validation_agent
-    free_gpu_memory()
 
     samples = _load_test_samples()
     n = len(samples)
@@ -426,13 +383,15 @@ def run_agentic() -> Path | None:
         print(f"{BOLD}  Live reasoning{RESET}")
         print(f"{'─' * 60}")
 
-        # Run the sample in its own process so the LLM stack's native memory is
-        # reclaimed on exit and never accumulates across the run.
         try:
-            run_result = _run_sample_in_subprocess(sample, i)
-        except RuntimeError as exc:
-            print(f"\n{YELLOW}Sample {i} worker failed: {exc}. Skipping.{RESET}")
-            continue
+            run_result = run_iterative_reconstruction(
+                agent, fragments, fragment_samples, on_event=make_event_printer()
+            )
+        except AuthenticationError:
+            print(
+                f"\n{YELLOW}The selected LLM rejected the API key during the agent run. Update {api_key_env} and try again.{RESET}"
+            )
+            return None
 
         best_record = run_result.get("best_record", {})
         first_record = run_result.get("first_record", {})
@@ -447,6 +406,19 @@ def run_agentic() -> Path | None:
         print(f"{'─' * 60}")
         best_iter = best_record.get("iteration")
         first_iter = first_record.get("iteration")
+
+        # Attach each iteration's true reconstruction metrics (vs. the target) to
+        # its history record. Cheap (string metrics) and makes runs fully
+        # auditable per iteration; it also lets search.improvement_margin be
+        # tuned offline against actual quality instead of only validity.
+        for record in iteration_history:
+            record["metrics"] = compute_all(
+                target,
+                record.get("reconstruction", ""),
+                fragments,
+                record.get("order", []),
+            )
+
         for record in iteration_history:
             score = record.get("validity_score")
             summary = record.get("strategy_summary", "")
