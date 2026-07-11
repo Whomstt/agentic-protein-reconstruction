@@ -16,6 +16,8 @@ from evaluation.reporting import (
     _format_iteration_gain_rows,
     _markdown_table,
     _sanitize,
+    first_pass_label,
+    selected_best_label,
 )
 
 
@@ -72,14 +74,16 @@ def _combo_gain_table(entry: dict) -> tuple[str, list[list[str]]] | None:
     return label, gain_rows
 
 
-GAIN_HEADERS = [
-    "Metric",
-    "Shuffled Baseline",
-    "1st Iteration",
-    "Best (Iterative)",
-    "Gain vs. 1st Iteration",
-    "Direction",
-]
+def _first_combo_config(manifest: list[dict]) -> dict:
+    """The run config from the first successful combo. All combos in a sweep
+    share run.method/calling_mode/iteration1_deterministic (only organism,
+    replica_count and mlm_profile are swept), so this is enough to derive the
+    deterministic-vs-agentic column labels for the whole cross-combo report."""
+    for entry in manifest:
+        payload = _load_combo_payload(entry.get("result_dir"))
+        if payload is not None:
+            return payload.get("config", {})
+    return {}
 
 
 def write_sweep_report(manifest: list[dict], sweep_cfg: dict, total_duration: float) -> Path:
@@ -88,9 +92,31 @@ def write_sweep_report(manifest: list[dict], sweep_cfg: dict, total_duration: fl
     run_dir = RESULTS_ROOT / f"{timestamp}_{_sanitize('sweep')}"
     run_dir.mkdir(parents=True, exist_ok=False)
 
+    combo_config = _first_combo_config(manifest)
+    is_sequential = combo_config.get("run", {}).get("method") == "sequential"
+    fp_label = first_pass_label(combo_config)
+    best_label = selected_best_label(combo_config)
+    best_short = "Reconstructed" if is_sequential else "Agentic Best"
+    gain_headers = [
+        "Metric",
+        "Shuffled Baseline",
+        fp_label,
+        best_label,
+        "Gain vs. 1st Pass",
+        "Direction",
+    ]
+
     succeeded = sum(1 for m in manifest if m["status"] == "ok")
     rows = [_combo_row(entry) for entry in manifest]
-    headers = ["Combo", "Samples", "Exact Match", "Similarity", "Kendall Tau", "Duration", "Detail Folder"]
+    headers = [
+        "Combo",
+        "Samples",
+        "Exact Match",
+        "Similarity",
+        "Kendall Tau",
+        "Duration",
+        "Detail Folder",
+    ]
 
     gain_sections = [_combo_gain_table(entry) for entry in manifest]
     gain_sections = [section for section in gain_sections if section is not None]
@@ -105,6 +131,8 @@ def write_sweep_report(manifest: list[dict], sweep_cfg: dict, total_duration: fl
         f"- Result folder: `{run_dir.name}`",
         "",
         "## Combo Comparison",
+        f"Metric columns report the **{best_label}** per combo.",
+        "",
         _markdown_table(headers, rows),
         "",
     ]
@@ -112,21 +140,21 @@ def write_sweep_report(manifest: list[dict], sweep_cfg: dict, total_duration: fl
     if gain_sections:
         lines.append("## Iterative Reasoning Gain (per combo)")
         lines.append(
-            "What the iterative refinement loop added on top of the agent's 1st iteration, "
-            "for every metric, in each combo. The best (iterative) candidate is always the "
-            "one with the lowest validity score across all iterations, including the 1st."
+            f"What the iterative refinement loop added on top of the {fp_label}, for every "
+            f"metric, in each combo. **{best_short}** is always the candidate with the lowest "
+            "validity score across all iterations (including the 1st)."
         )
         lines.append("")
         for label, gain_rows in gain_sections:
             lines.append(f"### {label}")
-            lines.append(_markdown_table(GAIN_HEADERS, gain_rows))
+            lines.append(_markdown_table(gain_headers, gain_rows))
             lines.append("")
 
     lines.extend(
         [
             "## Quick Read",
-            "- Each combo also has its own full report (charts, per-sample detail, PDF) under `Detail Folder` in `results/`.",
-            "- This file is the cross-combo comparison; open a combo's own report.md/report.pdf for the full picture on that combo.",
+            "- Each combo also has its own full `report.md` (charts, per-sample detail) under `Detail Folder` in `results/`.",
+            "- This file is the cross-combo comparison; open a combo's own `report.md` for the full picture on that combo.",
         ]
     )
     (run_dir / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -137,9 +165,5 @@ def write_sweep_report(manifest: list[dict], sweep_cfg: dict, total_duration: fl
         "total_duration_seconds": total_duration,
     }
     (run_dir / "summary.json").write_text(json.dumps(summary_payload, indent=2), encoding="utf-8")
-
-    from evaluation.sweep_pdf import write_sweep_pdf
-
-    write_sweep_pdf(run_dir, headers, rows, succeeded, len(manifest), total_duration, gain_sections)
 
     return run_dir

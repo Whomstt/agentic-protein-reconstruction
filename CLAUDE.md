@@ -57,7 +57,7 @@ All other experiment controls are fixed and off-limits to the agent, including `
 - `agents/iterative_runner.py` — Orchestrates the multi-iteration loop, prompts the LLM with the previous validity score and strategy, and stores per-iteration history.
 - `evaluation/runner.py` — Single source of truth for running an evaluation over the active test split (both `run_sequential` and `run_agentic`); `main.py`, `evaluation/sequential.py`, and `evaluation/agentic.py` all call into it instead of duplicating the sample loop.
 - `evaluation/sweep.py` — Loops every combination in `sweep.grid` (+ `sweep.extra_runs`), overriding `data.organism`/`data.replica_count`/`mlm_model.profile` per combo and running `python -m main` as its own subprocess against a generated override config (`AGENTIC_CONFIG_PATH`). The checked-in `config.yaml` is never modified.
-- `evaluation/sweep_report.py` / `evaluation/sweep_pdf.py` — After a sweep finishes, build one combined `report.md`/`report.pdf` across all combos: a quick-glance comparison table plus a full per-metric "Iterative Reasoning Gain" table (baseline → first-pass → best) for every combo, pulled from each combo's own `summary.json`.
+- `evaluation/sweep_report.py` — After a sweep finishes, build one combined `report.md` across all combos: a quick-glance comparison table plus a full per-metric "Iterative Reasoning Gain" table (baseline → first-pass → best) for every combo, pulled from each combo's own `summary.json`. Reports are markdown-only (no PDF).
 
 ## Iterative Agent Loop
 
@@ -211,7 +211,9 @@ Each fragmented output has a sidecar `.meta.json` recording the `organism`/`repl
 - `evaluation/reporting.py` — per-run config snapshots, per-sample results, distribution stats, and the SVG charts/markdown/PDF report for a single run.
 - `evaluation/sweep.py` + `evaluation/sweep_report.py` + `evaluation/sweep_pdf.py` — grid sweep orchestration and the combined cross-combo report.
 
-Each run's `results/<timestamp>_<name>/` folder contains `summary.json`, `samples.jsonl` (full per-sample + per-iteration history for auditability), `report.md`, `report.pdf`, and chart SVGs. The agentic evaluation stores the full iteration history (including `lever_values`/`changed_levers`) per sample in the results payload.
+Each run's `results/<timestamp>_<name>/` folder contains `summary.json`, `samples.jsonl` (full per-sample + per-iteration history for auditability), `report.md` (markdown only — PDF output was removed), and chart SVGs. The agentic evaluation stores the full iteration history (including `lever_values`/`changed_levers`) per sample in the results payload.
+
+Reports open with a **"How to Read This Report"** block (`evaluation/reporting.py::run_type_summary`) that names, for the active config, exactly which column is deterministic and which is the agent's: for `method: agentic` + `calling_mode: single_call` + `iteration1_deterministic: true`, the **Deterministic 1st Pass** column is iteration 1 run from `search.default_levers` with no LLM call, and the **Agentic Best** column is the iteratively-selected best-validity reconstruction (iterations 2+ are LLM lever choices). `first_pass_label()`/`selected_best_label()`/`_iteration1_is_deterministic()` derive these labels and are mode-aware (react mode always drives iteration 1 through the LLM, so it is never labelled deterministic regardless of the flag).
 
 ## Research Validity Notes
 

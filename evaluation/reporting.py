@@ -137,22 +137,86 @@ def _svg_escape(text: str) -> str:
     )
 
 
+def _iteration1_is_deterministic(config: dict) -> bool:
+    """Whether iteration 1 (the 'first pass') runs with no LLM call. This is true
+    only in single_call mode with run.iteration1_deterministic set: react mode
+    always drives iteration 1 through the LLM regardless of that flag, so the flag
+    alone can't be trusted to describe what actually happened."""
+    run = config.get("run", {})
+    if run.get("calling_mode") == "react":
+        return False
+    return run.get("iteration1_deterministic", True)
+
+
 def first_pass_label(config: dict) -> str:
-    """'1st Iteration' means different things depending on
-    run.iteration1_deterministic: with it true (default), iteration 1 is
-    search.default_levers with no LLM call, so the label is honestly
-    qualified as config defaults rather than implying a genuine agent
-    decision; with it false, iteration 1 is a real LLM lever choice (see
-    CLAUDE.md's research-validity note on this)."""
-    deterministic = config.get("run", {}).get("iteration1_deterministic", True)
-    return "1st Iteration (Config Defaults)" if deterministic else "1st Iteration (LLM)"
+    """Label for the iteration-1 ('first pass') column. When iteration 1 is a
+    no-LLM config-defaults pass, it is labelled as deterministic so the number is
+    never mistaken for an agent decision; otherwise it is a genuine LLM lever
+    choice (see CLAUDE.md's research-validity note)."""
+    if _iteration1_is_deterministic(config):
+        return "Deterministic 1st Pass (config defaults, no LLM)"
+    return "Agentic 1st Pass (LLM)"
+
+
+def selected_best_label(config: dict) -> str:
+    """Label for the final chosen reconstruction column. For agentic runs this is
+    the iteratively-selected best-validity candidate; for sequential runs it is
+    just the deterministic pipeline output."""
+    if config.get("run", {}).get("method") == "sequential":
+        return "Reconstructed (deterministic pipeline)"
+    return "Agentic Best (iteratively selected)"
+
+
+def run_type_summary(config: dict) -> list[str]:
+    """Markdown lines spelling out, for THIS run's config, exactly what each
+    compared column means — so a reader never has to guess which numbers came from
+    the deterministic pipeline and which are the LLM agent's iteratively-selected
+    result."""
+    run = config.get("run", {})
+    if run.get("method") == "sequential":
+        return [
+            "## How to Read This Report",
+            "**Run type: Sequential (deterministic, no LLM).** Each sample gets a "
+            "single fixed reconstruction from the tool pipeline — there is no agent, "
+            "no iteration, and no LLM call. **Shuffled Baseline** is a random fragment "
+            "ordering (the floor); **Reconstructed** is the deterministic pipeline's output.",
+            "",
+        ]
+
+    calling_mode = run.get("calling_mode", "react")
+    lines = [
+        "## How to Read This Report",
+        f"**Run type: Agentic ({calling_mode}).** Each metric compares:",
+        "",
+        "- **Shuffled Baseline** — a random fragment ordering. The floor, not a method.",
+    ]
+    if _iteration1_is_deterministic(config):
+        lines.append(
+            "- **Deterministic 1st Pass** — iteration 1 runs the fixed "
+            "`search.default_levers` with **no LLM call**. This is the non-agentic "
+            "reference point, not the agent's work."
+        )
+    else:
+        lines.append(
+            "- **Agentic 1st Pass** — iteration 1 is itself an LLM lever decision "
+            "(`run.iteration1_deterministic=false`)."
+        )
+    lines.append(
+        "- **Agentic Best** — the agent's actual result: iterations 2+ are LLM-driven "
+        "lever choices, and the kept candidate is the one with the best (lowest) validity "
+        "score across all iterations, subject to `search.improvement_margin` hysteresis. "
+        "It equals the 1st pass whenever no later iteration cleared that margin."
+    )
+    lines.append("")
+    return lines
 
 
 def render_metric_bar_chart_svg(
     baseline_averages: dict,
     recon_averages: dict,
     first_pass_averages: dict | None = None,
-    first_pass_label_text: str = "1st Iteration",
+    first_pass_label_text: str = "1st Pass",
+    recon_label_text: str = "Agentic Best",
 ) -> str:
     """Grouped horizontal bar chart comparing baseline vs. (optionally first-pass
     vs.) reconstructed metrics. When first_pass_averages is given, a third bar
@@ -217,7 +281,7 @@ def render_metric_bar_chart_svg(
     legend_entries = [(BASELINE_COLOR, "Shuffled baseline")]
     if first_pass_averages is not None:
         legend_entries.append((FIRST_PASS_COLOR, first_pass_label_text))
-    legend_entries.append((RECON_COLOR, "Selected best"))
+    legend_entries.append((RECON_COLOR, recon_label_text))
     legend_parts = []
     for i, (color, label) in enumerate(legend_entries):
         lx = left_pad + label_w + i * 155
@@ -228,9 +292,9 @@ def render_metric_bar_chart_svg(
     legend = "".join(legend_parts)
 
     title_text = (
-        f"Metric Comparison: Shuffled Baseline vs. {first_pass_label_text} vs. Selected Best"
+        f"Metric Comparison: Shuffled Baseline vs. {first_pass_label_text} vs. {recon_label_text}"
         if first_pass_averages is not None
-        else "Metric Comparison: Baseline vs. Reconstructed"
+        else f"Metric Comparison: Baseline vs. {recon_label_text}"
     )
     title = f'<text x="12" y="20" font-size="14" font-weight="600" fill="currentColor">{title_text}</text>'
 
@@ -490,7 +554,13 @@ def _markdown_table(headers: list[str], rows: list[list[str]]) -> str:
 
 
 def _format_config_rows(config: dict) -> list[list[str]]:
+    run = config.get("run", {})
+    method = run.get("method")
+    method_row = [["Run Method", str(method)]]
+    if method != "sequential":
+        method_row.append(["Calling Mode", str(run.get("calling_mode"))])
     return [
+        *method_row,
         ["Device", str(config["misc"]["device"])],
         ["Seed", str(config["misc"]["seed"])],
         [
@@ -513,8 +583,8 @@ def _format_config_rows(config: dict) -> list[list[str]]:
         ["Max Iterations", str(config.get("search", {}).get("max_iterations"))],
         [
             "Iteration 1 Mode",
-            "Config Defaults (no LLM call)"
-            if config.get("run", {}).get("iteration1_deterministic", True)
+            "Deterministic — config defaults (no LLM call)"
+            if _iteration1_is_deterministic(config)
             else "LLM (genuine agent decision)",
         ],
         [
@@ -695,9 +765,13 @@ def print_run_header(title: str, config_snapshot: dict) -> None:
     print(f"  Junction Window: {config_snapshot['search']['default_junction_window']}")
     print(f"  Validity Model: {config_snapshot['validity_model']['name']}")
     print(f"  Max Iterations: {config_snapshot['search']['max_iterations']}")
+    method = config_snapshot["run"].get("method")
+    print(f"  Run Method: {method}")
+    if method != "sequential":
+        print(f"  Calling Mode: {config_snapshot['run'].get('calling_mode')}")
     iter1_mode = (
-        "Config Defaults (no LLM call)"
-        if config_snapshot["run"].get("iteration1_deterministic", True)
+        "Deterministic — config defaults (no LLM call)"
+        if _iteration1_is_deterministic(config_snapshot)
         else "LLM (genuine agent decision)"
     )
     print(f"  Iteration 1 Mode: {iter1_mode}")
@@ -806,11 +880,24 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         for sample in sample_reports:
             handle.write(json.dumps(sample) + "\n")
 
+    config = payload["config"]
+    is_sequential = config.get("run", {}).get("method") == "sequential"
+    # Full labels for table headers; short labels for the cramped chart legend.
+    fp_label = first_pass_label(config)
+    best_label = selected_best_label(config)
+    fp_short = (
+        "Deterministic 1st Pass"
+        if _iteration1_is_deterministic(config)
+        else "Agentic 1st Pass"
+    )
+    best_short = "Reconstructed" if is_sequential else "Agentic Best"
+
     bar_chart_svg = render_metric_bar_chart_svg(
         payload.get("baseline_averages", {}),
         payload.get("recon_averages", {}),
         payload.get("first_pass_averages"),
-        first_pass_label(payload.get("config", {})),
+        fp_short,
+        best_short,
     )
     (run_dir / "metric_comparison.svg").write_text(bar_chart_svg, encoding="utf-8")
 
@@ -827,7 +914,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         )
 
     lines = [f"# {payload['run_name']}", ""]
-    config = payload["config"]
+    lines.extend(run_type_summary(config))
 
     duration = payload.get("duration_seconds")
     overview_lines = [
@@ -856,7 +943,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
                 [
                     "Metric",
                     "Shuffled Baseline",
-                    "Reconstructed",
+                    best_label,
                     "Delta",
                     "Interpretation",
                     "Direction",
@@ -871,35 +958,29 @@ def write_run_results(run_name: str, payload: dict) -> Path:
 
     gain_rows = _format_iteration_gain_rows(payload)
     if gain_rows:
-        fp_label = first_pass_label(config)
-        iteration1_deterministic = config.get("run", {}).get(
-            "iteration1_deterministic", True
-        )
         gain_caveat = (
-            " Note: `run.iteration1_deterministic=true` means "
-            f'"{fp_label}" is `search.default_levers` from config, not an LLM '
-            "decision — this gain measures the LLM's rounds 2+ against a fixed "
-            "baseline, not against the LLM's own first attempt. Set "
-            "`run.iteration1_deterministic=false` for the latter."
-            if iteration1_deterministic
-            else ""
+            " Because the 1st pass here is deterministic (no LLM), this gain isolates "
+            "what the LLM's rounds 2+ added on top of the fixed config-defaults pass — "
+            "not the agent against its own first attempt."
+            if _iteration1_is_deterministic(config)
+            else " Here the 1st pass is itself an LLM decision, so this gain is the agent "
+            "against its own first attempt."
         )
         lines.extend(
             [
                 "## Iterative Reasoning Gain",
-                f"What the iterative refinement loop added on top of the agent's "
-                f"{fp_label}. Selected Best is the lowest-validity-score "
-                "iteration seen (subject to `search.improvement_margin` hysteresis) "
-                f"— it equals the {fp_label} whenever that iteration was already the best one."
-                + gain_caveat,
+                f"What the iterative refinement loop added on top of the {fp_label}. "
+                f"{best_label} is the lowest-validity-score iteration seen (subject to "
+                f"`search.improvement_margin` hysteresis) — it equals the 1st pass whenever "
+                "that iteration was already the best one." + gain_caveat,
                 "",
                 _markdown_table(
                     [
                         "Metric",
                         "Shuffled Baseline",
                         fp_label,
-                        "Selected Best",
-                        f"Gain vs. {fp_label}",
+                        best_label,
+                        "Gain vs. 1st Pass",
                         "Direction",
                     ],
                     gain_rows,
@@ -962,7 +1043,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
             table_title += (
                 f" (showing first {len(display_rows) - min(5, len(display_rows))} and "
                 f"last {min(5, len(display_rows))} of {len(sample_reports)}; "
-                f"full table in `report.pdf` and `samples.jsonl`)"
+                f"full table in `samples.jsonl`)"
             )
         lines.extend(
             [
@@ -995,9 +1076,5 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         ]
     )
     report_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-    from evaluation.pdf_report import write_pdf_report
-
-    write_pdf_report(payload, sample_reports, run_dir)
 
     return run_dir

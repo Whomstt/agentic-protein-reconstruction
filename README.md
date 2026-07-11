@@ -16,7 +16,7 @@ The agent runs for multiple rounds per sample, trying a materially different rec
 - `run.method: "agentic"` or `"sequential"` — which reconstruction approach to run (used when `sweep.enabled` is `false`)
 - `sweep.enabled: true` — instead of one run, loop every combination in `sweep.grid` (e.g. organism × replica_count × PLM profile), each as its own subprocess, then write one combined report across all combos on top of each combo's own report
 
-Every run writes a timestamped folder under `results/` with `report.md`, `report.pdf`, chart SVGs, `summary.json`, and `samples.jsonl` (full per-sample, per-iteration detail).
+Every run writes a timestamped folder under `results/` with `report.md`, chart SVGs, `summary.json`, and `samples.jsonl` (full per-sample, per-iteration detail).
 
 To run one evaluation mode directly, bypassing `run.method`:
 ```bash

@@ -38,7 +38,7 @@ data: # organism/replica_count/missed_cleavage_ratio require rerunning preproces
 
 sweep: # main.py reads this; enabled: false runs once via run.method above
   enabled: false
-  test_samples: 5 # samples per combo
+  test_samples: 100 # samples per combo
   grid: # cartesian product of the axes below
     organism: [ecoli, yeast]
     replica_count: [5, 20, 100]
