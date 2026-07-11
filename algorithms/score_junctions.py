@@ -22,7 +22,9 @@ def score_junctions(
     batch_size = cfg["mlm_model"]["batch_size"]
     max_length = cfg["mlm_model"]["max_length"]
     window = (
-        cfg["mlm_model"].get("junction_window", 3) if window is None else int(window)
+        cfg["search"]["default_levers"]["junction_window"]
+        if window is None
+        else int(window)
     )
 
     def _normalize_pairs(pairs):

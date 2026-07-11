@@ -137,10 +137,22 @@ def _svg_escape(text: str) -> str:
     )
 
 
+def first_pass_label(config: dict) -> str:
+    """'1st Iteration' means different things depending on
+    run.iteration1_deterministic: with it true (default), iteration 1 is
+    search.default_levers with no LLM call, so the label is honestly
+    qualified as config defaults rather than implying a genuine agent
+    decision; with it false, iteration 1 is a real LLM lever choice (see
+    CLAUDE.md's research-validity note on this)."""
+    deterministic = config.get("run", {}).get("iteration1_deterministic", True)
+    return "1st Iteration (Config Defaults)" if deterministic else "1st Iteration (LLM)"
+
+
 def render_metric_bar_chart_svg(
     baseline_averages: dict,
     recon_averages: dict,
     first_pass_averages: dict | None = None,
+    first_pass_label_text: str = "1st Iteration",
 ) -> str:
     """Grouped horizontal bar chart comparing baseline vs. (optionally first-pass
     vs.) reconstructed metrics. When first_pass_averages is given, a third bar
@@ -204,8 +216,8 @@ def render_metric_bar_chart_svg(
     legend_y = top_pad + row_h * len(keys) + 20
     legend_entries = [(BASELINE_COLOR, "Shuffled baseline")]
     if first_pass_averages is not None:
-        legend_entries.append((FIRST_PASS_COLOR, "1st iteration"))
-    legend_entries.append((RECON_COLOR, "Best (iterative)"))
+        legend_entries.append((FIRST_PASS_COLOR, first_pass_label_text))
+    legend_entries.append((RECON_COLOR, "Selected best"))
     legend_parts = []
     for i, (color, label) in enumerate(legend_entries):
         lx = left_pad + label_w + i * 155
@@ -216,7 +228,7 @@ def render_metric_bar_chart_svg(
     legend = "".join(legend_parts)
 
     title_text = (
-        "Metric Comparison: Baseline vs. 1st Iteration vs. Best (Iterative)"
+        f"Metric Comparison: Shuffled Baseline vs. {first_pass_label_text} vs. Selected Best"
         if first_pass_averages is not None
         else "Metric Comparison: Baseline vs. Reconstructed"
     )
@@ -412,14 +424,19 @@ def build_config_snapshot(cfg: dict) -> dict:
             "seed": cfg["misc"].get("seed"),
             "device": cfg["misc"].get("device"),
         },
+        "run": {
+            "method": cfg.get("run", {}).get("method"),
+            "calling_mode": cfg.get("run", {}).get("calling_mode"),
+            "iteration1_deterministic": cfg.get("run", {}).get(
+                "iteration1_deterministic", True
+            ),
+        },
         "mlm_model": {
             "profile": cfg["mlm_model"].get("profile"),
             "type": cfg["mlm_model"].get("type"),
             "name": cfg["mlm_model"].get("name"),
             "batch_size": cfg["mlm_model"].get("batch_size"),
             "max_length": cfg["mlm_model"].get("max_length"),
-            "beam_width": cfg["mlm_model"].get("beam_width"),
-            "junction_window": cfg["mlm_model"].get("junction_window"),
         },
         "validity_model": {
             "name": cfg.get("validity_model", {}).get("name"),
@@ -434,6 +451,12 @@ def build_config_snapshot(cfg: dict) -> dict:
             "max_iterations": cfg.get("search", {}).get("max_iterations"),
             "early_stop_patience": cfg.get("search", {}).get("early_stop_patience"),
             "beam_width_step": cfg.get("search", {}).get("beam_width_step"),
+            "default_beam_width": cfg.get("search", {})
+            .get("default_levers", {})
+            .get("beam_width"),
+            "default_junction_window": cfg.get("search", {})
+            .get("default_levers", {})
+            .get("junction_window"),
         },
         "data": {
             "organism": cfg["data"].get("organism"),
@@ -484,10 +507,16 @@ def _format_config_rows(config: dict) -> list[list[str]]:
         ["MLM Type", str(config["mlm_model"]["type"])],
         ["MLM Batch Size", str(config["mlm_model"]["batch_size"])],
         ["MLM Max Length", str(config["mlm_model"]["max_length"])],
-        ["Beam Width", str(config["mlm_model"]["beam_width"])],
-        ["Junction Window", str(config["mlm_model"]["junction_window"])],
+        ["Beam Width", str(config["search"]["default_beam_width"])],
+        ["Junction Window", str(config["search"]["default_junction_window"])],
         ["Validity Model", str(config.get("validity_model", {}).get("name"))],
         ["Max Iterations", str(config.get("search", {}).get("max_iterations"))],
+        [
+            "Iteration 1 Mode",
+            "Config Defaults (no LLM call)"
+            if config.get("run", {}).get("iteration1_deterministic", True)
+            else "LLM (genuine agent decision)",
+        ],
         [
             "Early Stop Patience",
             str(config.get("search", {}).get("early_stop_patience")),
@@ -662,10 +691,16 @@ def print_run_header(title: str, config_snapshot: dict) -> None:
     print(f"  MLM Type: {config_snapshot['mlm_model']['type']}")
     print(f"  MLM Batch Size: {config_snapshot['mlm_model']['batch_size']}")
     print(f"  MLM Max Length: {config_snapshot['mlm_model']['max_length']}")
-    print(f"  Beam Width: {config_snapshot['mlm_model']['beam_width']}")
-    print(f"  Junction Window: {config_snapshot['mlm_model']['junction_window']}")
+    print(f"  Beam Width: {config_snapshot['search']['default_beam_width']}")
+    print(f"  Junction Window: {config_snapshot['search']['default_junction_window']}")
     print(f"  Validity Model: {config_snapshot['validity_model']['name']}")
     print(f"  Max Iterations: {config_snapshot['search']['max_iterations']}")
+    iter1_mode = (
+        "Config Defaults (no LLM call)"
+        if config_snapshot["run"].get("iteration1_deterministic", True)
+        else "LLM (genuine agent decision)"
+    )
+    print(f"  Iteration 1 Mode: {iter1_mode}")
     print(f"  Early Stop Patience: {config_snapshot['search']['early_stop_patience']}")
     print(f"  Beam Width Step: {config_snapshot['search']['beam_width_step']}")
     print(f"  LLM Model: {config_snapshot['llm_model']['name']}")
@@ -775,6 +810,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         payload.get("baseline_averages", {}),
         payload.get("recon_averages", {}),
         payload.get("first_pass_averages"),
+        first_pass_label(payload.get("config", {})),
     )
     (run_dir / "metric_comparison.svg").write_text(bar_chart_svg, encoding="utf-8")
 
@@ -819,7 +855,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
             _markdown_table(
                 [
                     "Metric",
-                    "Baseline",
+                    "Shuffled Baseline",
                     "Reconstructed",
                     "Delta",
                     "Interpretation",
@@ -835,21 +871,35 @@ def write_run_results(run_name: str, payload: dict) -> Path:
 
     gain_rows = _format_iteration_gain_rows(payload)
     if gain_rows:
+        fp_label = first_pass_label(config)
+        iteration1_deterministic = config.get("run", {}).get(
+            "iteration1_deterministic", True
+        )
+        gain_caveat = (
+            " Note: `run.iteration1_deterministic=true` means "
+            f'"{fp_label}" is `search.default_levers` from config, not an LLM '
+            "decision — this gain measures the LLM's rounds 2+ against a fixed "
+            "baseline, not against the LLM's own first attempt. Set "
+            "`run.iteration1_deterministic=false` for the latter."
+            if iteration1_deterministic
+            else ""
+        )
         lines.extend(
             [
                 "## Iterative Reasoning Gain",
-                "What the iterative refinement loop added on top of the agent's "
-                "1st iteration. Best (Iterative) is the lowest-validity-score "
-                "iteration seen — it equals the 1st iteration whenever that "
-                "iteration was already the best one.",
+                f"What the iterative refinement loop added on top of the agent's "
+                f"{fp_label}. Selected Best is the lowest-validity-score "
+                "iteration seen (subject to `search.improvement_margin` hysteresis) "
+                f"— it equals the {fp_label} whenever that iteration was already the best one."
+                + gain_caveat,
                 "",
                 _markdown_table(
                     [
                         "Metric",
                         "Shuffled Baseline",
-                        "1st Iteration",
-                        "Best (Iterative)",
-                        "Gain vs. 1st Iteration",
+                        fp_label,
+                        "Selected Best",
+                        f"Gain vs. {fp_label}",
                         "Direction",
                     ],
                     gain_rows,

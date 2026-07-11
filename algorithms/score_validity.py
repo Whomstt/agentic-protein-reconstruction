@@ -44,6 +44,46 @@ def confirmed_agreement(order, confirmed_junctions) -> float | None:
     return sum(1 for edge in confirmed if edge in realized) / len(confirmed)
 
 
+def blended_validity_detailed(
+    fragments,
+    order,
+    confirmed_junctions,
+    junction_window,
+    confirmed_penalty,
+) -> dict:
+    """Selection signal for best-candidate choice (lower = better), broken down
+    into its two components so a caller can tell *why* a score is bad:
+
+        j_ppl * (1 + confirmed_penalty * (1 - confirmed_agreement))
+
+    where j_ppl is junction-local pseudo-perplexity (PLM plausibility of the
+    ordering's non-confirmed junctions; high => weak/implausible junctions,
+    consider a different junction_window) and confirmed_agreement is the
+    fraction of overlap-graph confirmed adjacencies the ordering actually
+    realizes as consecutive fragments (low => the ordering disagrees with
+    real multi-replica overlap evidence; consider edge_mode='hard' or a
+    higher confirmed_bonus)."""
+    mean_lp = junction_local_logprob(fragments, order, junction_window, confirmed_junctions)
+    agreement = confirmed_agreement(order, confirmed_junctions)
+    penalty = 0.0 if agreement is None else confirmed_penalty * (1.0 - agreement)
+
+    if mean_lp is None:
+        j_ppl = None
+        score = float("inf")
+    else:
+        j_ppl = math.exp(-mean_lp)
+        score = j_ppl * (1.0 + penalty)
+        if math.isnan(score):
+            score = float("inf")
+
+    return {
+        "validity_score": float(score),
+        "junction_local_ppl": None if j_ppl is None else float(j_ppl),
+        "confirmed_adjacency_agreement": agreement,
+        "confirmed_penalty_applied": float(penalty),
+    }
+
+
 def blended_validity(
     fragments,
     order,
@@ -51,22 +91,10 @@ def blended_validity(
     junction_window,
     confirmed_penalty,
 ) -> float:
-    """Selection signal for best-candidate choice (lower = better):
-
-        j_ppl * (1 + confirmed_penalty * (1 - confirmed_agreement))
-
-    where j_ppl is junction-local pseudo-perplexity, inflated when the
-    ordering disagrees with overlap-confirmed adjacencies."""
-    mean_lp = junction_local_logprob(fragments, order, junction_window, confirmed_junctions)
-    if mean_lp is None:
-        return float("inf")
-    j_ppl = math.exp(-mean_lp)
-    agreement = confirmed_agreement(order, confirmed_junctions)
-    penalty = 0.0 if agreement is None else confirmed_penalty * (1.0 - agreement)
-    score = j_ppl * (1.0 + penalty)
-    if math.isnan(score):
-        return float("inf")
-    return float(score)
+    """Scalar-only convenience wrapper around blended_validity_detailed."""
+    return blended_validity_detailed(
+        fragments, order, confirmed_junctions, junction_window, confirmed_penalty
+    )["validity_score"]
 
 
 def pseudo_perplexity(sequence: str) -> float:

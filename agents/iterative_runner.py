@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 
+from agents.deterministic_agent import run_single_call_iteration
 from config import cfg
 from models.memory import free_gpu_memory, log_memory
 from tools.state import state
@@ -24,13 +25,7 @@ LEVER_KEYS = (
     "confirmed_bonus",
 )
 
-DEFAULT_LEVER_VALUES = {
-    "junction_window": cfg["mlm_model"].get("junction_window", 3),
-    "search_mode": "beam",
-    "beam_width": cfg["mlm_model"].get("beam_width"),
-    "edge_mode": "hard",
-    "confirmed_bonus": 0.0,
-}
+DEFAULT_LEVER_VALUES = dict(cfg["search"]["default_levers"])
 
 
 def _parse_content(content):
@@ -224,7 +219,9 @@ def _extract_record(result: dict, iteration: int, prompt: str) -> dict:
     if isinstance(validity_value, dict):
         validity_value = validity_value.get("validity_score")
     if validity_value is None and reconstruction:
-        validity_value = validity_scorer(reconstruction)
+        validity_value = validity_scorer.invoke({"reconstruction": reconstruction})
+        if isinstance(validity_value, dict):
+            validity_value = validity_value.get("validity_score")
 
     try:
         validity_score = float(validity_value)
@@ -313,18 +310,27 @@ def run_iterative_reconstruction(
     improvement_margin = cfg["search"].get("improvement_margin", 0.0)
     non_improving_streak = 0
 
+    single_call = getattr(agent, "mode", "react") == "single_call"
+
     for iteration in range(1, max_iterations + 1):
-        prompt = _build_iteration_prompt(iteration, previous_record)
         if on_event:
             on_event(
                 "iteration_start",
                 {"iteration": iteration, "max_iterations": max_iterations},
             )
-        result = _stream_agent(agent, prompt, on_event=on_event)
-        record = _extract_record(result, iteration, prompt)
-        record["lever_values"] = _effective_lever_values(
-            record["strategy"], previous_levers
-        )
+
+        if single_call:
+            record = run_single_call_iteration(
+                agent.llm, iteration, previous_record, on_event=on_event
+            )
+        else:
+            prompt = _build_iteration_prompt(iteration, previous_record)
+            result = _stream_agent(agent.graph, prompt, on_event=on_event)
+            record = _extract_record(result, iteration, prompt)
+            record["lever_values"] = _effective_lever_values(
+                record["strategy"], previous_levers
+            )
+
         record["changed_levers"] = _changed_levers(
             previous_levers, record["lever_values"]
         )

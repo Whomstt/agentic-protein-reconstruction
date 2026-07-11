@@ -16,8 +16,17 @@ main.py
       agents/iterative_runner.py
                   │
                   ▼
-      agents/react_agent.py  →  LangGraph ReAct agent (LLM picked by llm_model.profile:
+      agents/react_agent.py  →  build_agent() (LLM picked by llm_model.profile:
                                  microsoft_foundry or openai_api)
+                  │
+                  ├── run.calling_mode: "react" (default)
+                  │     LangGraph ReAct agent drives every tool call itself
+                  │     (~4-6 LLM calls/iteration: one per tool-call decision)
+                  │
+                  └── run.calling_mode: "single_call"
+                        agents/deterministic_agent.py — 1 LLM call/iteration
+                        picks only the 5 lever values (structured output);
+                        the harness runs the fixed tool pipeline in Python
                   │
                   ├── trypsin_filter
                   ├── overlap_graph
@@ -27,6 +36,8 @@ main.py
 ```
 
 The important change is that the agent no longer does one pass and stops. It runs for up to `search.max_iterations` rounds, and each round is supposed to try a materially different strategy based on why the previous candidate was weak.
+
+`run.calling_mode` controls how much the LLM is in the driver's seat. `"react"` lets the LLM decide every individual tool call (`trypsin_filter`, `overlap_graph`, `junction_scorer`, `beam_search`, `validity_scorer` are each separate LLM turns via LangGraph's `create_react_agent`), which costs several LLM calls per iteration even though most of that sequence is mechanically fixed by the system prompt. `"single_call"` keeps the same five levers and iteration-history prompting but calls the LLM at most once per iteration — via `agents/deterministic_agent.py`'s `LeverChoice` structured output — for `junction_window`, `search_mode`, `beam_width`, `edge_mode`, `confirmed_bonus`; the harness (`agents/iterative_runner.py::run_iterative_reconstruction`, dispatching on `agent.mode`) then runs the tool pipeline directly in Python with those values. With `run.iteration1_deterministic=true` (default), iteration 1 uses the fixed config defaults (`_default_lever_values()`) with **no LLM call at all**, since there's no prior attempt yet to react to — a 3-iteration run then costs 2 LLM calls/sample in `single_call` mode, not 3. Set `run.iteration1_deterministic=false` to make iteration 1 a genuine LLM lever choice too (3 LLM calls/sample) — see the Research Validity Notes section for why this matters for reporting. `trypsin_filter`/`overlap_graph` run once on iteration 1 with no LLM involvement in either mode. `single_call` mode also skips the explicit `junction_scorer` rescore on iterations 2+ when the LLM keeps `junction_window` unchanged from the previous iteration — it reuses `state["scores"]` and lets `beam_search`'s own lazy-rescore check confirm no recompute is needed, avoiding a redundant full MLM pass over every unscored junction pair when only `search_mode`/`beam_width`/`edge_mode`/`confirmed_bonus` changed. `agents/react_agent.py::build_agent()` returns a mode-tagged `Agent` (`.graph` for react, `.llm` for single_call) so `evaluation/runner.py` doesn't need to know which mode is active.
 
 The finalized agent control surface is limited to five levers only:
 
@@ -98,11 +109,13 @@ The shared state records:
   - `confirmed_successors`
   - `unscored_junctions`
 
-3. `junction_scorer(window=None)`
+3. `junction_scorer(window=None, junction_pairs=None)`
 
-  Scores ordered fragment pairs with a masked language model. The first `W` residues of the successor fragment are masked one at a time and averaged, where `W` defaults to `cfg["mlm_model"]["junction_window"]`.
+  Scores ordered fragment pairs with a masked language model. The first `W` residues of the successor fragment are masked one at a time and averaged, where `W` defaults to `search.default_levers.junction_window`.
 
   The LLM can intentionally vary the window to probe a different local context. The tool can also accept a targeted subset of junction pairs to rescore and merges those results into the existing score matrix in shared state.
+
+  **Feedback signal:** returns `mean_score`/`min_score`/`max_score`/`num_junctions_scored` over the pairs just scored. A narrow spread near the mean means the current window isn't giving the PLM enough signal to discriminate real junctions from wrong ones — the next iteration should try a different window rather than proceeding with weak scores.
 
 4. `beam_search(search_mode="beam", beam_width=None, edge_mode="hard", confirmed_bonus=0.0, window=None)`
 
@@ -116,16 +129,22 @@ The shared state records:
   - `confirmed_bonus` for soft-rewarding overlap-confirmed edges
   - `window` to deliberately rescore junctions with a different masking window
 
-  Beam search falls back to greedy extension if constraints cut off the search before all fragments are placed.
+  Beam search falls back to greedy extension if constraints cut off the search before all fragments are placed; greedy search itself falls back to the least-bad remaining candidate if every option at a step is trypsin-impossible (previously this could silently duplicate a fragment in the order — fixed alongside the diagnostic below).
+
+  **Feedback signal:** returns `fell_back` (beam mode: true means `beam_width`/`edge_mode` cut the search off short — widen the beam or try `edge_mode="soft"`), `forced_impossible_count` (greedy mode: non-zero means trypsin constraints fought the ordering — try `search_mode="beam"`), `num_confirmed_edges_realized`/`num_confirmed_edges_total` (how many overlap-confirmed adjacencies made it into the final order), and `mean_junction_score` (a cheap preview of ordering quality before paying for `validity_scorer`).
 
 5. `validity_scorer(reconstruction=None)`
 
-  Scores the ordering currently in shared state as the basis for best-candidate selection. Lower is better. It combines two junction-focused signals (see `algorithms/score_validity.blended_validity`) rather than whole-sequence pseudo-perplexity:
+  Scores the ordering currently in shared state as the basis for best-candidate selection. It combines two junction-focused signals (see `algorithms/score_validity.blended_validity_detailed`) rather than whole-sequence pseudo-perplexity:
 
   - **junction-local pseudo-perplexity** — masked-LM plausibility of only the fragment junctions the ordering uses that the overlap graph did *not* already confirm (reuses the junction-scoring model on the order's non-confirmed consecutive pairs, fixed `search.validity_junction_window`); confirmed junctions are skipped here since they're already known-valid from real multi-replica overlap evidence rather than a model guess, and
   - **confirmed-adjacency agreement** — how well the ordering respects the overlap graph's confirmed adjacencies (`state["confirmed_junctions"]`), applied as a multiplicative penalty weighted by `search.validity_confirmed_penalty`.
 
   If an explicit reconstruction different from state's is passed (its ordering is unknown), the tool falls back to whole-sequence pseudo-perplexity on that string.
+
+  **Feedback signal:** returns a dict, not a bare float — `validity_score` (lower is better; this is what decides which iteration's candidate wins) plus its two components `junction_local_ppl` and `confirmed_adjacency_agreement`, and `confirmed_penalty_applied`. Exposing the components (not just the blended score) lets the next iteration's lever choice target the actual weak point: high `junction_local_ppl` → change `junction_window`; low `confirmed_adjacency_agreement` → switch `edge_mode` to `"hard"` or raise `confirmed_bonus` in `"soft"` mode.
+
+  **Propagation across modes:** in `react` mode the LLM sees these dicts directly in tool messages as it reasons live. In `single_call` mode (see `run.calling_mode`), the harness never lets the LLM see raw tool output, so `agents/deterministic_agent.py::_lever_prompt` explicitly threads the previous iteration's `validity_breakdown`, `junction_stats`, and `beam_diagnostics` into the next iteration's prompt text — without this, `single_call` mode would only know the previous blended score and lever values, not *why* it scored that way.
 
 ## Validity Score (best-candidate selection signal)
 
@@ -156,12 +175,13 @@ Key config values in [config.yaml](config.yaml):
 - `data.test_samples` — number of evaluation samples to draw per run (random, see below)
 - `data.replica_count` — number of digestion replicas to generate per protein during preprocessing
 - `search.max_iterations` — number of iterative agent rounds
+- `run.iteration1_deterministic` — **research-validity-relevant, see below.** `true` (default): iteration 1 uses `search.default_levers` directly with no LLM call, saving one LLM call/sample; `false`: iteration 1 is also a genuine `LeverChoice` LLM decision, like every other round. Only affects `single_call` mode (`react` mode always drives every tool call, including iteration 1's, through the LLM). Reports/labels adjust automatically: `evaluation/reporting.py::first_pass_label()` renders "1st Iteration (Config Defaults)" when `true` or "1st Iteration (LLM)" when `false`, so the config/gain tables never silently imply agentic behavior that didn't happen.
+- `search.default_levers` — the single source of truth for all five agent-controllable levers (`junction_window`, `search_mode`, `beam_width`, `edge_mode`, `confirmed_bonus`) across the whole pipeline, not just the agent. When `run.iteration1_deterministic` is `true`, iteration 1 uses these directly with no LLM call; in `react` mode, they're the fallback whenever the LLM's tool call omits a lever argument (`agents/deterministic_agent.py::_default_lever_values()` / `agents/iterative_runner.py::DEFAULT_LEVER_VALUES`). `junction_window`/`beam_width` are also the fallback read directly by `algorithms/score_junctions.py`, `algorithms/beam_order.py`, `tools/junction_scorer.py`, `tools/beam_search.py` whenever no explicit value is passed — including `run_sequential`, which has no agent at all. `mlm_model.profile` no longer carries its own `junction_window`/`beam_width` (removed to avoid two config values silently drifting out of sync); only `search.default_levers` controls them now.
 - `search.early_stop_patience` — consecutive non-improving iterations before stopping early (set equal to `max_iterations` to disable early stopping, so every sample always runs the full budget)
-- `search.beam_width_step` — suggested beam-width adjustment granularity
-- `search.improvement_margin` — minimum *relative* validity drop a later iteration must clear to replace the incumbent best (default `0.030`, tuned on a small offline set to keep the iterated result `>=` first-pass on **both** ecoli and yeast; lower values ~0.010–0.015 give a bigger yeast gain but let ecoli regress). Guards against winner's-curse swaps on validity noise (see Iterative Agent Loop); `0.0` restores raw-argmin selection
+- `search.beam_width_step` — a numeric hint injected into the lever-choice prompt ("adjust beam_width by roughly N at a time"), not an enforced constraint — the LLM's returned `beam_width` is passed through unmodified regardless of this value (no code clamps or rounds to it). It exists to bias the LLM away from erratic large jumps, at the cost of nudging its exploration granularity rather than letting it infer a step size purely from diagnostics. Disclose this as a prompt-engineering choice if reporting on lever diversity/exploration behavior.
+- `search.improvement_margin` — minimum *relative* validity drop a later iteration must clear to replace the incumbent best (default `0.030`, tuned on a small offline set to keep the iterated result `>=` first-pass on **both** ecoli and yeast; lower values ~0.010–0.015 give a bigger yeast gain but let ecoli regress). Guards against winner's-curse swaps on validity noise (see Iterative Agent Loop); `0.0` restores raw-argmin selection. **Leakage risk, disclosed rather than fixed:** there is no train/test split anywhere in this project (see Data section) — the 15 ecoli / 20 yeast offline tuning set this value was chosen on was drawn from the same undivided per-organism pool that `data.test_samples`/`sweep.test_samples` also draw evaluation samples from, so this constant was not tuned on data disjoint from what gets reported. Treat `0.030` as a documented sensitivity choice, not a validated hyperparameter, in any paper/writeup; a properly disjoint tune/eval split would need a held-out partition of the fragmented pool (e.g. by protein) before re-tuning could be trusted.
 - `search.validity_junction_window` — residues of each junction scored for the validity/selection signal (default `5`)
 - `search.validity_confirmed_penalty` — weight on `(1 - confirmed_adjacency_agreement)` in the validity signal; inflates junction PPL when the ordering violates overlap-confirmed edges (default `0.75`)
-- `mlm_model.junction_window` — default masking window for junction scoring
 - `validity_model.*` — model settings used only for the whole-sequence pseudo-perplexity fallback (when an explicit reconstruction with no known ordering is scored)
 
 ## Data
@@ -192,6 +212,15 @@ Each fragmented output has a sidecar `.meta.json` recording the `organism`/`repl
 - `evaluation/sweep.py` + `evaluation/sweep_report.py` + `evaluation/sweep_pdf.py` — grid sweep orchestration and the combined cross-combo report.
 
 Each run's `results/<timestamp>_<name>/` folder contains `summary.json`, `samples.jsonl` (full per-sample + per-iteration history for auditability), `report.md`, `report.pdf`, and chart SVGs. The agentic evaluation stores the full iteration history (including `lever_values`/`changed_levers`) per sample in the results payload.
+
+## Research Validity Notes
+
+Audited 2026-07-11 for whether the LLM's lever choices are genuine evidence-based decisions rather than scripted behavior, ahead of any research/paper claims. Findings:
+
+- **No ground-truth leakage (clean).** `target_reconstruction` is only read in `evaluation/runner.py::run_agentic()` after `run_iterative_reconstruction()` returns, purely for scoring — it is never passed into `agents/iterative_runner.py`, `agents/deterministic_agent.py`, `agents/react_agent.py`, or any tool. The LLM never sees the true sequence.
+- **No hidden clamping or best-of-N.** Whatever the LLM (or, in `single_call` mode, the `LeverChoice` structured output) returns for the five levers is passed straight through to the tools with no post-hoc override, and there is no silent retry/resample that keeps only a favorable LLM call.
+- **`run.iteration1_deterministic`** and **`search.improvement_margin`** are the two settings requiring explicit disclosure in any writeup — see their entries in Configuration above for what to state.
+- **`search.beam_width_step`** is prompt-only guidance, never enforced — also worth a one-line disclosure if characterizing the agent's exploration behavior.
 
 ## Recent Observations
 

@@ -2,41 +2,91 @@ misc:
   seed: 42
   device: "auto"
 
-run: # main.py reads this to decide what to run when sweep.enabled is false
-  method: "agentic" # "agentic" (LLM-driven iterative agent) or "sequential" (deterministic pipeline, no LLM)
+run: # what main.py runs when sweep.enabled is false; most commonly tuned run-mode knobs live here
+  method: "agentic" # "agentic" (LLM-driven) or "sequential" (deterministic, no LLM)
+  calling_mode: "single_call" # "react" = LLM drives every tool call (~4-6 calls/iteration); "single_call" = harness runs the tool pipeline, LLM only picks the 5 levers (see CLAUDE.md)
+  iteration1_deterministic: true # true = iteration 1 uses search.default_levers with no LLM call (cheaper; "1st Iteration" in reports means "config defaults"); false = iteration 1 is also a genuine LLM lever choice (every round is agentic; "1st Iteration" means "LLM's first attempt") — see CLAUDE.md for the research-validity tradeoff
+
+search:
+  max_iterations: 3 # number of agentic refinement rounds
+
+  default_levers: # iteration-1 lever values when run.iteration1_deterministic; fallback for unset levers in react mode; also the sole default for junction_window/beam_width across the whole pipeline (sequential mode included)
+    junction_window: 1 # residues masked when scoring a junction
+    search_mode: "greedy" # "beam" or "greedy"
+    beam_width: 25 # candidate orderings kept per beam_order step
+    edge_mode: "hard" # "hard" or "soft"
+    confirmed_bonus: 0.0
+
+  early_stop_patience: 3 # non-improving iterations before stopping early; == max_iterations disables early stopping
+  beam_width_step: 25 # suggested beam-width adjustment granularity for the agent
+  improvement_margin: 0.030 # relative validity drop a later iteration must clear to replace the incumbent best; 0.0 = raw argmin (see CLAUDE.md; tuned on non-disjoint data — treat as a disclosed sensitivity choice, not a validated constant)
+
+  # best-candidate selection signal (validity_scorer); see CLAUDE.md for the full formula
+  validity_junction_window: 5 # residues scored per junction for the validity signal
+  validity_confirmed_penalty: 0.75 # weight on confirmed-adjacency disagreement
+
+data: # organism/replica_count/missed_cleavage_ratio require rerunning preprocessing
+  organism: "ecoli" # ecoli, yeast, or mixture
+  test_samples: 5 # samples drawn per run, shuffled with misc.seed
+  replica_count: 5 # digestion replicas generated per protein
+  missed_cleavage_ratio: 0.3 # base rate; K sites sampled at 1.5x this
+  raw_uniprot: "data/raw/uniprot_sprot.fasta"
+  raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
+  fragmented_ecoli: "data/ecoli/fragmented_ecoli.jsonl"
+  fragmented_yeast: "data/yeast/fragmented_yeast.jsonl"
+  fragmented_mixture: "data/mixture/fragmented_mixture.jsonl"
+
+sweep: # main.py reads this; enabled: false runs once via run.method above
+  enabled: false
+  test_samples: 5 # samples per combo
+  grid: # cartesian product of the axes below
+    organism: [ecoli, yeast]
+    replica_count: [5, 20, 100]
+    mlm_profile: [esm_small]
+  extra_runs: [] # one-off combos, e.g. [{organism: mixture, replica_count: 5, mlm_profile: esm_small, method: sequential, test_samples: 5}]
+
+llm_model:
+  profile: "microsoft_foundry" # microsoft_foundry or openai_api
+  temperature: 0.0
+  profiles:
+    openai_api:
+      kind: "openai"
+      model: "gpt-5.4-mini"
+      api_key_env: "OPENAI_API_KEY"
+    microsoft_foundry:
+      kind: "microsoft_foundry"
+      model: "gpt-5-mini" # Azure Foundry deployment name
+      endpoint_env: "AZURE_ENDPOINT"
+      api_key_env: "AZURE_API_KEY"
+      auth_mode: "auto" # auto prefers AZURE_API_KEY, else DefaultAzureCredential
+      token_scope: "https://ai.azure.com/.default"
 
 mlm_model:
-  profile: "esm_small" # switch this between esm_small, esm_medium and protbert
+  profile: "esm_small" # esm_small, esm_medium, or protbert
   profiles:
     esm_small:
       type: "esm"
       name: "facebook/esm2_t6_8M_UR50D"
-      batch_size: 64 # batch size for scoring junctions - lower for larger models to avoid OOM errors
-      max_length: 1024 # max sequence length for the MLM model
-      beam_width: 100 # default number of candidate orderings kept at each step of beam_order's beam search
-      junction_window: 1 # number of residues masked at the start of the next fragment when scoring a junction
+      batch_size: 64
+      max_length: 1024
       validity_model:
-        name: "facebook/esm2_t6_8M_UR50D" # ESM-2 model used for pseudo-perplexity validity scoring
-        batch_size: 64 # batch size for masked-position scoring
-        max_length: 1024 # maximum sequence length used for validity scoring
+        name: "facebook/esm2_t6_8M_UR50D"
+        batch_size: 64
+        max_length: 1024
     esm_medium:
       type: "esm"
       name: "facebook/esm2_t33_650M_UR50D"
-      batch_size: 8 # 650M is ~25x heavier than esm_small; small batch to fit alongside the validity model on ~8GB VRAM
+      batch_size: 8 # ~25x heavier than esm_small; keep batch small to fit alongside validity model on ~8GB VRAM
       max_length: 1024
-      beam_width: 100
-      junction_window: 1
       validity_model:
-        name: "facebook/esm2_t33_650M_UR50D" # 650M ESM-2 for pseudo-perplexity validity scoring
+        name: "facebook/esm2_t33_650M_UR50D"
         batch_size: 8
         max_length: 1024
     protbert:
       type: "prot"
       name: "Rostlab/prot_bert"
-      batch_size: 32 # ProtBert is heavier, so keep batches smaller
-      max_length: 512 # ProtBert max sequence length
-      beam_width: 100
-      junction_window: 1
+      batch_size: 32
+      max_length: 512
       validity_model:
         name: "Rostlab/prot_bert"
         batch_size: 32
@@ -44,55 +94,4 @@ mlm_model:
 
 folding_model:
   type: "esm"
-  name: "facebook/esmfold_v1" # facebook/esmfold_v1
-
-llm_model:
-  profile: "microsoft_foundry" # switch this between microsoft_foundry and openai_api
-  profiles:
-    openai_api:
-      kind: "openai"
-      model: "gpt-5.4-mini" # OpenAI brain of the reasoning agent
-      api_key_env: "OPENAI_API_KEY"
-    microsoft_foundry:
-      kind: "microsoft_foundry"
-      model: "gpt-5-mini" # Azure Foundry deployment name
-      endpoint_env: "AZURE_ENDPOINT"
-      api_key_env: "AZURE_API_KEY"
-      auth_mode: "auto" # auto prefers AZURE_API_KEY, otherwise uses DefaultAzureCredential
-      token_scope: "https://ai.azure.com/.default"
-  temperature: 0.0 # temperature for the LLM
-
-search:
-  max_iterations: 3 # fixed number of agentic refinement rounds
-  early_stop_patience: 3 # set equal to max_iterations to disable early stopping entirely (non-improving streak can never reach max_iterations within the iteration budget) - every sample now always runs all 3 iterations, so first-pass-vs-best comparisons are consistent across samples
-  beam_width_step: 25 # beam width adjustment step when the agent changes its search strategy
-  improvement_margin: 0.030 # min RELATIVE validity drop a later iteration must clear to replace the incumbent best. Tuned for the junction+overlap signal on a small (15 ecoli / 20 yeast) offline set: 0.030 is the smallest margin where the iterated result is >= first-pass on BOTH organisms (yeast +0.003, ecoli at the first-pass floor). Lower margins (~0.010-0.015) give a bigger yeast gain but let ecoli regress ~-0.008. Retune once more data is collected; 0.0 = raw argmin
-  # --- best-candidate selection signal (validity_scorer) ---
-  # The selector no longer uses whole-sequence pseudo-perplexity (which was ~95%
-  # invariant across orderings and near-random on yeast). It scores only the
-  # fragment junctions the ordering uses (junction-local pseudo-perplexity) and
-  # penalizes disagreement with the overlap graph's confirmed adjacencies.
-  validity_junction_window: 5 # residues of the successor fragment scored at each junction for the validity signal (offline: window 5 > 1 on both organisms)
-  validity_confirmed_penalty: 0.75 # weight on (1 - confirmed_adjacency_agreement); inflates junction PPL when the ordering violates overlap-confirmed edges
-
-data: # organism, replica_count, missed_cleavage_ratio require rerunning preprocessing
-  organism: "ecoli" # active dataset: ecoli, yeast, or mixture
-  test_samples: 50 # samples drawn per run, shuffled with misc.seed
-  replica_count: 5 # number of digestion replicas to generate per protein during preprocessing
-  missed_cleavage_ratio: 0.3 # base missed-cleavage ratio; K sites are sampled at 1.5x this rate
-  raw_uniprot: "data/raw/uniprot_sprot.fasta"
-  raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
-  fragmented_ecoli: "data/ecoli/fragmented_ecoli.jsonl"
-  fragmented_yeast: "data/yeast/fragmented_yeast.jsonl"
-  fragmented_mixture: "data/mixture/fragmented_mixture.jsonl"
-
-sweep: # main.py reads this; enabled: false runs once via run.method above ("current" mode)
-  enabled: false # true = loop every combination in grid (+ extra_runs) instead of running once
-  test_samples: 5 # samples per combo when sweep is enabled (each combo gets its own results/ folder)
-  # cartesian product of the axes below: 2 organisms x 3 replica_counts x 2 mlm_profiles = 12 combos.
-  # organism/replica_count listed before mlm_profile, since only those two trigger reprocessing.
-  grid:
-    organism: [ecoli, yeast] # ecoli, yeast, mixture
-    replica_count: [5, 20, 100]
-    mlm_profile: [esm_small] # esm_small, protbert
-  extra_runs: [] # one-off combos, e.g. [{organism: mixture, replica_count: 5, mlm_profile: esm_small, method: sequential, test_samples: 5}]
+  name: "facebook/esmfold_v1"

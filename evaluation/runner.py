@@ -18,6 +18,7 @@ from config import cfg
 from evaluation.metrics import METRIC_NAMES, compute_all
 from evaluation.reporting import (
     build_config_snapshot,
+    first_pass_label,
     list_run_artifacts,
     print_run_header,
     print_summary,
@@ -185,9 +186,11 @@ def _print_saved_artifacts(run_dir: Path) -> None:
         print(f"{DIM}    - {name}{RESET}")
 
 
-def _print_result_block(target: str, reconstruction: str, validity_score=None) -> None:
+def _print_result_block(
+    target: str, reconstruction: str, validity_score=None, title: str = "Result"
+) -> None:
     print(f"\n{'─' * 60}")
-    print(f"{BOLD}  Result{RESET}")
+    print(f"{BOLD}  {title}{RESET}")
     print(f"{'─' * 60}")
     if reconstruction:
         match = target == reconstruction
@@ -399,6 +402,7 @@ def run_agentic() -> Path | None:
         print(f"{'─' * 60}")
         best_iter = best_record.get("iteration")
         first_iter = first_record.get("iteration")
+        fp_label = first_pass_label(cfg)
 
         # Attach each iteration's true reconstruction metrics (vs. the target) to
         # its history record. Cheap (string metrics) and makes runs fully
@@ -416,20 +420,24 @@ def run_agentic() -> Path | None:
             score = record.get("validity_score")
             summary = record.get("strategy_summary", "")
             score_text = f"{score:.4f}" if isinstance(score, (int, float)) else "n/a"
-            marker = " *" if record.get("iteration") == best_iter else "  "
-            baseline_tag = (
-                f" {DIM}(baseline){RESET}"
-                if record.get("iteration") == first_iter
-                else ""
-            )
+            is_best = record.get("iteration") == best_iter
+            marker = " *" if is_best else "  "
+            tags = []
+            if record.get("iteration") == first_iter:
+                tags.append(f"{DIM}({fp_label.lower()}){RESET}")
+            if is_best:
+                tags.append(f"{DIM}(selected best){RESET}")
+            tag_text = f" {' '.join(tags)}" if tags else ""
             print(
-                f"{marker}Iteration {record['iteration']}: score={score_text} | {summary}{baseline_tag}"
+                f"{marker}Iteration {record['iteration']}: score={score_text} | {summary}{tag_text}"
             )
             lever_text = _format_lever_values(record.get("lever_values", {}))
             if lever_text:
                 print(f"{DIM}    params: {lever_text}{RESET}")
 
-        _print_result_block(target, reconstruction, validity_score)
+        _print_result_block(
+            target, reconstruction, validity_score, title="Selected Best Reconstruction"
+        )
 
         baseline_order = list(range(len(fragments)))
         random.shuffle(baseline_order)
@@ -454,7 +462,9 @@ def run_agentic() -> Path | None:
             first_pass_summary[k].append(first_pass_metrics[k])
             recon_summary[k].append(recon_metrics[k])
 
-        print(f"\n{DIM}  Iteration gain (best iter {best_record.get('iteration')} vs. first pass):{RESET}")
+        print(
+            f"\n{DIM}  Gain: Selected Best (iteration {best_record.get('iteration')}) vs. {fp_label}:{RESET}"
+        )
         for k, label in METRIC_NAMES.items():
             gain = iteration_gain[k]
             better = (gain < 0) if k == "norm_edit_distance" else (gain > 0)
