@@ -122,7 +122,7 @@ The shared state records:
 
   Scores the ordering currently in shared state as the basis for best-candidate selection. Lower is better. It combines two junction-focused signals (see `algorithms/score_validity.blended_validity`) rather than whole-sequence pseudo-perplexity:
 
-  - **junction-local pseudo-perplexity** — masked-LM plausibility of only the fragment junctions the ordering uses (reuses the junction-scoring model on the order's consecutive pairs, fixed `search.validity_junction_window`), and
+  - **junction-local pseudo-perplexity** — masked-LM plausibility of only the fragment junctions the ordering uses that the overlap graph did *not* already confirm (reuses the junction-scoring model on the order's non-confirmed consecutive pairs, fixed `search.validity_junction_window`); confirmed junctions are skipped here since they're already known-valid from real multi-replica overlap evidence rather than a model guess, and
   - **confirmed-adjacency agreement** — how well the ordering respects the overlap graph's confirmed adjacencies (`state["confirmed_junctions"]`), applied as a multiplicative penalty weighted by `search.validity_confirmed_penalty`.
 
   If an explicit reconstruction different from state's is passed (its ordering is unknown), the tool falls back to whole-sequence pseudo-perplexity on that string.
@@ -135,10 +135,14 @@ Candidate orderings reuse the same fragments and differ only at the junctions, s
 junction_local_ppl * (1 + confirmed_penalty * (1 - confirmed_adjacency_agreement))
 ```
 
-- **junction_local_ppl** = `exp(-mean_junction_logprob)` over the ordering's boundaries only. Whole-sequence pseudo-perplexity was ~95% invariant across orderings (the within-fragment residues are identical), which drowned the ordering signal and made it a near-random selector — worse than a coin flip on yeast. Scoring only the junctions keeps the residues whose likelihood actually depends on the order.
+- **junction_local_ppl** = `exp(-mean_junction_logprob)` over the ordering's non-confirmed boundaries only (see below). Whole-sequence pseudo-perplexity is ~95% invariant across orderings (the within-fragment residues are identical), which drowns the ordering signal. Scoring only the junctions keeps the residues whose likelihood actually depends on the order.
 - **confirmed_adjacency_agreement** = fraction of the overlap graph's confirmed directed edges realized as consecutive in the ordering. A near-ground-truth structural signal (real multi-replica overlaps) that strengthens with replica count.
 
-Offline validation (junction window 5, confirmed penalty 0.75): concordance with true reconstruction quality is ~57% on yeast (vs ~47% for the old whole-sequence pseudo-perplexity, i.e. below chance) and ~61% on E. coli, and it flips the iterated-vs-first-pass result on yeast from worse (−0.026) to better (+0.006).
+The two hard-constraint tools feed this signal in different ways rather than being re-scored themselves:
+- `trypsin_filter`'s `impossible_junctions` (K/R→P and non-K/R-terminal violations) are excluded from every candidate ordering by construction in `beam_order`/`greedy_order` regardless of lever settings, so they can never appear in an ordering and need no separate validity check.
+- `overlap_graph`'s `confirmed_junctions` are excluded from the PLM-scored junction set in `junction_local_ppl` (they're already known-valid from real multi-replica overlap, not a model guess) and instead scored via `confirmed_adjacency_agreement`.
+
+Offline validation (junction window 5, confirmed penalty 0.75): concordance with true reconstruction quality is ~57% on yeast and ~61% on E. coli, and it flips the iterated-vs-first-pass result on yeast from worse (−0.026) to better (+0.006).
 
 Important: this is still a plausibility/consistency score, not an exact-match oracle. A candidate can score well and still be wrong in sequence order.
 

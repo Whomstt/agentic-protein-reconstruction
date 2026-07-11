@@ -1,33 +1,13 @@
-"""Single entry point for the project. Everything is controlled via config.yaml:
-
-- sweep.enabled: false (default) -> runs once using run.method below.
-  sweep.enabled: true             -> loops through sweep.grid (+ extra_runs),
-                                      each combo running this same file again
-                                      as a subprocess.
-- run.method: "agentic" (default) or "sequential" -> which reconstruction
-  approach to evaluate when not sweeping.
-
-Before every non-sweep run, the fragmented dataset for the active organism is
-regenerated automatically if data.organism, data.replica_count, or
-data.missed_cleavage_ratio have changed since it was last written (see
-preprocessing.preprocessing.ensure_fresh_dataset). Each sweep combo runs this
-same file as its own subprocess against a per-combo config, so this check
-naturally re-runs preprocessing once per distinct (organism, replica_count,
-missed_cleavage_ratio) combination in the grid.
-
-Usage: python main.py
+"""Single entry point for the project; behavior is controlled via config.yaml
+(sweep.enabled, run.method). Usage: python main.py
 """
 
 import multiprocessing
 import os
 import sys
 
-# Console output uses box-drawing characters (progress bars, dividers). On
-# Windows, stdout defaults to the OS codepage (cp1252) unless the terminal or
-# PYTHONIOENCODING already forces UTF-8, which crashes the first time one of
-# those characters gets printed. Force it here so this runs the same way
-# regardless of terminal/codepage, including when spawned as a sweep combo's
-# subprocess.
+# Windows stdout defaults to the OS codepage unless already forced to UTF-8,
+# which crashes on the box-drawing characters used in progress output.
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
@@ -38,12 +18,7 @@ from evaluation.sweep import run_sweep
 
 
 def main():
-    # A combo subprocess must never itself start a sweep. Its per-combo config
-    # already sets sweep.enabled=false, but run_sweep also exports
-    # AGENTIC_IN_SWEEP_CHILD=1 into the child env as a hard guard: if anything
-    # (a misread config, or a stray multiprocessing re-exec) reached here inside
-    # a combo child, this stops it from spawning yet another sweep and cascading
-    # into the process/memory explosion that used to OOM the machine.
+    # Hard guard against a combo subprocess itself starting another sweep.
     in_sweep_child = os.environ.get("AGENTIC_IN_SWEEP_CHILD") == "1"
 
     if cfg.get("sweep", {}).get("enabled") and not in_sweep_child:
@@ -66,8 +41,7 @@ def main():
 
 
 if __name__ == "__main__":
-    # On Windows, any library that uses multiprocessing 'spawn' re-executes this
-    # script in the child. freeze_support() makes that child return immediately
-    # instead of falling through and kicking off another full sweep.
+    # freeze_support() is required on Windows since libraries using
+    # multiprocessing 'spawn' re-execute this script in the child.
     multiprocessing.freeze_support()
     main()

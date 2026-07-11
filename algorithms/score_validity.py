@@ -6,37 +6,35 @@ import torch.nn.functional as F
 from config import cfg
 
 
-def junction_local_logprob(fragments, order, window) -> float | None:
-    """Mean masked-LM log-prob over ONLY the fragment junctions the ordering
-    uses (successor's first `window` residues at each boundary), via the same
-    junction-scoring model the pipeline already uses. Returns None when there
-    is no junction to score. Higher (less negative) = more plausible.
-
-    Whole-sequence pseudo-perplexity averages over every residue, but candidate
-    orderings differ only at fragment junctions, so ~95% of that average is
-    identical across candidates and drowns the ordering signal. Scoring only the
-    junctions keeps just the residues whose likelihood actually depends on the
-    order."""
+def junction_local_logprob(fragments, order, window, confirmed_junctions=None) -> float | None:
+    """Mean masked-LM log-prob over the fragment junctions the ordering uses
+    (successor's first `window` residues at each boundary), skipping any
+    junction the overlap graph already confirmed by real multi-replica overlap
+    evidence — those are already known-valid, so spending noisy PLM scoring on
+    them would only dilute the signal; confirmed_agreement() scores them
+    instead. Returns None when there is no junction left to score. Higher
+    (less negative) = more plausible."""
     from algorithms.score_junctions import score_junctions
 
     if not order or len(order) < 2:
         return None
-    pairs = [(order[k], order[k + 1]) for k in range(len(order) - 1)]
-    # Score only these junctions with a fixed validity window so the signal is
-    # comparable across iterations regardless of the window the agent searched
-    # with. Don't pass confirmed_junctions (that would overwrite raw MLM scores);
-    # confirmed edges are handled separately by confirmed_agreement().
+    confirmed = {(int(i), int(j)) for i, j in (confirmed_junctions or [])}
+    pairs = [
+        (order[k], order[k + 1])
+        for k in range(len(order) - 1)
+        if (order[k], order[k + 1]) not in confirmed
+    ]
+    if not pairs:
+        return 0.0
     mat = score_junctions(fragments, unscored_pairs=pairs, window=window)
     vals = [mat[i][j].item() for i, j in pairs]
-    return sum(vals) / len(vals) if vals else None
+    return sum(vals) / len(vals)
 
 
 def confirmed_agreement(order, confirmed_junctions) -> float | None:
     """Fraction of the overlap graph's confirmed directed adjacencies that the
-    ordering realizes as consecutive fragments. None when there are no confirmed
-    edges. Higher = better; this is a near-ground-truth structural signal (real
-    multi-replica overlaps, not model guesses) and strengthens with replica
-    count."""
+    ordering realizes as consecutive fragments. None when there are no
+    confirmed edges."""
     if not confirmed_junctions or not order or len(order) < 2:
         return None
     realized = {(order[k], order[k + 1]) for k in range(len(order) - 1)}
@@ -53,18 +51,13 @@ def blended_validity(
     junction_window,
     confirmed_penalty,
 ) -> float:
-    """Selection signal for best-candidate choice (lower = better).
-
-    = junction-local pseudo-perplexity, inflated when the ordering disagrees
-    with overlap-confirmed adjacencies:
+    """Selection signal for best-candidate choice (lower = better):
 
         j_ppl * (1 + confirmed_penalty * (1 - confirmed_agreement))
 
-    Offline this reaches ~62% concordance with true quality on yeast (vs ~47%
-    for whole-sequence pseudo-perplexity, which was worse than a coin flip) and
-    holds ~57-60% on E. coli, so it is far more organism-robust as the basis for
-    picking the best reconstruction."""
-    mean_lp = junction_local_logprob(fragments, order, junction_window)
+    where j_ppl is junction-local pseudo-perplexity, inflated when the
+    ordering disagrees with overlap-confirmed adjacencies."""
+    mean_lp = junction_local_logprob(fragments, order, junction_window, confirmed_junctions)
     if mean_lp is None:
         return float("inf")
     j_ppl = math.exp(-mean_lp)
@@ -100,12 +93,6 @@ def pseudo_perplexity(sequence: str) -> float:
     if sequence_length <= 0:
         return float("inf")
 
-    # Build only the current batch's masked copies rather than materializing
-    # an (L, L) matrix for the whole sequence up front — for long sequences
-    # (a full mixture-organism target, or a long single protein) that matrix
-    # was the single largest allocation in the run and it sat on the GPU for
-    # the whole call even though only one batch_size-worth was ever in use at
-    # a time.
     log_probs = []
     with model_lock:
         for start in range(0, sequence_length, batch_size):

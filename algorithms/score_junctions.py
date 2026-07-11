@@ -59,10 +59,9 @@ def score_junctions(
     mask = tokeniser.mask_token
     sep = " " if is_prot else ""
 
-    # Each (i, j) pair contributes up to `window` masked inputs — one per
-    # position in the first residues of fragment j. Aggregating log-probs over
-    # a window gives a much stronger junction signal than masking a single
-    # residue, without requiring multiple simultaneous masks per forward pass.
+    # Each (i, j) pair contributes up to `window` masked inputs, one per
+    # position in the first residues of fragment j; log-probs are aggregated
+    # over the window below.
     inputs, targets, entry_pair = [], [], []
     for i, j in pairs:
         a, b = fragments[i], fragments[j]
@@ -108,11 +107,8 @@ def score_junctions(
                 score = F.log_softmax(logits[k, mask_idx], dim=-1)[target_id].item()
                 all_scores.append(score)
             del batch_inputs, logits
-            # A high replica_count inflates the unique-fragment count, which
-            # inflates the number of junction pairs quadratically — a single
-            # call here can run thousands of batches. Without periodically
-            # clearing, PyTorch's caching allocator keeps growing its reserved
-            # pool across all of them instead of reusing freed blocks.
+            # Periodically release cached GPU memory; a high replica_count can
+            # push this loop into thousands of batches.
             if batch_idx % 50 == 0:
                 free_gpu_memory()
 

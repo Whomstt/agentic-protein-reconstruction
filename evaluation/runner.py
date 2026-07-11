@@ -1,9 +1,6 @@
-"""Single source of truth for running an evaluation over the active test
-split: both the deterministic pipeline (run_sequential) and the LLM-driven
-iterative agent (run_agentic). main.py, evaluation/sequential.py, and
-evaluation/agentic.py all call into this module instead of duplicating the
-sample loop, progress display, and reporting logic.
-"""
+"""Shared sample loop, progress display, and reporting for both the
+deterministic pipeline (run_sequential) and the LLM-driven iterative agent
+(run_agentic)."""
 
 from __future__ import annotations
 
@@ -137,12 +134,8 @@ def _load_test_samples() -> list[dict]:
     (using the global seed set once in config.py), and takes the first
     data.test_samples records."""
     pool_path = cfg["data"]["active_fragmented_split"]
-    # Read the raw lines (cheap strings) and shuffle those, then JSON-parse only
-    # the records we actually keep. Parsing every line into nested dicts/lists up
-    # front was the single largest RAM spike at high replica_count (the pool file
-    # is ~20x bigger at r=100), even though only test_samples records are used.
-    # Shuffling the line list with the same seed selects the identical records
-    # the old "parse-all then shuffle then slice" path would have.
+    # Shuffle the raw lines and JSON-parse only the ones kept, so a large
+    # pool (high replica_count) isn't fully parsed into memory up front.
     with open(pool_path) as f:
         lines = [line for line in f if line.strip()]
 

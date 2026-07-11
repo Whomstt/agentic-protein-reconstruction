@@ -9,15 +9,10 @@ from tools.state import state
 def validity_scorer(reconstruction: str | None = None) -> float:
     """Score a reconstructed ordering as the basis for best-candidate selection.
 
-    Lower is better. The score combines two junction-focused signals — because
-    candidate orderings reuse the same fragments and differ only at the
-    junctions:
-
-    - junction-local pseudo-perplexity: masked-LM plausibility of just the
-      fragment boundaries the ordering uses (not the whole sequence, which is
-      ~95% identical across orderings and so a near-random selector), and
-    - confirmed-adjacency agreement: how well the ordering respects the overlap
-      graph's confirmed adjacencies (a near-ground-truth structural signal).
+    Lower is better. Combines junction-local pseudo-perplexity (masked-LM
+    plausibility of just the fragment boundaries the ordering uses) with
+    confirmed-adjacency agreement (how well the ordering respects the overlap
+    graph's confirmed adjacencies).
 
     Scores the ordering currently in shared state (set by beam_search). If an
     explicit reconstruction string different from state's is passed, the tool
@@ -28,8 +23,8 @@ def validity_scorer(reconstruction: str | None = None) -> float:
     state_recon = state.get("reconstruction", "")
     sequence = reconstruction if reconstruction is not None else state_recon
 
-    # Use the junction+overlap blend only when we know the ordering, i.e. we're
-    # scoring the ordering beam_search stored in state.
+    # Only use the junction+overlap blend when we know the ordering, i.e. when
+    # scoring the reconstruction beam_search already stored in state.
     order = state.get("order") if (reconstruction is None or reconstruction == state_recon) else None
 
     if order and fragments:
@@ -41,8 +36,6 @@ def validity_scorer(reconstruction: str | None = None) -> float:
             cfg["search"].get("validity_confirmed_penalty", 0.75),
         )
     else:
-        # No usable ordering (e.g. a bare string with no matching fragments):
-        # fall back to whole-sequence pseudo-perplexity.
         score = pseudo_perplexity(sequence)
 
     state["validity_score"] = score

@@ -20,8 +20,7 @@ def rss_mb() -> float:
 
 
 def log_memory(label: str) -> None:
-    """Print a one-line host/GPU memory snapshot. Used to trace where RAM grows
-    over a long agentic run without attaching an external profiler."""
+    """Print a one-line host/GPU memory snapshot."""
     host = rss_mb()
     host_text = f"{host:.0f}MB" if host >= 0 else "n/a"
     if torch.cuda.is_available():

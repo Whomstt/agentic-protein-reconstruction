@@ -1,25 +1,14 @@
 def trypsin_filter(fragments):
-    """Identify trypsin-rule junction constraints among fragments.
+    """Identify trypsin-rule junction constraints among fragments (does not
+    discard any). Returns:
 
-    Fragments are not discarded — they have already been validated during
-    preprocessing. This function produces a constraint map used to prune the
-    beam search space:
-
-    - impossible_junctions: pairs (i, j) that cannot be adjacent in the
-      original sequence. Two rules contribute:
-        (a) K/R → P violations — if fragment i ends in K/R and fragment j
-            starts with P, trypsin would not have cleaved there.
-        (b) C-terminal rule — if fragment i does not end in K/R, it must be
-            the last fragment in the sequence, so (i, j) is impossible for
-            every j ≠ i. Expressing the C-terminal position constraint as
-            "no valid successor" keeps the output purely junction-level.
-    - missed_cleavage_fragments: indices of fragments containing an internal
-      K/R not followed by P — confirmed missed-cleavage products (trypsin
-      skipped a legitimate cut site).
-    - start_candidates: indices of fragments starting with M. This is a
-      position hint (beam initialization), NOT a junction constraint, but
-      it is derived from the same trypsin/biology rules and shipped here to
-      avoid duplicating the fragment scan.
+    - impossible_junctions: pairs (i, j) that cannot be adjacent — either a
+      K/R→P violation, or fragment i not ending in K/R (so it must be
+      C-terminal and has no valid successor).
+    - missed_cleavage_fragments: fragments with an internal K/R not followed
+      by P (a legitimate cut site trypsin skipped).
+    - start_candidates: fragments starting with M, as an N-terminal hint for
+      beam initialization.
     """
     n = len(fragments)
 

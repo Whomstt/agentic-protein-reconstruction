@@ -158,6 +158,7 @@ def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str
         f"Iteration {iteration}/{max_iterations}. The previous attempt scored {previous_score:.4f} validity (junction+overlap plausibility, lower is better). "
         f"Previous strategy: {previous_strategy}. Previous reconstruction preview: {preview}. "
         "Explain briefly why that attempt likely failed, then choose a materially different tactic this round. "
+        "Constraints and the overlap graph are unchanged from iteration 1 — do not call trypsin_filter or overlap_graph again; go straight to junction_scorer/beam_search. "
         "Use only these five levers: junction masking window, search mode, beam width, edge mode, and confirmed-edge bonus. "
         "If junction scores look weak, change the masking window or rescore just the suspect junction pairs. "
         f"If the search cut off early or collapsed to a partial path, change search_mode or adjust beam_width by roughly {beam_width_step} at a time. "
@@ -305,17 +306,10 @@ def run_iterative_reconstruction(
     previous_levers = None
     max_iterations = cfg["search"]["max_iterations"]
     early_stop_patience = cfg["search"]["early_stop_patience"]
-    # Minimum *relative* validity improvement (lower is better) a later iteration
-    # must clear to displace the incumbent best. The incumbent starts as
-    # iteration 1's candidate, produced by the canonical strategy. The validity
-    # signal (junction-local pseudo-perplexity + overlap-confirmed-adjacency
-    # agreement; see algorithms/score_validity.blended_validity) is a much more
-    # reliable ordering signal than the old whole-sequence pseudo-perplexity, but
-    # it is still imperfect (~57-62% concordant with true quality), so raw argmin
-    # over a handful of deliberately-diverse candidates can still swap to a
-    # noise-lower candidate. Requiring a real margin keeps iteration 1 unless a
-    # later round clearly beats it, so the iterated result is >= the first pass
-    # on average.
+    # Relative margin a later iteration's validity score must clear to replace
+    # the incumbent best (see algorithms/score_validity.blended_validity);
+    # guards against the validity signal's noise flipping the pick to a worse
+    # candidate.
     improvement_margin = cfg["search"].get("improvement_margin", 0.0)
     non_improving_streak = 0
 

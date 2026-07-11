@@ -77,7 +77,7 @@ search:
 
 data: # organism, replica_count, missed_cleavage_ratio require rerunning preprocessing
   organism: "ecoli" # active dataset: ecoli, yeast, or mixture
-  test_samples: 3 # samples drawn per run, shuffled with misc.seed
+  test_samples: 50 # samples drawn per run, shuffled with misc.seed
   replica_count: 5 # number of digestion replicas to generate per protein during preprocessing
   missed_cleavage_ratio: 0.3 # base missed-cleavage ratio; K sites are sampled at 1.5x this rate
   raw_uniprot: "data/raw/uniprot_sprot.fasta"

@@ -50,9 +50,8 @@ def _meta_path() -> Path:
 
 
 def _preprocessing_fingerprint() -> dict:
-    """The subset of config.yaml that changes what preprocessing writes to disk.
-    Compared against the sidecar .meta.json saved next to the fragmented output
-    to decide whether the file on disk still matches the active config."""
+    """The subset of config.yaml that changes what preprocessing writes to
+    disk; compared against the sidecar .meta.json to detect staleness."""
     return {
         "organism": cfg["data"].get("organism"),
         "replica_count": cfg["data"].get("replica_count"),
@@ -73,8 +72,7 @@ def is_stale() -> bool:
 def ensure_fresh_dataset() -> None:
     """Regenerates the active organism's fragmented dataset if organism,
     replica_count, or missed_cleavage_ratio have changed since it was last
-    written. Safe to call before every run (sweep combo or standalone) since
-    it's a no-op when the dataset already matches the active config."""
+    written; a no-op otherwise."""
     if is_stale():
         organism = cfg["data"].get("organism")
         print(
@@ -89,12 +87,8 @@ _GENE_NAME_PATTERN = re.compile(r"GN=(\S+)")
 
 
 def _gene_key(record) -> str:
-    """UniProt entries include many near-duplicate strains of the same gene
-    (e.g. E. coli K12, O157:H7, O6:H1, ... all carrying the same "yfbR" gene).
-    Left undeduped, a random sample is dominated by whichever strains happen
-    to be over-represented rather than by distinct proteins. GN=<gene> is the
-    dedup key; entries without one (~0.3% of records) fall back to their
-    accession, which is always unique so they're kept as-is."""
+    """Dedup key: GN=<gene> when present (many UniProt entries are
+    near-duplicate strains of the same gene), else the unique accession."""
     match = _GENE_NAME_PATTERN.search(record.description)
     return match.group(1) if match else record.id
 
@@ -220,11 +214,8 @@ def run_fragment() -> None:
     output_file = _active_fragmented_output()
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    # Stream each protein's record straight to disk instead of accumulating the
-    # whole dataset in a list first. At high replica_count (e.g. 100) that list
-    # held every gene's fragment_samples in RAM at once and was a multi-GB spike
-    # that could OOM a 32 GB box; writing per-record keeps only one protein's
-    # fragments live at a time.
+    # Stream each protein's record straight to disk rather than accumulating
+    # the whole dataset in memory, since replica_count can make each record large.
     written = 0
     with output_file.open("w") as handle:
         if organism == "mixture":

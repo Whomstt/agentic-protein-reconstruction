@@ -22,12 +22,17 @@ def trypsin_filter(fragments: list[str] | list[list[str]] | None = None) -> dict
     )
     primary = primary_fragments(fragment_samples)
 
-    state.clear()
-    state["fragment_samples"] = fragment_samples or [primary]
-    state["fragments"] = primary
-
-    constraints = _trypsin_filter(primary)
-    state.update(constraints)
+    if state.get("fragments") == primary and "impossible_junctions" in state:
+        constraints = {
+            "impossible_junctions": state["impossible_junctions"],
+            "missed_cleavage_fragments": state["missed_cleavage_fragments"],
+            "start_candidates": state["start_candidates"],
+        }
+    else:
+        state["fragment_samples"] = fragment_samples or [primary]
+        state["fragments"] = primary
+        constraints = _trypsin_filter(primary)
+        state.update(constraints)
 
     n = len(primary)
     impossible = constraints["impossible_junctions"]
