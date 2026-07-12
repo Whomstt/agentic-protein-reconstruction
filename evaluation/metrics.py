@@ -1,70 +1,14 @@
+import math
 from difflib import SequenceMatcher
-from collections import Counter
+from collections import Counter, deque
 
 
 def sequence_similarity(target, reconstruction):
-    """SequenceMatcher ratio — overall structural similarity (0-1)."""
+    """SequenceMatcher ratio — the single soft string metric (0-1). Because every
+    candidate is a permutation of the same fragment multiset, string composition
+    is fixed and this ratio reflects how much of the sequence is in the right
+    order. Kept as the one string-level view; exact_match is its binary floor."""
     return SequenceMatcher(None, target, reconstruction).ratio()
-
-
-def fragment_accuracy(target, fragments, order):
-    """Fraction of fragments placed at their correct position in the target (0-1)."""
-    if not order or not fragments:
-        return 0.0
-    cursor = 0
-    correct = 0
-    for idx in order:
-        frag = fragments[idx]
-        if target[cursor : cursor + len(frag)] == frag:
-            correct += 1
-        cursor += len(frag)
-    return correct / len(fragments)
-
-
-def levenshtein_distance(a, b):
-    """Edit distance — minimum single-character edits to transform a into b."""
-    if len(a) < len(b):
-        return levenshtein_distance(b, a)
-    if len(b) == 0:
-        return len(a)
-    prev = list(range(len(b) + 1))
-    for i, ca in enumerate(a):
-        curr = [i + 1]
-        for j, cb in enumerate(b):
-            cost = 0 if ca == cb else 1
-            curr.append(min(curr[j] + 1, prev[j + 1] + 1, prev[j] + cost))
-        prev = curr
-    return prev[-1]
-
-
-def normalized_levenshtein(target, reconstruction):
-    """Levenshtein distance normalized by the longer sequence length (0-1, lower is better)."""
-    max_len = max(len(target), len(reconstruction))
-    if max_len == 0:
-        return 0.0
-    return levenshtein_distance(target, reconstruction) / max_len
-
-
-def longest_common_subsequence(a, b):
-    """Length of the longest common subsequence."""
-    m, n = len(a), len(b)
-    prev = [0] * (n + 1)
-    for i in range(m):
-        curr = [0] * (n + 1)
-        for j in range(n):
-            if a[i] == b[j]:
-                curr[j + 1] = prev[j] + 1
-            else:
-                curr[j + 1] = max(curr[j], prev[j + 1])
-        prev = curr
-    return prev[n]
-
-
-def lcs_ratio(target, reconstruction):
-    """LCS length normalized by target length (0-1) — order-preserving coverage."""
-    if len(target) == 0:
-        return 0.0
-    return longest_common_subsequence(target, reconstruction) / len(target)
 
 
 def exact_match(target, reconstruction):
@@ -73,9 +17,11 @@ def exact_match(target, reconstruction):
 
 
 def recover_true_order(target, fragments):
-    """Greedy left-to-right tiling: returns the permutation of fragment indices that
-    reconstructs the target. Prefers longest match first to stay robust when one
-    fragment is a prefix of another. Returns None if fragments don't tile target."""
+    """Greedy left-to-right tiling: returns the permutation of fragment indices
+    that reconstructs the target. Prefers the longest match first to stay robust
+    when one fragment is a prefix of another. Returns None if the fragments do
+    not tile the target exactly (in which case the ordering metrics that depend
+    on a ground-truth order are reported as NaN, not silently as 0)."""
     if not fragments:
         return None
     remaining = sorted(range(len(fragments)), key=lambda i: -len(fragments[i]))
@@ -94,9 +40,21 @@ def recover_true_order(target, fragments):
     return order if cursor == len(target) else None
 
 
+def is_clean_permutation(order, num_fragments):
+    """True iff `order` places each fragment index exactly once — i.e. the
+    prediction is a genuine permutation of the input set with no dropped,
+    duplicated, or out-of-range fragment."""
+    if not order or num_fragments <= 0:
+        return False
+    return sorted(order) == list(range(num_fragments))
+
+
 def adjacent_pair_accuracy(pred_order, true_order, fragments):
     """Fraction of true adjacent fragment pairs preserved in the prediction (0-1).
-    Uses fragment strings (not indices) so repeated fragments are handled as a multiset."""
+    Uses fragment strings (not indices) as a multiset, so duplicate and
+    substring-identical fragments are handled correctly (an identical string in a
+    different index slot is not spuriously counted as misordered). Directed, so a
+    reversed ordering scores 0."""
     if not pred_order or not true_order or len(true_order) < 2:
         return 0.0
 
@@ -113,13 +71,59 @@ def adjacent_pair_accuracy(pred_order, true_order, fragments):
     return common / total if total else 0.0
 
 
-def kendall_tau(pred_order, true_order):
-    """Kendall tau rank correlation between predicted and true fragment orders (-1 to 1).
-    0 is the expected value for a random permutation; 1 is a perfect match."""
+def longest_correct_run(pred_order, true_order, fragments):
+    """Length of the longest contiguous run of fragments that appears in the same
+    order in both the prediction and the truth, normalized by the number of
+    fragments (0-1). Credits a partly-correct assembly: distinguishes "assembled
+    one long correct block" from "got scattered adjacencies right". Compared on
+    fragment strings (a multiset view), so duplicate fragments do not distort it."""
+    if not pred_order or not true_order:
+        return 0.0
+    pred_seq = [fragments[i] for i in pred_order]
+    true_seq = [fragments[i] for i in true_order]
+    m, n = len(pred_seq), len(true_seq)
+    # Longest common contiguous substring over the fragment-token sequences.
+    prev = [0] * (n + 1)
+    best = 0
+    for i in range(m):
+        curr = [0] * (n + 1)
+        for j in range(n):
+            if pred_seq[i] == true_seq[j]:
+                curr[j + 1] = prev[j] + 1
+                if curr[j + 1] > best:
+                    best = curr[j + 1]
+        prev = curr
+    return best / len(true_seq)
+
+
+def _matched_rank_sequence(pred_order, true_order, fragments):
+    """Map the predicted order to the sequence of true-order rank positions,
+    matching duplicate fragment strings by occurrence (k-th occurrence in the
+    prediction -> k-th occurrence in the truth). Fragments not present in the
+    truth (extras) are dropped. This makes rank correlation robust to
+    duplicate/substring-identical fragments, which a raw index mapping is not."""
+    true_seq = [fragments[i] for i in true_order]
+    pool = {}
+    for pos, s in enumerate(true_seq):
+        pool.setdefault(s, deque()).append(pos)
+    ranks = []
+    for i in pred_order:
+        s = fragments[i]
+        q = pool.get(s)
+        if q:
+            ranks.append(q.popleft())
+    return ranks
+
+
+def kendall_tau(pred_order, true_order, fragments):
+    """Kendall tau rank correlation between predicted and true fragment orders
+    (-1 to 1); 0 is the expected value for a random permutation, 1 a perfect
+    match, -1 an exact reversal. Ranks are matched on fragment strings (see
+    _matched_rank_sequence) so identical strings in different slots are not
+    treated as misordered."""
     if not pred_order or not true_order or len(true_order) < 2:
         return 0.0
-    true_pos = {idx: p for p, idx in enumerate(true_order)}
-    ranks = [true_pos[idx] for idx in pred_order if idx in true_pos]
+    ranks = _matched_rank_sequence(pred_order, true_order, fragments)
     n = len(ranks)
     if n < 2:
         return 0.0
@@ -132,40 +136,134 @@ def kendall_tau(pred_order, true_order):
             elif ranks[i] > ranks[j]:
                 discordant += 1
     total = n * (n - 1) // 2
-    return (concordant - discordant) / total
+    return (concordant - discordant) / total if total else 0.0
 
+
+def junction_ranking_stats(score_matrix, true_order, num_fragments):
+    """Search-independent quality of the pLM junction scorer: does it rank each
+    true successor at the top, before any search or constraint is applied?
+
+    For every true adjacency i->s in `true_order`, rank all candidate successors
+    j != i by score_matrix[i][j] (higher = more plausible). Returns top-1/top-3
+    accuracy and mean reciprocal rank over those true junctions. This is the one
+    measurement of the pipeline's core assumption; every other metric is measured
+    *after* search and entangles scorer quality with search dynamics."""
+    if not true_order or len(true_order) < 2 or num_fragments < 2:
+        return {"top1_acc": None, "top3_acc": None, "mrr": None, "num_junctions": 0}
+
+    def score(i, j):
+        return float(score_matrix[i][j])
+
+    top1 = top3 = 0
+    rr_sum = 0.0
+    counted = 0
+    for k in range(len(true_order) - 1):
+        i, s = true_order[k], true_order[k + 1]
+        if i >= num_fragments or s >= num_fragments:
+            continue
+        s_score = score(i, s)
+        better = sum(
+            1 for j in range(num_fragments) if j != i and j != s and score(i, j) > s_score
+        )
+        rank = better + 1
+        if rank == 1:
+            top1 += 1
+        if rank <= 3:
+            top3 += 1
+        rr_sum += 1.0 / rank
+        counted += 1
+
+    if counted == 0:
+        return {"top1_acc": None, "top3_acc": None, "mrr": None, "num_junctions": 0}
+    return {
+        "top1_acc": top1 / counted,
+        "top3_acc": top3 / counted,
+        "mrr": rr_sum / counted,
+        "num_junctions": counted,
+    }
+
+
+def rank_concordance(pairs):
+    """Given (validity_score, quality) pairs — validity lower-is-better, quality
+    higher-is-better — return (concordance, num_comparable): the fraction of
+    comparable pairs in which the lower-validity item is also the higher-quality
+    one. Ties on either axis are skipped. This is the trust check for the
+    selection signal: 0.5 means validity is no better than a coin flip at picking
+    the better candidate. Returns (None, 0) when nothing is comparable."""
+    pts = [
+        (v, q)
+        for v, q in pairs
+        if isinstance(v, (int, float))
+        and isinstance(q, (int, float))
+        and not math.isnan(v)
+        and not math.isnan(q)
+        and not math.isinf(v)
+    ]
+    concordant = 0
+    total = 0
+    for a in range(len(pts)):
+        for b in range(a + 1, len(pts)):
+            v1, q1 = pts[a]
+            v2, q2 = pts[b]
+            if v1 == v2 or q1 == q2:
+                continue
+            total += 1
+            if (v1 < v2 and q1 > q2) or (v2 < v1 and q2 > q1):
+                concordant += 1
+    return (concordant / total if total else None, total)
+
+
+def nanmean(values):
+    """Mean over numeric values, skipping None/NaN. Returns NaN if nothing usable
+    remains, so downstream formatting shows 'nan' rather than crashing."""
+    vals = [
+        v for v in values if isinstance(v, (int, float)) and not math.isnan(v)
+    ]
+    return sum(vals) / len(vals) if vals else float("nan")
+
+
+# Ordering metrics that require a recovered ground-truth order; NaN for a sample
+# whose fragments do not tile the target (recover_true_order returned None).
+ORDERING_METRICS = {"adjacent_pair_acc", "longest_correct_run", "kendall_tau"}
 
 METRIC_NAMES = {
     "exact_match": "Exact Match",
     "similarity": "Sequence Similarity",
-    "fragment_acc": "Fragment Accuracy",
-    "norm_edit_distance": "Norm. Edit Dist. (lower=better)",
-    "lcs_ratio": "LCS Ratio",
     "adjacent_pair_acc": "Adjacent Pair Accuracy",
+    "longest_correct_run": "Longest Correct Run",
     "kendall_tau": "Kendall Tau",
 }
 
-# Metrics where lower values indicate better reconstructions.
-LOWER_IS_BETTER = {"norm_edit_distance"}
+# Metrics where lower values indicate better reconstructions. Empty for the
+# current set (all higher-is-better); kept as the single source of truth so
+# report/console formatting never hard-codes a metric name.
+LOWER_IS_BETTER: set[str] = set()
 
 
 def compute_all(target, reconstruction, fragments=None, order=None):
-    """Compute all metrics. Returns dict keyed by metric name."""
+    """Compute all metrics. Returns a dict keyed by metric name, plus the
+    auxiliary key ``true_order_recovered`` (outside METRIC_NAMES) recording
+    whether the ground-truth order could be tiled from the fragments. When it
+    could not, the ordering metrics are NaN rather than a misleading 0."""
     true_order = recover_true_order(target, fragments) if fragments else None
+    recovered = true_order is not None
+
+    if order and true_order:
+        adjacent = adjacent_pair_accuracy(order, true_order, fragments)
+        longest = longest_correct_run(order, true_order, fragments)
+        tau = kendall_tau(order, true_order, fragments)
+    elif order and not recovered:
+        adjacent = longest = tau = float("nan")
+    else:
+        adjacent = longest = tau = 0.0
+
     return {
         "exact_match": exact_match(target, reconstruction),
         "similarity": sequence_similarity(target, reconstruction),
-        "fragment_acc": fragment_accuracy(target, fragments, order) if order else 0.0,
-        "norm_edit_distance": normalized_levenshtein(target, reconstruction),
-        "lcs_ratio": lcs_ratio(target, reconstruction),
-        "adjacent_pair_acc": (
-            adjacent_pair_accuracy(order, true_order, fragments)
-            if order and true_order
-            else 0.0
-        ),
-        "kendall_tau": (
-            kendall_tau(order, true_order) if order and true_order else 0.0
-        ),
+        "adjacent_pair_acc": adjacent,
+        "longest_correct_run": longest,
+        "kendall_tau": tau,
+        "true_order_recovered": recovered,
     }
 
 
@@ -176,16 +274,16 @@ def print_metrics(metrics):
 
 
 def print_averages(summary, n):
-    """Print averaged metrics across samples."""
+    """Print averaged metrics across samples (NaN-safe)."""
     for key, label in METRIC_NAMES.items():
-        avg = sum(summary[key]) / n
+        avg = nanmean(summary[key])
         print(f"  {label}: {avg:.4f}")
 
 
 def print_comparison(baseline_summary, recon_summary, n):
-    """Print averaged metrics side-by-side: shuffled baseline vs reconstructed vs delta.
-    Delta is raw (reconstructed - baseline); a trailing tag marks direction of improvement,
-    since some metrics are lower-is-better."""
+    """Print averaged metrics side-by-side: shuffled baseline vs reconstructed vs
+    delta. Delta is raw (reconstructed - baseline); a trailing tag marks the
+    direction of improvement using LOWER_IS_BETTER. NaN-safe."""
     label_width = max(len(label) for label in METRIC_NAMES.values())
     col_base = 10
     col_recon = 14
@@ -199,8 +297,8 @@ def print_comparison(baseline_summary, recon_summary, n):
     print(header)
     print("  " + "-" * (len(header) - 2))
     for key, label in METRIC_NAMES.items():
-        base = sum(baseline_summary[key]) / n
-        recon = sum(recon_summary[key]) / n
+        base = nanmean(baseline_summary[key])
+        recon = nanmean(recon_summary[key])
         delta = recon - base
         improved = (delta < 0) if key in LOWER_IS_BETTER else (delta > 0)
         tag = "(better)" if improved and delta != 0 else ("(worse)" if delta != 0 else "(same)  ")

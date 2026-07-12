@@ -16,12 +16,15 @@ The agent runs for multiple rounds per sample, trying a materially different rec
 - `run.method: "agentic"` or `"sequential"` — which reconstruction approach to run (used when `sweep.enabled` is `false`)
 - `sweep.enabled: true` — instead of one run, loop every combination in `sweep.grid` (e.g. organism × replica_count × PLM profile), each as its own subprocess, then write one combined report across all combos on top of each combo's own report
 
-Every run writes a timestamped folder under `results/` with `report.md`, chart SVGs, `summary.json`, and `samples.jsonl` (full per-sample, per-iteration detail).
+Every run writes a timestamped folder under `results/` with `report.md`, `metric_comparison.svg`, `summary.json`, and `samples.jsonl` (full per-sample, per-iteration detail). An agentic `report.md` leads with the three-arm benchmark (**Shuffled Baseline → Deterministic → Agentic Best**) and also reports **Validity Signal Concordance** (whether the selection signal tracks true quality) and **Cost, Efficiency & Completion** (LLM calls/tokens/wall-clock, completion and failure rates) — the axes that quality alone can't justify the agent on.
+
+Metrics are tuned for the fact that a reconstruction is a permutation of a fixed fragment set: **Exact Match**, **Sequence Similarity** (the one soft string metric), **Adjacent Pair Accuracy** and **Longest Correct Run** (ordering / partial-assembly), and **Kendall Tau** (global ordering). See [CLAUDE.md](CLAUDE.md#metrics) for the definitions and why the earlier string metrics were cut.
 
 To run one evaluation mode directly, bypassing `run.method`:
 ```bash
 python -m evaluation.agentic
 python -m evaluation.sequential
+python -m evaluation.junction_ranking   # search-independent check that the pLM ranks true successor fragments well
 ```
 
 ### Agent runtime

@@ -45,6 +45,20 @@ def _default_lever_values() -> dict:
     return dict(cfg["search"]["default_levers"])
 
 
+def _usage_tokens(message) -> int:
+    """Best-effort total token count from an LLM response, across the shapes
+    LangChain exposes (usage_metadata on the message, or token_usage in
+    response_metadata). Returns 0 when nothing is reported."""
+    if message is None:
+        return 0
+    usage = getattr(message, "usage_metadata", None)
+    if isinstance(usage, dict) and usage.get("total_tokens") is not None:
+        return int(usage["total_tokens"])
+    meta = getattr(message, "response_metadata", None) or {}
+    token_usage = meta.get("token_usage") or meta.get("usage") or {}
+    return int(token_usage.get("total_tokens") or 0)
+
+
 def _history_digest(history: list[dict] | None) -> tuple[list[str], dict | None]:
     """Compact per-attempt lever→score lines plus the best record so far, so the
     lever prompt can steer the model away from repeating a combination it already
@@ -212,6 +226,8 @@ def run_single_call_iteration(
     """Runs one iteration in single-call mode: one LLM call to pick the five
     levers, then a deterministic tool pipeline executed directly in Python."""
     reasoning_steps: list = []
+    llm_tokens = 0
+    llm_failed = False
 
     if iteration == 1:
         trypsin_result = trypsin_filter.invoke({})
@@ -250,21 +266,39 @@ def run_single_call_iteration(
             on_event("thought", reasoning_note)
     else:
         prompt = _lever_prompt(iteration, previous_record, history)
-        structured_llm = llm.with_structured_output(LeverChoice)
-        choice: LeverChoice = structured_llm.invoke(prompt)
+        # include_raw keeps the underlying AIMessage so we can read token usage;
+        # the parsed LeverChoice arrives under "parsed".
+        structured_llm = llm.with_structured_output(LeverChoice, include_raw=True)
+        raw_response = structured_llm.invoke(prompt)
+        if isinstance(raw_response, dict):
+            choice = raw_response.get("parsed")
+            llm_tokens = _usage_tokens(raw_response.get("raw"))
+        else:
+            choice = raw_response
 
-        if on_event and choice.reasoning:
-            on_event("thought", choice.reasoning.strip())
-        if choice.reasoning:
-            reasoning_steps.append(choice.reasoning.strip())
+        if choice is None:
+            # Structured parse failed: fall back to config defaults so the run
+            # still produces a candidate, and record the failure for the report's
+            # completion/failure-rate accounting.
+            llm_failed = True
+            lever_values = _default_lever_values()
+            note = "LLM structured lever choice failed to parse — falling back to config default levers."
+            reasoning_steps.append(note)
+            if on_event:
+                on_event("thought", note)
+        else:
+            if on_event and choice.reasoning:
+                on_event("thought", choice.reasoning.strip())
+            if choice.reasoning:
+                reasoning_steps.append(choice.reasoning.strip())
 
-        lever_values = {
-            "junction_window": choice.junction_window,
-            "search_mode": choice.search_mode,
-            "beam_width": choice.beam_width,
-            "edge_mode": choice.edge_mode,
-            "confirmed_bonus": choice.confirmed_bonus,
-        }
+            lever_values = {
+                "junction_window": choice.junction_window,
+                "search_mode": choice.search_mode,
+                "beam_width": choice.beam_width,
+                "edge_mode": choice.edge_mode,
+                "confirmed_bonus": choice.confirmed_bonus,
+            }
 
     previous_window = (
         previous_record.get("lever_values", {}).get("junction_window")
@@ -358,4 +392,7 @@ def run_single_call_iteration(
         "junction_stats": junction_stats,
         "beam_diagnostics": beam_diagnostics,
         "llm_call": use_llm_for_levers,
+        "llm_calls": 1 if use_llm_for_levers else 0,
+        "llm_tokens": llm_tokens,
+        "llm_failed": llm_failed,
     }

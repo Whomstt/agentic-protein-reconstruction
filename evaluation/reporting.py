@@ -6,7 +6,12 @@ import statistics
 from datetime import datetime
 from pathlib import Path
 
-from evaluation.metrics import METRIC_NAMES, print_comparison
+from evaluation.metrics import (
+    LOWER_IS_BETTER,
+    METRIC_NAMES,
+    print_comparison,
+    rank_concordance,
+)
 
 RESULTS_ROOT = Path(__file__).resolve().parent.parent / "results"
 
@@ -18,10 +23,8 @@ AGGREGATE_LINE_THRESHOLD = 12
 METRIC_RANGES = {
     "exact_match": (0.0, 1.0),
     "similarity": (0.0, 1.0),
-    "fragment_acc": (0.0, 1.0),
-    "norm_edit_distance": (0.0, 1.0),
-    "lcs_ratio": (0.0, 1.0),
     "adjacent_pair_acc": (0.0, 1.0),
+    "longest_correct_run": (0.0, 1.0),
     "kendall_tau": (-1.0, 1.0),
 }
 
@@ -611,8 +614,9 @@ def _format_metric_rows(payload: dict) -> list[list[str]]:
         baseline = payload["baseline_averages"][key]
         recon = payload["recon_averages"][key]
         delta = payload["delta"][key]
-        better = "up" if key != "norm_edit_distance" else "down"
-        if key == "norm_edit_distance":
+        lower_better = key in LOWER_IS_BETTER
+        better = "down" if lower_better else "up"
+        if lower_better:
             status = "better" if delta < 0 else ("worse" if delta > 0 else "same")
         else:
             status = "better" if delta > 0 else ("worse" if delta < 0 else "same")
@@ -643,7 +647,7 @@ def _format_iteration_gain_rows(payload: dict) -> list[list[str]]:
         first_pass = first_pass_averages.get(key, 0.0)
         best = recon_averages.get(key, 0.0)
         gain = best - first_pass
-        if key == "norm_edit_distance":
+        if key in LOWER_IS_BETTER:
             status = "better" if gain < 0 else ("worse" if gain > 0 else "same")
         else:
             status = "better" if gain > 0 else ("worse" if gain < 0 else "same")
@@ -690,7 +694,7 @@ def _format_iteration_gain_distribution_rows(sample_reports: list[dict]) -> list
     if validity_gain_stats is not None:
         rows.append(
             [
-                "Best Validity Score (pseudo-perplexity, lower=better)",
+                "Best Validity Score (junction+overlap blend, lower=better)",
                 f"{validity_gain_stats['mean']:+.4f}",
                 f"{validity_gain_stats['std']:.4f}",
                 f"{validity_gain_stats['min']:+.4f}",
@@ -726,12 +730,69 @@ def _format_distribution_rows(sample_reports: list[dict]) -> list[list[str]]:
     if validity_stats is not None:
         rows.append(
             [
-                "Best Validity Score (pseudo-perplexity, lower=better)",
+                "Best Validity Score (junction+overlap blend, lower=better)",
                 f"{validity_stats['mean']:.4f}",
                 f"{validity_stats['std']:.4f}",
                 f"{validity_stats['min']:.4f}",
                 f"{validity_stats['median']:.4f}",
                 f"{validity_stats['max']:.4f}",
+            ]
+        )
+    return rows
+
+
+def _format_cost_rows(payload: dict) -> list[list[str]]:
+    """Cost/efficiency and completion accounting — the axis quality alone can't
+    justify the agentic approach on. Only populated for agentic runs (the cost
+    summary is attached by evaluation/runner.run_agentic)."""
+    cost = payload.get("cost_summary")
+    if not cost:
+        return []
+    n = payload.get("sample_count", 0) or 0
+    rows = [
+        ["Samples", str(n)],
+        ["Completed (clean permutation produced)", f"{cost.get('completed_samples', 0)}/{n}"],
+        [
+            "True order recoverable (ordering metrics valid)",
+            f"{cost.get('true_order_recovered', 0)}/{n}",
+        ],
+        ["LLM lever-choice failures (fell back to defaults)", str(cost.get("llm_failures", 0))],
+        ["Total LLM calls", str(cost.get("total_llm_calls", 0))],
+        ["Avg LLM calls / sample", f"{cost.get('avg_llm_calls_per_sample', 0):.2f}"],
+        ["Total LLM tokens", str(cost.get("total_llm_tokens", 0))],
+        ["Avg LLM tokens / sample", f"{cost.get('avg_llm_tokens_per_sample', 0):.0f}"],
+        ["Avg wall-clock / sample", _format_duration(cost.get("avg_seconds_per_sample"))],
+    ]
+    return rows
+
+
+def _format_validity_concordance_rows(sample_reports: list[dict]) -> list[list[str]]:
+    """Does the validity selection signal actually track reconstruction quality?
+    For each sample, pools the (validity_score, true-metric) pairs across that
+    sample's iterations and measures rank concordance — the fraction of
+    within-sample candidate pairs where the lower-validity candidate is also the
+    higher-quality one. 0.50 means the signal is no better than a coin flip at
+    picking the better of two candidates it actually saw."""
+    rows = []
+    for quality_key, quality_label in (
+        ("kendall_tau", "Kendall Tau"),
+        ("adjacent_pair_acc", "Adjacent Pair Accuracy"),
+    ):
+        pairs = []
+        for report in sample_reports:
+            history = report.get("iteration_history", [])
+            for record in history:
+                validity = record.get("validity_score")
+                quality = record.get("metrics", {}).get(quality_key)
+                pairs.append((validity, quality))
+        concordance, comparable = rank_concordance(pairs)
+        if concordance is None:
+            continue
+        rows.append(
+            [
+                quality_label,
+                f"{concordance:.3f}",
+                str(comparable),
             ]
         )
     return rows
@@ -1017,6 +1078,39 @@ def write_run_results(run_name: str, payload: dict) -> Path:
                 ]
             )
 
+    concordance_rows = _format_validity_concordance_rows(sample_reports)
+    if concordance_rows:
+        lines.extend(
+            [
+                "## Validity Signal Concordance",
+                "Whether the validity score used to *select* the winning candidate actually "
+                "tracks true reconstruction quality, measured within each sample across the "
+                "iterations it tried. 0.50 = no better than chance at picking the better of two "
+                "candidates; higher is better. This is the trust check for the selection signal — "
+                "if it is near 0.50, a better candidate the agent generated would not reliably be "
+                "the one kept.",
+                "",
+                _markdown_table(
+                    ["Quality metric compared against", "Concordance", "Comparable pairs"],
+                    concordance_rows,
+                ),
+                "",
+            ]
+        )
+
+    cost_rows = _format_cost_rows(payload)
+    if cost_rows:
+        lines.extend(
+            [
+                "## Cost, Efficiency & Completion",
+                "The non-quality axis the agentic approach must also justify itself on: LLM "
+                "calls, tokens, wall-clock, and how often it produced a usable result.",
+                "",
+                _markdown_table(["Measure", "Value"], cost_rows),
+                "",
+            ]
+        )
+
     if sample_reports:
         display_rows, hidden_count = _select_display_samples(sample_reports)
         table_title = "## Per-Sample Results"
@@ -1049,10 +1143,21 @@ def write_run_results(run_name: str, payload: dict) -> Path:
     lines.extend(
         [
             "## Quick Read",
-            "- Higher is better for all metrics except normalized edit distance.",
+            "- Higher is better for every metric in the current set.",
+            "- Metrics: Exact Match (binary floor); Sequence Similarity (the one soft string "
+            "metric); Adjacent Pair Accuracy (fraction of true fragment adjacencies preserved, "
+            "the primary ordering metric); Longest Correct Run (longest contiguous correctly-"
+            "ordered block, partial-assembly credit); Kendall Tau (global ordering correlation, "
+            "0 = random, 1 = perfect, -1 = reversed).",
+            "- Ordering metrics are NaN (skipped in the averages) for any sample whose fragments "
+            "do not tile the target; the count of usable samples is in Cost, Efficiency & Completion.",
             "- A positive delta means the reconstruction improved over the shuffled baseline.",
             "- Each entry in samples.jsonl includes iteration_history with per-iteration lever_values and changed_levers for auditability.",
-            "- The validity score is pseudo-perplexity from the ESM-2 MLM; it measures plausibility, not exact-match correctness.",
+            "- The validity score is the junction+overlap blended plausibility signal (lower = "
+            "better); it measures plausibility, not exact-match correctness. Its trustworthiness "
+            "is quantified in Validity Signal Concordance above.",
+            "- Junction-scorer ranking quality is measured separately and search-independently via "
+            "`python -m evaluation.junction_ranking`.",
             "- Use this report for side-by-side benchmarking; the raw per-sample data is in `samples.jsonl`.",
         ]
     )

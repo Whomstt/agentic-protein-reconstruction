@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from openai import AuthenticationError
 
 from config import cfg
-from evaluation.metrics import METRIC_NAMES, compute_all
+from evaluation.metrics import METRIC_NAMES, compute_all, is_clean_permutation, nanmean
 from evaluation.reporting import (
     build_config_snapshot,
     first_pass_label,
@@ -266,6 +266,7 @@ def run_sequential() -> Path | None:
                 "order": order,
                 "baseline_metrics": baseline_metrics,
                 "recon_metrics": recon_metrics,
+                "completed": is_clean_permutation(order, len(fragments)),
                 "num_pruned": pruned,
                 "total_junctions": total_junctions,
                 "pruned_pct": (pruned / total_junctions * 100) if total_junctions else 0.0,
@@ -294,8 +295,8 @@ def run_sequential() -> Path | None:
         f"(avg {_format_duration(total_duration / n)}/sample){RESET}"
     )
 
-    baseline_averages = {k: sum(v) / n for k, v in baseline_summary.items()}
-    recon_averages = {k: sum(v) / n for k, v in recon_summary.items()}
+    baseline_averages = {k: nanmean(v) for k, v in baseline_summary.items()}
+    recon_averages = {k: nanmean(v) for k, v in recon_summary.items()}
     delta = {k: recon_averages[k] - baseline_averages[k] for k in METRIC_NAMES}
     avg_pruned = sum(r["pruned_pct"] for r in sample_reports) / n
 
@@ -391,6 +392,7 @@ def run_agentic() -> Path | None:
 
         best_record = run_result.get("best_record", {})
         first_record = run_result.get("first_record", {})
+        cost = run_result.get("cost", {})
         iteration_history = run_result.get("iteration_history", [])
         reconstruction = best_record.get("reconstruction", "")
         order = best_record.get("order", [])
@@ -467,7 +469,7 @@ def run_agentic() -> Path | None:
         )
         for k, label in METRIC_NAMES.items():
             gain = iteration_gain[k]
-            better = (gain < 0) if k == "norm_edit_distance" else (gain > 0)
+            better = gain > 0
             tag = (
                 f"{GREEN}better{RESET}"
                 if better and gain != 0
@@ -493,6 +495,11 @@ def run_agentic() -> Path | None:
                 "iteration_gain": iteration_gain,
                 "best_iteration": best_record.get("iteration"),
                 "best_validity_score": validity_score,
+                "completed": cost.get("completed", bool(order)),
+                "num_iterations": cost.get("num_iterations"),
+                "llm_calls": cost.get("llm_calls"),
+                "llm_tokens": cost.get("llm_tokens"),
+                "llm_failures": cost.get("llm_failures"),
                 "iteration_history": iteration_history,
                 "num_pruned": len(state_snapshot.get("impossible_junctions", [])),
                 "total_junctions": total_junctions,
@@ -527,11 +534,26 @@ def run_agentic() -> Path | None:
         f"(avg {_format_duration(total_duration / n)}/sample){RESET}"
     )
 
-    baseline_averages = {k: sum(v) / n for k, v in baseline_summary.items()}
-    first_pass_averages = {k: sum(v) / n for k, v in first_pass_summary.items()}
-    recon_averages = {k: sum(v) / n for k, v in recon_summary.items()}
+    baseline_averages = {k: nanmean(v) for k, v in baseline_summary.items()}
+    first_pass_averages = {k: nanmean(v) for k, v in first_pass_summary.items()}
+    recon_averages = {k: nanmean(v) for k, v in recon_summary.items()}
     delta = {k: recon_averages[k] - baseline_averages[k] for k in METRIC_NAMES}
     avg_pruned = sum(r["pruned_pct"] for r in sample_reports) / n
+
+    total_llm_calls = sum(r.get("llm_calls") or 0 for r in sample_reports)
+    total_llm_tokens = sum(r.get("llm_tokens") or 0 for r in sample_reports)
+    cost_summary = {
+        "total_llm_calls": total_llm_calls,
+        "total_llm_tokens": total_llm_tokens,
+        "avg_llm_calls_per_sample": total_llm_calls / n,
+        "avg_llm_tokens_per_sample": total_llm_tokens / n,
+        "avg_seconds_per_sample": total_duration / n,
+        "completed_samples": sum(1 for r in sample_reports if r.get("completed")),
+        "llm_failures": sum(r.get("llm_failures") or 0 for r in sample_reports),
+        "true_order_recovered": sum(
+            1 for r in sample_reports if r.get("recon_metrics", {}).get("true_order_recovered")
+        ),
+    }
 
     run_payload = {
         "run_name": run_name,
@@ -542,6 +564,7 @@ def run_agentic() -> Path | None:
         "first_pass_averages": first_pass_averages,
         "recon_averages": recon_averages,
         "delta": delta,
+        "cost_summary": cost_summary,
         "samples": sample_reports,
         "duration_seconds": total_duration,
     }

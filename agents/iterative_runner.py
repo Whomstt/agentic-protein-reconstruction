@@ -5,6 +5,7 @@ import math
 
 from agents.deterministic_agent import run_single_call_iteration
 from config import cfg
+from evaluation.metrics import is_clean_permutation
 from models.memory import free_gpu_memory, log_memory
 from tools.state import state
 from tools.validity_scorer import validity_scorer
@@ -210,11 +211,17 @@ def _extract_record(result: dict, iteration: int, prompt: str) -> dict:
     tool_calls = []
     tool_results = {}
     reasoning_steps = []
+    llm_calls = 0
+    llm_tokens = 0
 
     for message in messages:
         msg_type = getattr(message, "type", None)
 
         if msg_type == "ai":
+            llm_calls += 1
+            usage = getattr(message, "usage_metadata", None)
+            if isinstance(usage, dict) and usage.get("total_tokens") is not None:
+                llm_tokens += int(usage["total_tokens"])
             text = getattr(message, "content", None)
             if isinstance(text, str) and text.strip():
                 reasoning_steps.append(text.strip())
@@ -282,6 +289,9 @@ def _extract_record(result: dict, iteration: int, prompt: str) -> dict:
         "reconstruction": reconstruction,
         "order": order,
         "validity_score": validity_score,
+        "llm_calls": llm_calls,
+        "llm_tokens": llm_tokens,
+        "llm_failed": False,
     }
 
 
@@ -412,9 +422,21 @@ def run_iterative_reconstruction(
         previous_record = record
 
     state["iteration_history"] = history
+
+    best = best_record or {}
+    best_order = best.get("order", [])
+    completed = is_clean_permutation(best_order, len(fragments))
+
     return {
-        "best_record": best_record or {},
+        "best_record": best,
         "first_record": history[0] if history else {},
         "iteration_history": history,
         "state": dict(state),
+        "cost": {
+            "num_iterations": len(history),
+            "llm_calls": sum(r.get("llm_calls", 0) for r in history),
+            "llm_tokens": sum(r.get("llm_tokens", 0) for r in history),
+            "llm_failures": sum(1 for r in history if r.get("llm_failed")),
+            "completed": completed,
+        },
     }
