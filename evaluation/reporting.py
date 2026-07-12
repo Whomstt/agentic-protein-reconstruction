@@ -154,7 +154,7 @@ def first_pass_label(config: dict) -> str:
     never mistaken for an agent decision; otherwise it is a genuine LLM lever
     choice (see CLAUDE.md's research-validity note)."""
     if _iteration1_is_deterministic(config):
-        return "Deterministic 1st Pass (config defaults, no LLM)"
+        return "Deterministic (config defaults, no LLM)"
     return "Agentic 1st Pass (LLM)"
 
 
@@ -192,20 +192,19 @@ def run_type_summary(config: dict) -> list[str]:
     ]
     if _iteration1_is_deterministic(config):
         lines.append(
-            "- **Deterministic 1st Pass** — iteration 1 runs the fixed "
-            "`search.default_levers` with **no LLM call**. This is the non-agentic "
-            "reference point, not the agent's work."
+            "- **Deterministic (config defaults)** — the non-agentic baseline: iteration 1 run "
+            "with the fixed `search.default_levers` and **no LLM call**. The agent refines from it."
         )
     else:
         lines.append(
             "- **Agentic 1st Pass** — iteration 1 is itself an LLM lever decision "
-            "(`run.iteration1_deterministic=false`)."
+            "(`run.iteration1_deterministic=false`); there is no deterministic baseline inside this run."
         )
     lines.append(
-        "- **Agentic Best** — the agent's actual result: iterations 2+ are LLM-driven "
-        "lever choices, and the kept candidate is the one with the best (lowest) validity "
-        "score across all iterations, subject to `search.improvement_margin` hysteresis. "
-        "It equals the 1st pass whenever no later iteration cleared that margin."
+        "- **Agentic Best** — the agent's result: iterations 2+ are LLM lever choices, and the "
+        "kept candidate is the best-validity one across all iterations (subject to "
+        "`search.improvement_margin`). Since iteration 1 (the deterministic baseline) is in the "
+        'candidate set, read the **true-metric** columns for the real "does the agent help?" answer.'
     )
     lines.append("")
     return lines
@@ -508,13 +507,14 @@ def build_config_snapshot(cfg: dict) -> dict:
             "max_length": cfg.get("validity_model", {}).get("max_length"),
         },
         "llm_model": {
-            "name": cfg["llm_model"].get("name"),
-            "temperature": cfg["llm_model"].get("temperature"),
+            # Resolved llm profiles carry the deployment under "model"; fall back
+            # to "name" for any profile that used that key instead.
+            "name": cfg["llm_model"].get("model") or cfg["llm_model"].get("name"),
+            "sampling": dict(cfg["llm_model"].get("sampling") or {}),
         },
         "search": {
             "max_iterations": cfg.get("search", {}).get("max_iterations"),
             "early_stop_patience": cfg.get("search", {}).get("early_stop_patience"),
-            "beam_width_step": cfg.get("search", {}).get("beam_width_step"),
             "default_beam_width": cfg.get("search", {})
             .get("default_levers", {})
             .get("beam_width"),
@@ -591,10 +591,18 @@ def _format_config_rows(config: dict) -> list[list[str]]:
             "Early Stop Patience",
             str(config.get("search", {}).get("early_stop_patience")),
         ],
-        ["Beam Width Step", str(config.get("search", {}).get("beam_width_step"))],
         ["LLM Model", str(config["llm_model"]["name"])],
-        ["LLM Temperature", str(config["llm_model"]["temperature"])],
+        ["LLM Sampling", _format_sampling(config["llm_model"].get("sampling"))],
     ]
+
+
+def _format_sampling(sampling: dict | None) -> str:
+    """Render only the sampling knobs that are actually set, so the report shows
+    what was sent to the model (reasoning models omit temperature/top_p)."""
+    if not sampling:
+        return "model defaults"
+    parts = [f"{key}={value}" for key, value in sampling.items() if value is not None]
+    return ", ".join(parts) if parts else "model defaults"
 
 
 def _format_metric_rows(payload: dict) -> list[list[str]]:
@@ -776,7 +784,6 @@ def print_run_header(title: str, config_snapshot: dict) -> None:
     )
     print(f"  Iteration 1 Mode: {iter1_mode}")
     print(f"  Early Stop Patience: {config_snapshot['search']['early_stop_patience']}")
-    print(f"  Beam Width Step: {config_snapshot['search']['beam_width_step']}")
     print(f"  LLM Model: {config_snapshot['llm_model']['name']}")
     print()
 
@@ -886,7 +893,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
     fp_label = first_pass_label(config)
     best_label = selected_best_label(config)
     fp_short = (
-        "Deterministic 1st Pass"
+        "Deterministic (fixed)"
         if _iteration1_is_deterministic(config)
         else "Agentic 1st Pass"
     )
@@ -900,18 +907,6 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         best_short,
     )
     (run_dir / "metric_comparison.svg").write_text(bar_chart_svg, encoding="utf-8")
-
-    line_chart_svg = render_validity_progression_svg(sample_reports)
-    if line_chart_svg:
-        (run_dir / "validity_progression.svg").write_text(
-            line_chart_svg, encoding="utf-8"
-        )
-
-    histogram_svg = render_validity_histogram_svg(sample_reports)
-    if histogram_svg:
-        (run_dir / "validity_histogram.svg").write_text(
-            histogram_svg, encoding="utf-8"
-        )
 
     lines = [f"# {payload['run_name']}", ""]
     lines.extend(run_type_summary(config))
@@ -938,63 +933,65 @@ def write_run_results(run_name: str, payload: dict) -> Path:
             "## Configuration",
             _markdown_table(["Setting", "Value"], _format_config_rows(config)),
             "",
-            "## Benchmark Summary",
-            _markdown_table(
-                [
-                    "Metric",
-                    "Shuffled Baseline",
-                    best_label,
-                    "Delta",
-                    "Interpretation",
-                    "Direction",
-                ],
-                _format_metric_rows(payload),
-            ),
-            "",
-            "![Metric comparison](metric_comparison.svg)",
-            "",
         ]
     )
 
-    gain_rows = _format_iteration_gain_rows(payload)
-    if gain_rows:
-        gain_caveat = (
-            " Because the 1st pass here is deterministic (no LLM), this gain isolates "
-            "what the LLM's rounds 2+ added on top of the fixed config-defaults pass — "
-            "not the agent against its own first attempt."
-            if _iteration1_is_deterministic(config)
-            else " Here the 1st pass is itself an LLM decision, so this gain is the agent "
-            "against its own first attempt."
-        )
+    three_arm_rows = _format_iteration_gain_rows(payload)
+    if three_arm_rows:
+        # Agentic run with a deterministic baseline: headline is the three-arm
+        # comparison the research question asks for.
         lines.extend(
             [
-                "## Iterative Reasoning Gain",
-                f"What the iterative refinement loop added on top of the {fp_label}. "
-                f"{best_label} is the lowest-validity-score iteration seen (subject to "
-                f"`search.improvement_margin` hysteresis) — it equals the 1st pass whenever "
-                "that iteration was already the best one." + gain_caveat,
-                "",
+                "## Benchmark: Shuffled Baseline vs. Deterministic vs. Agentic",
                 _markdown_table(
                     [
                         "Metric",
                         "Shuffled Baseline",
                         fp_label,
                         best_label,
-                        "Gain vs. 1st Pass",
+                        "Δ Agentic − Deterministic",
                         "Direction",
                     ],
-                    gain_rows,
+                    three_arm_rows,
                 ),
+                "",
+                "![Metric comparison](metric_comparison.svg)",
                 "",
             ]
         )
+    else:
+        # Sequential (no deterministic-vs-agentic split): two-arm summary.
+        lines.extend(
+            [
+                "## Benchmark Summary",
+                _markdown_table(
+                    [
+                        "Metric",
+                        "Shuffled Baseline",
+                        best_label,
+                        "Delta",
+                        "Interpretation",
+                        "Direction",
+                    ],
+                    _format_metric_rows(payload),
+                ),
+                "",
+                "![Metric comparison](metric_comparison.svg)",
+                "",
+            ]
+        )
+
+    if three_arm_rows:
         gain_dist_rows = _format_iteration_gain_distribution_rows(sample_reports)
         if gain_dist_rows:
             lines.extend(
                 [
-                    f"### Per-Sample Gain Distribution (n={len(sample_reports)} samples, paired: best - first pass)",
-                    "Mean gain averages over noise; std dev shows how consistently iteration helps "
-                    "vs. how often it swings the other way on an individual sample.",
+                    f"## Agentic vs. Deterministic (paired, per sample, n={len(sample_reports)})",
+                    "Per-sample gain of the agentic result over the deterministic best-fixed "
+                    "baseline (Agentic − Deterministic on the same protein). Mean is the average "
+                    "improvement; std dev shows how consistently the agent helps vs. swings the "
+                    "other way on individual samples. For a significance claim on n samples, run a "
+                    "paired Wilcoxon signed-rank test on these per-sample gains.",
                     "",
                     _markdown_table(
                         ["Metric", "Mean Gain", "Std Dev", "Min Gain", "Max Gain"],
@@ -1019,22 +1016,6 @@ def write_run_results(run_name: str, payload: dict) -> Path:
                     "",
                 ]
             )
-
-    if line_chart_svg:
-        lines.extend(
-            [
-                "![Validity score progression](validity_progression.svg)",
-                "",
-            ]
-        )
-
-    if histogram_svg:
-        lines.extend(
-            [
-                "![Validity score distribution](validity_histogram.svg)",
-                "",
-            ]
-        )
 
     if sample_reports:
         display_rows, hidden_count = _select_display_samples(sample_reports)

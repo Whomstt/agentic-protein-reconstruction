@@ -14,6 +14,30 @@ CONFIG_PATH = Path(
     or Path(__file__).resolve().parent / "config.yaml"
 )
 
+
+def _load_dotenv(path: Path) -> None:
+    """Minimal, dependency-free .env loader so `python main.py` picks up API
+    keys regardless of launcher (a plain terminal doesn't inject .env the way
+    the VSCode Python extension does). Real environment variables always win —
+    values are only filled in when not already set — so shell exports, CI, and
+    the sweep parent's env are never clobbered."""
+    if not path.exists():
+        return
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key:
+            os.environ.setdefault(key, value)
+
+
+# Anchor .env to the project root, not CONFIG_PATH's dir (which points at a
+# temp per-combo config during sweeps).
+_load_dotenv(Path(__file__).resolve().parent / ".env")
+
 with open(CONFIG_PATH) as f:
     cfg = yaml.safe_load(f)
 

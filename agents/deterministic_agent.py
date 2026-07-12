@@ -45,10 +45,37 @@ def _default_lever_values() -> dict:
     return dict(cfg["search"]["default_levers"])
 
 
-def _lever_prompt(iteration: int, previous_record: dict | None) -> str:
+def _history_digest(history: list[dict] | None) -> tuple[list[str], dict | None]:
+    """Compact per-attempt lever→score lines plus the best record so far, so the
+    lever prompt can steer the model away from repeating a combination it already
+    tried and toward beating the incumbent instead of only reacting to the last
+    attempt."""
+    lines: list[str] = []
+    best: dict | None = None
+    for record in history or []:
+        levers = record.get("lever_values", {})
+        score = record.get("validity_score")
+        score_text = f"{score:.4f}" if isinstance(score, (int, float)) else "n/a"
+        lines.append(
+            f"iter {record.get('iteration')}: "
+            f"junction_window={levers.get('junction_window')}, "
+            f"search_mode={levers.get('search_mode')}, "
+            f"beam_width={levers.get('beam_width')}, "
+            f"edge_mode={levers.get('edge_mode')}, "
+            f"confirmed_bonus={levers.get('confirmed_bonus')} -> validity={score_text}"
+        )
+        if isinstance(score, (int, float)) and (
+            best is None or score < best["validity_score"]
+        ):
+            best = record
+    return lines, best
+
+
+def _lever_prompt(
+    iteration: int, previous_record: dict | None, history: list[dict] | None = None
+) -> str:
     max_iterations = cfg["search"]["max_iterations"]
     patience = cfg["search"]["early_stop_patience"]
-    beam_width_step = cfg["search"]["beam_width_step"]
 
     base = (
         "You are a protein reconstruction agent choosing strategy levers for the next "
@@ -65,10 +92,13 @@ def _lever_prompt(iteration: int, previous_record: dict | None) -> str:
     if previous_record is None:
         return (
             base
-            + " This is the first iteration — there is no prior attempt to react to yet. Choose principled "
-            "starting values for all five levers. A moderate junction_window (e.g. 1-5) and beam_width "
-            "(e.g. 25-100) are reasonable starting points; you will get diagnostic feedback (junction score "
-            "spread, beam fallback signals, confirmed-adjacency agreement) after this attempt to refine from."
+            + " This is the first iteration: there is no prior attempt and no diagnostics yet. "
+            "Decide each of the five lever values entirely yourself by reasoning about the problem — how "
+            "trypsin cleavage, fragment length, and overlap-graph evidence should shape junction scoring and "
+            "the ordering search. You are not given suggested values; do not fall back on arbitrary round "
+            "numbers. After this attempt you will receive concrete diagnostics (junction-score spread, beam "
+            "fallback signals, confirmed-adjacency agreement) and can revise every lever from that evidence. "
+            "State the specific reason for each starting value you choose."
         )
 
     previous_score = previous_record["validity_score"]
@@ -118,17 +148,35 @@ def _lever_prompt(iteration: int, previous_record: dict | None) -> str:
 
     diagnostics_text = (" Diagnostics from that attempt: " + "; ".join(diag_lines) + ".") if diag_lines else ""
 
+    history_lines, best_record = _history_digest(history)
+    history_text = ""
+    if history_lines:
+        history_text = (
+            " Every attempt so far (lever combination -> validity, lower is better): "
+            + " | ".join(history_lines)
+            + "."
+        )
+        if best_record is not None:
+            history_text += (
+                f" Best so far is iteration {best_record.get('iteration')} at "
+                f"validity={best_record['validity_score']:.4f} with levers "
+                f"{best_record.get('lever_values', {})}; your goal is to beat it. "
+                "Do NOT return a lever combination that already appears above — it will score the same again. "
+                "Pick a combination that is different from all of them."
+            )
+
     return (
         base
         + f" The previous attempt used levers {previous_levers} and scored {previous_score:.4f} validity "
         "(junction+overlap plausibility, lower is better)."
         + diagnostics_text
+        + history_text
         + f" Previous reconstruction preview: {preview}. "
         "Choose a materially different combination of levers this round based on what the diagnostics say went wrong "
         "— don't guess blind. If junction_local_ppl is high or the junction-scoring spread is narrow, change "
         "junction_window (narrower for very local motifs, wider for more successor-fragment context). If fell_back "
-        f"is true or forced_impossible_count is non-zero, change search_mode or adjust beam_width by roughly "
-        f"{beam_width_step} at a time. If confirmed_adjacency_agreement is low, switch edge_mode to 'hard' (confirmed "
+        "is true or forced_impossible_count is non-zero, change search_mode or beam_width — you decide how much to "
+        "change it, sized to how far the search fell short. If confirmed_adjacency_agreement is low, switch edge_mode to 'hard' (confirmed "
         "edges become a hard constraint) or, in 'soft' mode, raise confirmed_bonus so confirmed edges outscore the "
         "PLM's junction guess. Do not simply increase beam width monotonically or repeat the same setup. "
         f"The run stops early once the best validity score hasn't improved for {patience} consecutive iterations, "
@@ -155,7 +203,11 @@ def _emit_tool_step(on_event, name: str, args: dict, result) -> dict:
 
 
 def run_single_call_iteration(
-    llm, iteration: int, previous_record: dict | None, on_event=None
+    llm,
+    iteration: int,
+    previous_record: dict | None,
+    history: list[dict] | None = None,
+    on_event=None,
 ) -> dict:
     """Runs one iteration in single-call mode: one LLM call to pick the five
     levers, then a deterministic tool pipeline executed directly in Python."""
@@ -186,20 +238,18 @@ def run_single_call_iteration(
     use_llm_for_levers = iteration > 1 or not iteration1_deterministic
 
     if iteration == 1 and not use_llm_for_levers:
-        # run.iteration1_deterministic is true: iteration 1 uses the fixed
-        # config defaults directly, no LLM call. The LLM only decides lever
-        # values for iterations 2+, once it has a real previous-attempt
-        # score/strategy to react to. This trades one LLM call/sample for a
-        # weaker claim: "1st Iteration" in reports means "config defaults",
-        # not "the LLM's own first attempt" — see CLAUDE.md.
+        # run.iteration1_deterministic is true: iteration 1 is the deterministic
+        # baseline — it runs the fixed search.default_levers with no LLM call,
+        # and the agent refines from it in iterations 2+. This iteration 1 is the
+        # report's Deterministic arm.
         prompt = None
         lever_values = _default_lever_values()
-        reasoning_note = "Iteration 1: using config default levers (no LLM call; run.iteration1_deterministic=true)."
+        reasoning_note = "Iteration 1: deterministic baseline — config default levers, no LLM call."
         reasoning_steps.append(reasoning_note)
         if on_event:
             on_event("thought", reasoning_note)
     else:
-        prompt = _lever_prompt(iteration, previous_record)
+        prompt = _lever_prompt(iteration, previous_record, history)
         structured_llm = llm.with_structured_output(LeverChoice)
         choice: LeverChoice = structured_llm.invoke(prompt)
 

@@ -75,10 +75,14 @@ def _combo_gain_table(entry: dict) -> tuple[str, list[list[str]]] | None:
 
 
 def _first_combo_config(manifest: list[dict]) -> dict:
-    """The run config from the first successful combo. All combos in a sweep
-    share run.method/calling_mode/iteration1_deterministic (only organism,
-    replica_count and mlm_profile are swept), so this is enough to derive the
-    deterministic-vs-agentic column labels for the whole cross-combo report."""
+    """The run config from the first successful combo, used only to derive the
+    deterministic-vs-agentic column labels for the whole cross-combo report.
+    This assumes every combo shares run.method/calling_mode/iteration1_deterministic
+    (the usual case: only organism/replica_count/mlm_profile/max_iterations/
+    improvement_margin are swept). If you deliberately sweep run.method or
+    run.iteration1_deterministic across combos, these cross-combo column labels
+    follow the FIRST combo and may not match every row — each combo's own
+    report.md is still individually correct."""
     for entry in manifest:
         payload = _load_combo_payload(entry.get("result_dir"))
         if payload is not None:

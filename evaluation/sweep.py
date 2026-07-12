@@ -1,11 +1,15 @@
 """Sweep orchestration for config.yaml's `sweep` section.
 
-Loops through every combination in sweep.grid (+ sweep.extra_runs),
-overriding data.organism, data.replica_count, and mlm_model.profile per
-combo. Each combo runs `python -m main` as its own subprocess against a
-generated override config (via AGENTIC_CONFIG_PATH), with that combo's
-sweep.enabled forced to false so it runs exactly once using cfg.run.method.
-The checked-in config.yaml is never modified.
+Loops through every combination in sweep.grid (+ sweep.extra_runs). Each combo
+key maps to a config override in _apply_overrides: data.organism,
+data.replica_count, mlm_model.profile, run.method, run.iteration1_deterministic,
+search.max_iterations (which also pins search.early_stop_patience to the same
+value unless early_stop_patience is swept too, so a max_iterations A/B runs a
+fixed budget), search.early_stop_patience, and search.improvement_margin. Each
+combo runs `python -m main` as its own subprocess against a generated override
+config (via AGENTIC_CONFIG_PATH), with that combo's sweep.enabled forced to
+false so it runs exactly once using cfg.run.method. The checked-in config.yaml
+is never modified.
 
 Each combo subprocess regenerates its own fragmented dataset automatically
 if needed (see preprocessing.preprocessing.ensure_fresh_dataset, called from
@@ -72,6 +76,26 @@ def _apply_overrides(base_cfg: dict, combo: dict, sweep_cfg: dict) -> dict:
         run_cfg["mlm_model"]["profile"] = combo["mlm_profile"]
     if "method" in combo:
         run_cfg.setdefault("run", {})["method"] = combo["method"]
+    if "iteration1_deterministic" in combo:
+        run_cfg.setdefault("run", {})["iteration1_deterministic"] = combo[
+            "iteration1_deterministic"
+        ]
+    if "max_iterations" in combo:
+        run_cfg.setdefault("search", {})["max_iterations"] = combo["max_iterations"]
+        # Keep a swept iteration budget FIXED (no early stopping) unless the
+        # sweep explicitly varies early_stop_patience too, so an A/B over
+        # max_iterations actually runs the full budget per sample and the
+        # iteration-gain tables stay comparable across combos.
+        if "early_stop_patience" not in combo:
+            run_cfg["search"]["early_stop_patience"] = combo["max_iterations"]
+    if "early_stop_patience" in combo:
+        run_cfg.setdefault("search", {})["early_stop_patience"] = combo[
+            "early_stop_patience"
+        ]
+    if "improvement_margin" in combo:
+        run_cfg.setdefault("search", {})["improvement_margin"] = combo[
+            "improvement_margin"
+        ]
     test_samples = combo.get("test_samples", sweep_cfg.get("test_samples"))
     if test_samples is not None:
         run_cfg["data"]["test_samples"] = test_samples

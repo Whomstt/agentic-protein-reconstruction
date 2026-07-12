@@ -126,10 +126,36 @@ def _changed_levers(previous_values: dict | None, current_values: dict) -> dict:
     }
 
 
-def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str:
+def _history_digest(history: list[dict] | None) -> tuple[list[str], dict | None]:
+    """Per-attempt lever→score lines plus the best record so far, so the agent
+    reasons over its whole trajectory (and avoids repeating a tried combination)
+    rather than only the immediately-preceding attempt."""
+    lines: list[str] = []
+    best: dict | None = None
+    for record in history or []:
+        levers = record.get("lever_values", {})
+        score = record.get("validity_score")
+        score_text = f"{score:.4f}" if isinstance(score, (int, float)) else "n/a"
+        lines.append(
+            f"iter {record.get('iteration')}: "
+            f"junction_window={levers.get('junction_window')}, "
+            f"search_mode={levers.get('search_mode')}, "
+            f"beam_width={levers.get('beam_width')}, "
+            f"edge_mode={levers.get('edge_mode')}, "
+            f"confirmed_bonus={levers.get('confirmed_bonus')} -> validity={score_text}"
+        )
+        if isinstance(score, (int, float)) and (
+            best is None or score < best["validity_score"]
+        ):
+            best = record
+    return lines, best
+
+
+def _build_iteration_prompt(
+    iteration: int, previous_record: dict | None, history: list[dict] | None = None
+) -> str:
     patience = cfg["search"]["early_stop_patience"]
     max_iterations = cfg["search"]["max_iterations"]
-    beam_width_step = cfg["search"]["beam_width_step"]
 
     if previous_record is None:
         return (
@@ -149,14 +175,29 @@ def _build_iteration_prompt(iteration: int, previous_record: dict | None) -> str
         "..." if len(previous_reconstruction) > 60 else ""
     )
 
+    history_lines, best_record = _history_digest(history)
+    history_text = ""
+    if history_lines:
+        history_text = (
+            "Every attempt so far (lever combination -> validity, lower is better): "
+            + " | ".join(history_lines)
+            + ". "
+        )
+        if best_record is not None:
+            history_text += (
+                f"Best so far is iteration {best_record.get('iteration')} at validity={best_record['validity_score']:.4f}; "
+                "aim to beat it and do not repeat a lever combination that already appears above. "
+            )
+
     return (
         f"Iteration {iteration}/{max_iterations}. The previous attempt scored {previous_score:.4f} validity (junction+overlap plausibility, lower is better). "
         f"Previous strategy: {previous_strategy}. Previous reconstruction preview: {preview}. "
-        "Explain briefly why that attempt likely failed, then choose a materially different tactic this round. "
+        + history_text
+        + "Explain briefly why that attempt likely failed, then choose a materially different tactic this round. "
         "Constraints and the overlap graph are unchanged from iteration 1 — do not call trypsin_filter or overlap_graph again; go straight to junction_scorer/beam_search. "
         "Use only these five levers: junction masking window, search mode, beam width, edge mode, and confirmed-edge bonus. "
         "If junction scores look weak, change the masking window or rescore just the suspect junction pairs. "
-        f"If the search cut off early or collapsed to a partial path, change search_mode or adjust beam_width by roughly {beam_width_step} at a time. "
+        "If the search cut off early or collapsed to a partial path, change search_mode or beam_width — you choose how much to change it, sized to how far the search fell short. "
         "If the overlap graph and MLM disagree, switch edge_mode or adjust confirmed_bonus. "
         "Do not simply increase beam width monotonically or repeat the same setup. "
         f"The run stops early once the best validity score hasn't improved for {patience} consecutive iterations, so aim to improve on the best score seen so far. "
@@ -321,10 +362,14 @@ def run_iterative_reconstruction(
 
         if single_call:
             record = run_single_call_iteration(
-                agent.llm, iteration, previous_record, on_event=on_event
+                agent.llm,
+                iteration,
+                previous_record,
+                history=history,
+                on_event=on_event,
             )
         else:
-            prompt = _build_iteration_prompt(iteration, previous_record)
+            prompt = _build_iteration_prompt(iteration, previous_record, history)
             result = _stream_agent(agent.graph, prompt, on_event=on_event)
             record = _extract_record(result, iteration, prompt)
             record["lever_values"] = _effective_lever_values(

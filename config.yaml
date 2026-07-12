@@ -5,10 +5,10 @@ misc:
 run: # what main.py runs when sweep.enabled is false; most commonly tuned run-mode knobs live here
   method: "agentic" # "agentic" (LLM-driven) or "sequential" (deterministic, no LLM)
   calling_mode: "single_call" # "react" = LLM drives every tool call (~4-6 calls/iteration); "single_call" = harness runs the tool pipeline, LLM only picks the 5 levers (see CLAUDE.md)
-  iteration1_deterministic: true # true = iteration 1 uses search.default_levers with no LLM call (cheaper; "1st Iteration" in reports means "config defaults"); false = iteration 1 is also a genuine LLM lever choice (every round is agentic; "1st Iteration" means "LLM's first attempt") — see CLAUDE.md for the research-validity tradeoff
+  iteration1_deterministic: true # true = iteration 1 is the deterministic baseline (fixed search.default_levers, no LLM call), and the agent refines from it in iterations 2+. This is the report's Deterministic arm — so one agentic run gives baseline/deterministic/agentic. false = iteration 1 is itself an LLM lever choice (no deterministic arm inside the run).
 
 search:
-  max_iterations: 3 # number of agentic refinement rounds
+  max_iterations: 5 # number of agentic refinement rounds. With early_stop_patience == this value (below), it is a FIXED per-sample budget (no early stopping) — every sample runs exactly this many iterations, which keeps the "Iterative Reasoning Gain" table comparable across samples. To A/B the budget (e.g. 3 vs 5 vs 10) run a sweep with a `max_iterations` grid axis (see CLAUDE.md); the sweep pins early_stop_patience to each swept value automatically.
 
   default_levers: # iteration-1 lever values when run.iteration1_deterministic; fallback for unset levers in react mode; also the sole default for junction_window/beam_width across the whole pipeline (sequential mode included)
     junction_window: 1 # residues masked when scoring a junction
@@ -17,9 +17,8 @@ search:
     edge_mode: "hard" # "hard" or "soft"
     confirmed_bonus: 0.0
 
-  early_stop_patience: 3 # non-improving iterations before stopping early; == max_iterations disables early stopping
-  beam_width_step: 25 # suggested beam-width adjustment granularity for the agent
-  improvement_margin: 0.030 # relative validity drop a later iteration must clear to replace the incumbent best; 0.0 = raw argmin (see CLAUDE.md; tuned on non-disjoint data — treat as a disclosed sensitivity choice, not a validated constant)
+  early_stop_patience: 5 # non-improving iterations before stopping early; == max_iterations disables early stopping (fixed budget). Kept equal to max_iterations here so every sample runs the full budget.
+  improvement_margin: 0.0 # relative validity drop a later iteration must clear to replace the incumbent best; 0.0 = raw argmin (the agent's best-scoring candidate wins). Set to 0.0 for the fully-agentic config (iteration1_deterministic=false), where the old "protect the config-default incumbent" rationale no longer applies — see CLAUDE.md. It is still a real winner's-curse guard whose value GROWS with max_iterations, so if you raise max_iterations toward ~10 consider a small positive margin (~0.03) again. When iteration1_deterministic=true, restore ~0.030.
 
   # best-candidate selection signal (validity_scorer); see CLAUDE.md for the full formula
   validity_junction_window: 5 # residues scored per junction for the validity signal
@@ -27,7 +26,7 @@ search:
 
 data: # organism/replica_count/missed_cleavage_ratio require rerunning preprocessing
   organism: "ecoli" # ecoli, yeast, or mixture
-  test_samples: 5 # samples drawn per run, shuffled with misc.seed
+  test_samples: 25 # samples drawn per run, shuffled with misc.seed
   replica_count: 5 # digestion replicas generated per protein
   missed_cleavage_ratio: 0.3 # base rate; K sites sampled at 1.5x this
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
@@ -47,7 +46,22 @@ sweep: # main.py reads this; enabled: false runs once via run.method above
 
 llm_model:
   profile: "microsoft_foundry" # microsoft_foundry or openai_api
-  temperature: 0.0
+  # Sampling / reasoning controls. Only non-null values are ever sent to the
+  # model, so leaving a knob null means "use the model's default" (and, for
+  # unsupported knobs, "never send it"). The active gpt-5*/o-series deployments
+  # are REASONING models: the API rejects any temperature or top_p other than
+  # the default (1.0), so those stay null here and the model is steered with
+  # reasoning_effort + verbosity instead. Set temperature/top_p only if you
+  # switch to a non-reasoning chat model. top_k is not an OpenAI Chat
+  # Completions parameter; it is forwarded (via model_kwargs) only when non-null,
+  # for non-OpenAI backends, and is otherwise a documented no-op here.
+  sampling:
+    temperature: null # reasoning models reject non-default values; keep null unless using a plain chat model
+    top_p: null # as above; nucleus sampling is unsupported on reasoning models
+    top_k: null # not an OpenAI parameter; only sent to non-OpenAI backends when set
+    seed: 42 # run-to-run reproducibility of the LLM's lever choices (OpenAI best-effort determinism)
+    reasoning_effort: "low" # minimal | low | medium | high — how hard the model reasons before choosing levers
+    verbosity: "low" # low | medium | high — lever rationale stays brief; the decision is a structured object
   profiles:
     openai_api:
       kind: "openai"

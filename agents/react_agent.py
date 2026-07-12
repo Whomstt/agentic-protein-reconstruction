@@ -17,7 +17,7 @@ SYSTEM_PROMPT = (
     "- junction_scorer returns mean_score/min_score/max_score over the pairs it just scored. A narrow spread near the mean means the current junction_window isn't giving the PLM enough signal to discriminate real junctions from wrong ones — try a different window (narrower for very local motifs, wider for more successor-fragment context).\n"
     "- beam_search returns fell_back (search_mode='beam': true means beam_width/edge_mode cut the search off before covering every fragment — widen beam_width or try edge_mode='soft'), forced_impossible_count (search_mode='greedy': non-zero means trypsin constraints fought the ordering at some step — try search_mode='beam' instead), num_confirmed_edges_realized/num_confirmed_edges_total (how many overlap-confirmed adjacencies made it into the final order), and mean_junction_score (a cheap preview of ordering quality before paying for validity_scorer).\n"
     "- validity_scorer returns validity_score (lower is better; this is what decides which iteration's candidate wins) plus its two components: junction_local_ppl (PLM implausibility of the ordering's non-confirmed junctions — high means change junction_window) and confirmed_adjacency_agreement (fraction of real overlap-confirmed adjacencies the ordering respected — low means switch edge_mode to 'hard' or raise confirmed_bonus in 'soft' mode). Use these two numbers, not just the blended score, to diagnose *why* a candidate scored the way it did.\n\n"
-    f"Tie each lever to the failure signal above, not to a hunch. If the search cuts off early or collapses to a partial path (fell_back or forced_impossible_count), change search_mode or adjust beam_width by roughly {cfg['search']['beam_width_step']} at a time rather than a large jump. Do not simply increase beam width monotonically.\n\n"
+    "Tie each lever to the failure signal above, not to a hunch. If the search cuts off early or collapses to a partial path (fell_back or forced_impossible_count), change search_mode or beam_width — you decide how much to change it, sized to how far the search fell short, rather than making an erratic large jump. Do not simply increase beam width monotonically.\n\n"
     f"After each candidate reconstruction, call validity_scorer on that reconstruction. The run stops early once the best validity_score fails to improve for {cfg['search']['early_stop_patience']} consecutive iterations, otherwise it continues until iteration {cfg['search']['max_iterations']}. Store the reconstruction, lever choices, and validity score in shared state through the tools. At the end of the allotted iterations, return the best scoring reconstruction found.\n\n"
     "Use the fewest calls necessary within an iteration, and keep text responses brief. On the first iteration, start with trypsin_filter to initialize constraints, then overlap_graph, junction_scorer, beam_search, and validity_scorer. Constraints and the overlap graph do not change between iterations, so on later iterations skip trypsin_filter and overlap_graph and go straight to junction_scorer/beam_search with your new lever choices.\n\n"
     "Available tools:\n"
@@ -45,10 +45,33 @@ class Agent:
         self.graph = graph
 
 
+def _llm_sampling_kwargs() -> dict:
+    """Translate llm_model.sampling into ChatOpenAI kwargs, sending only the
+    knobs the user actually set. Reasoning models (gpt-5*/o-series) reject any
+    temperature/top_p other than the default, so those are omitted unless the
+    config explicitly sets them; reasoning_effort/verbosity/seed are the levers
+    that do apply. top_k is not an OpenAI parameter, so it is routed through
+    model_kwargs only when set (a no-op for OpenAI/Azure, honored by backends
+    that support it)."""
+    sampling = cfg["llm_model"].get("sampling") or {}
+    kwargs: dict = {}
+    for key in ("temperature", "top_p", "seed", "reasoning_effort", "verbosity"):
+        value = sampling.get(key)
+        if value is not None:
+            kwargs[key] = value
+
+    top_k = sampling.get("top_k")
+    if top_k is not None:
+        kwargs["model_kwargs"] = {"top_k": top_k}
+
+    return kwargs
+
+
 def build_llm():
     llm_config = cfg["llm_model"]
     api_key_env = llm_config.get("api_key_env", "OPENAI_API_KEY")
     api_key = os.environ.get(api_key_env, "").strip()
+    sampling_kwargs = _llm_sampling_kwargs()
 
     if llm_config.get("kind") == "microsoft_foundry":
         endpoint = os.environ.get(llm_config["endpoint_env"], "").strip()
@@ -75,7 +98,7 @@ def build_llm():
                     "AZURE_OPENAI_API_VERSION", "2025-11-15-preview"
                 )
             },
-            temperature=llm_config.get("temperature", 0.0),
+            **sampling_kwargs,
         )
 
     if not api_key:
@@ -83,7 +106,7 @@ def build_llm():
     return ChatOpenAI(
         model=llm_config["model"],
         api_key=api_key,
-        temperature=llm_config.get("temperature", 0.0),
+        **sampling_kwargs,
     )
 
 
