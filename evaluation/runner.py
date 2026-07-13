@@ -5,6 +5,7 @@ deterministic pipeline (run_sequential) and the LLM-driven iterative agent
 from __future__ import annotations
 
 import json
+import math
 import os
 import random
 import textwrap
@@ -358,9 +359,18 @@ def run_agentic() -> Path | None:
     )
     print_run_header(f"{run_name} ({n} Samples)", config_snapshot)
 
+    control_config = cfg["run"].get("control_baseline") or {}
+    control_enabled = control_config.get("enabled", False)
+    control_policy_kind = control_config.get("policy", "random")
+    report_oracle = cfg["run"].get("report_oracle", True)
+    seed_base = cfg["misc"].get("seed") or 0
+
     baseline_summary = {k: [] for k in METRIC_NAMES}
     first_pass_summary = {k: [] for k in METRIC_NAMES}
     recon_summary = {k: [] for k in METRIC_NAMES}
+    control_summary = {k: [] for k in METRIC_NAMES}
+    oracle_summary = {k: [] for k in METRIC_NAMES}
+    control_durations = []
     sample_reports = []
     sample_durations = []
     run_started = time.time()
@@ -477,8 +487,69 @@ def run_agentic() -> Path | None:
             )
             print(f"{DIM}    {label}: {gain:+.4f} ({tag}{DIM}){RESET}")
 
+        # Oracle upper bound: the best true-metric value achievable by selecting
+        # among the candidates the AGENT actually generated this run (per metric,
+        # independently). The gap to the validity-selected "Agentic Best" is what
+        # the imperfect validity concordance leaves on the table — no new candidate
+        # is generated, only perfect hindsight selection.
+        oracle_metrics = None
+        if report_oracle:
+            oracle_metrics = {}
+            for k in METRIC_NAMES:
+                finite = [
+                    r["metrics"][k]
+                    for r in iteration_history
+                    if isinstance(r.get("metrics", {}).get(k), (int, float))
+                    and not math.isnan(r["metrics"][k])
+                    and not math.isinf(r["metrics"][k])
+                ]
+                oracle_metrics[k] = max(finite) if finite else float("nan")
+
+        # Matched-budget non-LLM control arm on the SAME protein: identical budget,
+        # tool pipeline and best-validity selection, levers chosen by a fixed
+        # policy instead of the LLM. Run silently (no live event stream) so the
+        # console stays the agentic arm's. Timed separately so its cost doesn't
+        # inflate the agentic wall-clock.
+        agentic_elapsed = time.time() - sample_start
+        control_metrics = None
+        control_result = None
+        control_elapsed = 0.0
+        if control_enabled:
+            from agents.baseline_policy import LeverPolicy
+
+            control_start = time.time()
+            policy = LeverPolicy(kind=control_policy_kind, seed=seed_base + i)
+            control_result = run_iterative_reconstruction(
+                agent, fragments, fragment_samples, on_event=None, control_policy=policy
+            )
+            control_elapsed = time.time() - control_start
+            control_durations.append(control_elapsed)
+
+            control_best = control_result.get("best_record", {})
+            control_history = control_result.get("iteration_history", [])
+            for record in control_history:
+                record["metrics"] = compute_all(
+                    target,
+                    record.get("reconstruction", ""),
+                    fragments,
+                    record.get("order", []),
+                )
+            control_metrics = compute_all(
+                target,
+                control_best.get("reconstruction", ""),
+                fragments,
+                control_best.get("order", []),
+            )
+            free_gpu_memory()
+
         sample_duration = time.time() - sample_start
         sample_durations.append(sample_duration)
+
+        for k in METRIC_NAMES:
+            if control_metrics is not None:
+                control_summary[k].append(control_metrics[k])
+            if oracle_metrics is not None:
+                oracle_summary[k].append(oracle_metrics[k])
 
         total_junctions = len(fragments) * (len(fragments) - 1)
         sample_reports.append(
@@ -493,6 +564,28 @@ def run_agentic() -> Path | None:
                 "first_pass_metrics": first_pass_metrics,
                 "first_pass_validity_score": first_record.get("validity_score"),
                 "iteration_gain": iteration_gain,
+                "oracle_metrics": oracle_metrics,
+                "control_metrics": control_metrics,
+                "control_validity_score": (
+                    control_result.get("best_record", {}).get("validity_score")
+                    if control_result
+                    else None
+                ),
+                "control_best_iteration": (
+                    control_result.get("best_record", {}).get("iteration")
+                    if control_result
+                    else None
+                ),
+                "control_iteration_history": (
+                    control_result.get("iteration_history", []) if control_result else None
+                ),
+                "control_duration_seconds": control_elapsed if control_enabled else None,
+                "agent_vs_control_gain": (
+                    {k: recon_metrics[k] - control_metrics[k] for k in METRIC_NAMES}
+                    if control_metrics is not None
+                    else None
+                ),
+                "agentic_duration_seconds": agentic_elapsed,
                 "best_iteration": best_record.get("iteration"),
                 "best_validity_score": validity_score,
                 "completed": cost.get("completed", bool(order)),
@@ -540,6 +633,17 @@ def run_agentic() -> Path | None:
     delta = {k: recon_averages[k] - baseline_averages[k] for k in METRIC_NAMES}
     avg_pruned = sum(r["pruned_pct"] for r in sample_reports) / n
 
+    control_averages = (
+        {k: nanmean(v) for k, v in control_summary.items()}
+        if control_enabled and any(control_summary[k] for k in METRIC_NAMES)
+        else None
+    )
+    oracle_averages = (
+        {k: nanmean(v) for k, v in oracle_summary.items()}
+        if report_oracle and any(oracle_summary[k] for k in METRIC_NAMES)
+        else None
+    )
+
     total_llm_calls = sum(r.get("llm_calls") or 0 for r in sample_reports)
     total_llm_tokens = sum(r.get("llm_tokens") or 0 for r in sample_reports)
     cost_summary = {
@@ -548,12 +652,22 @@ def run_agentic() -> Path | None:
         "avg_llm_calls_per_sample": total_llm_calls / n,
         "avg_llm_tokens_per_sample": total_llm_tokens / n,
         "avg_seconds_per_sample": total_duration / n,
+        "avg_agentic_seconds_per_sample": (
+            sum(r.get("agentic_duration_seconds") or 0 for r in sample_reports) / n
+        ),
         "completed_samples": sum(1 for r in sample_reports if r.get("completed")),
         "llm_failures": sum(r.get("llm_failures") or 0 for r in sample_reports),
         "true_order_recovered": sum(
             1 for r in sample_reports if r.get("recon_metrics", {}).get("true_order_recovered")
         ),
     }
+    if control_enabled:
+        cost_summary["control_enabled"] = True
+        cost_summary["control_policy"] = control_policy_kind
+        cost_summary["control_llm_calls"] = 0
+        cost_summary["avg_control_seconds_per_sample"] = (
+            sum(control_durations) / len(control_durations) if control_durations else 0.0
+        )
 
     run_payload = {
         "run_name": run_name,
@@ -563,6 +677,9 @@ def run_agentic() -> Path | None:
         "baseline_averages": baseline_averages,
         "first_pass_averages": first_pass_averages,
         "recon_averages": recon_averages,
+        "control_averages": control_averages,
+        "control_policy": control_policy_kind if control_enabled else None,
+        "oracle_averages": oracle_averages,
         "delta": delta,
         "cost_summary": cost_summary,
         "samples": sample_reports,

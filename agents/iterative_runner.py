@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import math
 
-from agents.deterministic_agent import run_single_call_iteration
+from agents.deterministic_agent import run_policy_iteration, run_single_call_iteration
 from config import cfg
 from evaluation.metrics import is_clean_permutation
 from models.memory import free_gpu_memory, log_memory
@@ -338,8 +338,13 @@ def _stream_agent(agent, prompt: str, on_event=None) -> dict:
 
 
 def run_iterative_reconstruction(
-    agent, fragments, fragment_samples=None, on_event=None
+    agent, fragments, fragment_samples=None, on_event=None, control_policy=None
 ) -> dict:
+    """Runs the multi-iteration reconstruction loop. When control_policy is given,
+    levers are chosen by that non-LLM policy (the matched-budget control arm) and
+    the LLM is not consulted; otherwise the agent (react or single_call) drives
+    lever choice. The loop, best-validity selection and early-stop rule are
+    identical either way so the two arms are directly comparable."""
     state.clear()
     state["fragment_samples"] = fragment_samples or [fragments]
     state["fragments"] = fragments
@@ -370,7 +375,15 @@ def run_iterative_reconstruction(
                 {"iteration": iteration, "max_iterations": max_iterations},
             )
 
-        if single_call:
+        if control_policy is not None:
+            record = run_policy_iteration(
+                control_policy,
+                iteration,
+                previous_record,
+                history=history,
+                on_event=on_event,
+            )
+        elif single_call:
             record = run_single_call_iteration(
                 agent.llm,
                 iteration,

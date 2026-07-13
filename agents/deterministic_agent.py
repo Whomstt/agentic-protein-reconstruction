@@ -216,90 +216,43 @@ def _emit_tool_step(on_event, name: str, args: dict, result) -> dict:
     }
 
 
-def run_single_call_iteration(
-    llm,
+def _init_constraints(reasoning_steps: list, on_event=None) -> None:
+    """Run the two hard-constraint tools once at the start of an arm's loop.
+    Deterministic (no LLM, no randomness), so both the agentic and control arms
+    reconstruct the identical constraint/overlap state before iterating."""
+    trypsin_result = trypsin_filter.invoke({})
+    reasoning_steps.append(
+        {"tool_result": {"name": "trypsin_filter", "content": trypsin_result}}
+    )
+    if on_event:
+        on_event("tool_call", {"name": "trypsin_filter", "args": {}})
+        on_event("tool_result", {"name": "trypsin_filter", "content": trypsin_result})
+
+    overlap_result = overlap_graph.invoke({})
+    reasoning_steps.append(
+        {"tool_result": {"name": "overlap_graph", "content": overlap_result}}
+    )
+    if on_event:
+        on_event("tool_call", {"name": "overlap_graph", "args": {}})
+        on_event("tool_result", {"name": "overlap_graph", "content": overlap_result})
+
+
+def _score_lever_values(
     iteration: int,
+    lever_values: dict,
     previous_record: dict | None,
-    history: list[dict] | None = None,
+    reasoning_steps: list,
     on_event=None,
+    *,
+    prompt: str | None = None,
+    llm_call: bool = False,
+    llm_tokens: int = 0,
+    llm_failed: bool = False,
 ) -> dict:
-    """Runs one iteration in single-call mode: one LLM call to pick the five
-    levers, then a deterministic tool pipeline executed directly in Python."""
-    reasoning_steps: list = []
-    llm_tokens = 0
-    llm_failed = False
-
-    if iteration == 1:
-        trypsin_result = trypsin_filter.invoke({})
-        reasoning_steps.append(
-            {"tool_result": {"name": "trypsin_filter", "content": trypsin_result}}
-        )
-        if on_event:
-            on_event("tool_call", {"name": "trypsin_filter", "args": {}})
-            on_event(
-                "tool_result", {"name": "trypsin_filter", "content": trypsin_result}
-            )
-
-        overlap_result = overlap_graph.invoke({})
-        reasoning_steps.append(
-            {"tool_result": {"name": "overlap_graph", "content": overlap_result}}
-        )
-        if on_event:
-            on_event("tool_call", {"name": "overlap_graph", "args": {}})
-            on_event(
-                "tool_result", {"name": "overlap_graph", "content": overlap_result}
-            )
-
-    iteration1_deterministic = cfg["run"].get("iteration1_deterministic", True)
-    use_llm_for_levers = iteration > 1 or not iteration1_deterministic
-
-    if iteration == 1 and not use_llm_for_levers:
-        # run.iteration1_deterministic is true: iteration 1 is the deterministic
-        # baseline — it runs the fixed search.default_levers with no LLM call,
-        # and the agent refines from it in iterations 2+. This iteration 1 is the
-        # report's Deterministic arm.
-        prompt = None
-        lever_values = _default_lever_values()
-        reasoning_note = "Iteration 1: deterministic baseline — config default levers, no LLM call."
-        reasoning_steps.append(reasoning_note)
-        if on_event:
-            on_event("thought", reasoning_note)
-    else:
-        prompt = _lever_prompt(iteration, previous_record, history)
-        # include_raw keeps the underlying AIMessage so we can read token usage;
-        # the parsed LeverChoice arrives under "parsed".
-        structured_llm = llm.with_structured_output(LeverChoice, include_raw=True)
-        raw_response = structured_llm.invoke(prompt)
-        if isinstance(raw_response, dict):
-            choice = raw_response.get("parsed")
-            llm_tokens = _usage_tokens(raw_response.get("raw"))
-        else:
-            choice = raw_response
-
-        if choice is None:
-            # Structured parse failed: fall back to config defaults so the run
-            # still produces a candidate, and record the failure for the report's
-            # completion/failure-rate accounting.
-            llm_failed = True
-            lever_values = _default_lever_values()
-            note = "LLM structured lever choice failed to parse — falling back to config default levers."
-            reasoning_steps.append(note)
-            if on_event:
-                on_event("thought", note)
-        else:
-            if on_event and choice.reasoning:
-                on_event("thought", choice.reasoning.strip())
-            if choice.reasoning:
-                reasoning_steps.append(choice.reasoning.strip())
-
-            lever_values = {
-                "junction_window": choice.junction_window,
-                "search_mode": choice.search_mode,
-                "beam_width": choice.beam_width,
-                "edge_mode": choice.edge_mode,
-                "confirmed_bonus": choice.confirmed_bonus,
-            }
-
+    """Run the fixed junction -> beam/greedy -> validity pipeline for a chosen set
+    of lever values and package the iteration record. Shared by the LLM-driven
+    single-call iteration and the non-LLM control-arm iteration so the two arms
+    differ only in how lever_values were chosen, never in how they are scored."""
     previous_window = (
         previous_record.get("lever_values", {}).get("junction_window")
         if previous_record
@@ -391,8 +344,119 @@ def run_single_call_iteration(
         "validity_breakdown": validity_breakdown,
         "junction_stats": junction_stats,
         "beam_diagnostics": beam_diagnostics,
-        "llm_call": use_llm_for_levers,
-        "llm_calls": 1 if use_llm_for_levers else 0,
+        "llm_call": llm_call,
+        "llm_calls": 1 if llm_call else 0,
         "llm_tokens": llm_tokens,
         "llm_failed": llm_failed,
     }
+
+
+def run_single_call_iteration(
+    llm,
+    iteration: int,
+    previous_record: dict | None,
+    history: list[dict] | None = None,
+    on_event=None,
+) -> dict:
+    """Runs one iteration in single-call mode: one LLM call to pick the five
+    levers, then the shared deterministic tool pipeline."""
+    reasoning_steps: list = []
+    llm_tokens = 0
+    llm_failed = False
+
+    if iteration == 1:
+        _init_constraints(reasoning_steps, on_event)
+
+    iteration1_deterministic = cfg["run"].get("iteration1_deterministic", True)
+    use_llm_for_levers = iteration > 1 or not iteration1_deterministic
+
+    if iteration == 1 and not use_llm_for_levers:
+        # run.iteration1_deterministic is true: iteration 1 is the deterministic
+        # baseline — it runs the fixed search.default_levers with no LLM call,
+        # and the agent refines from it in iterations 2+. This iteration 1 is the
+        # report's Deterministic arm.
+        prompt = None
+        lever_values = _default_lever_values()
+        reasoning_note = "Iteration 1: deterministic baseline — config default levers, no LLM call."
+        reasoning_steps.append(reasoning_note)
+        if on_event:
+            on_event("thought", reasoning_note)
+    else:
+        prompt = _lever_prompt(iteration, previous_record, history)
+        # include_raw keeps the underlying AIMessage so we can read token usage;
+        # the parsed LeverChoice arrives under "parsed".
+        structured_llm = llm.with_structured_output(LeverChoice, include_raw=True)
+        raw_response = structured_llm.invoke(prompt)
+        if isinstance(raw_response, dict):
+            choice = raw_response.get("parsed")
+            llm_tokens = _usage_tokens(raw_response.get("raw"))
+        else:
+            choice = raw_response
+
+        if choice is None:
+            # Structured parse failed: fall back to config defaults so the run
+            # still produces a candidate, and record the failure for the report's
+            # completion/failure-rate accounting.
+            llm_failed = True
+            lever_values = _default_lever_values()
+            note = "LLM structured lever choice failed to parse — falling back to config default levers."
+            reasoning_steps.append(note)
+            if on_event:
+                on_event("thought", note)
+        else:
+            if on_event and choice.reasoning:
+                on_event("thought", choice.reasoning.strip())
+            if choice.reasoning:
+                reasoning_steps.append(choice.reasoning.strip())
+
+            lever_values = {
+                "junction_window": choice.junction_window,
+                "search_mode": choice.search_mode,
+                "beam_width": choice.beam_width,
+                "edge_mode": choice.edge_mode,
+                "confirmed_bonus": choice.confirmed_bonus,
+            }
+
+    return _score_lever_values(
+        iteration,
+        lever_values,
+        previous_record,
+        reasoning_steps,
+        on_event,
+        prompt=prompt,
+        llm_call=use_llm_for_levers,
+        llm_tokens=llm_tokens,
+        llm_failed=llm_failed,
+    )
+
+
+def run_policy_iteration(
+    policy,
+    iteration: int,
+    previous_record: dict | None,
+    history: list[dict] | None = None,
+    on_event=None,
+) -> dict:
+    """Runs one control-arm iteration: a non-LLM policy (see
+    agents/baseline_policy.LeverPolicy) picks the five levers, then the same
+    shared tool pipeline scores them. No LLM call is made."""
+    reasoning_steps: list = []
+
+    if iteration == 1:
+        _init_constraints(reasoning_steps, on_event)
+
+    lever_values = policy.choose(iteration, history)
+    note = f"Control arm ({policy.kind} policy) levers: {_strategy_summary(lever_values)}"
+    reasoning_steps.append(note)
+    if on_event:
+        on_event("thought", note)
+
+    return _score_lever_values(
+        iteration,
+        lever_values,
+        previous_record,
+        reasoning_steps,
+        on_event,
+        prompt=None,
+        llm_call=False,
+    )

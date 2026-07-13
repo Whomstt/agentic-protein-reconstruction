@@ -1,67 +1,78 @@
+# Single source of runtime config; all access goes through `from config import cfg`.
+# Comments here stay to one line — deep rationale for the research knobs is in CLAUDE.md.
+
 misc:
-  seed: 42
-  device: "auto"
+  seed: 42  # global RNG seed (random/numpy/torch) and sample-shuffle seed
+  device: "auto"  # "auto" picks cuda if available, else cpu
 
-run: # what main.py runs when sweep.enabled is false; most commonly tuned run-mode knobs live here
-  method: "agentic" # "agentic" (LLM-driven) or "sequential" (deterministic, no LLM)
-  calling_mode: "single_call" # "react" = LLM drives every tool call (~4-6 calls/iteration); "single_call" = harness runs the tool pipeline, LLM only picks the 5 levers (see CLAUDE.md)
-  iteration1_deterministic: true # true = iteration 1 is the deterministic baseline (fixed search.default_levers, no LLM call), and the agent refines from it in iterations 2+. This is the report's Deterministic arm — so one agentic run gives baseline/deterministic/agentic. false = iteration 1 is itself an LLM lever choice (no deterministic arm inside the run).
+# === Run mode (used when sweep.enabled is false) ===
+run:
+  method: "agentic"  # "agentic" (LLM-driven) or "sequential" (deterministic, no LLM)
+  calling_mode: "single_call"  # "single_call" (LLM picks the 5 levers, harness runs tools) or "react" (LLM drives every tool call)
+  iteration1_deterministic: true  # iteration 1 = fixed default levers with no LLM call -> the report's Deterministic arm
 
+  # Matched-budget non-LLM control arm: same budget/pipeline/selection as the agent,
+  # but levers chosen without the LLM. Isolates the LLM's reasoning; costs 0 LLM calls.
+  control_baseline:
+    enabled: true
+    policy: "random"  # "random" (seeded uniform draw) or "grid" (fixed spread across the grid)
+    lever_space:  # values the policy draws from; keep matched to the agent's plausible range
+      junction_window: [1, 2, 3, 4, 5]
+      search_mode: ["greedy", "beam"]
+      beam_width: [10, 25, 50, 100, 200]
+      edge_mode: ["hard", "soft"]
+      confirmed_bonus: [0.0, 0.5, 1.0]
+
+  report_oracle: true  # add the free Oracle-ceiling column (best candidate the agent generated, per metric)
+
+# === Search budget + agent levers ===
 search:
-  max_iterations: 5 # number of agentic refinement rounds. With early_stop_patience == this value (below), it is a FIXED per-sample budget (no early stopping) — every sample runs exactly this many iterations, which keeps the "Iterative Reasoning Gain" table comparable across samples. To A/B the budget (e.g. 3 vs 5 vs 10) run a sweep with a `max_iterations` grid axis (see CLAUDE.md); the sweep pins early_stop_patience to each swept value automatically.
+  max_iterations: 5  # agentic refinement rounds (fixed budget when == early_stop_patience)
+  early_stop_patience: 5  # stop after N non-improving iterations; == max_iterations disables early stop
+  improvement_margin: 0.0  # relative validity drop needed to replace the incumbent best; 0.0 = keep-best argmin
 
-  default_levers: # iteration-1 lever values when run.iteration1_deterministic; fallback for unset levers in react mode; also the sole default for junction_window/beam_width across the whole pipeline (sequential mode included)
-    junction_window: 1 # residues masked when scoring a junction
-    search_mode: "greedy" # "beam" or "greedy"
-    beam_width: 25 # candidate orderings kept per beam_order step
-    edge_mode: "hard" # "hard" or "soft"
-    confirmed_bonus: 0.0
+  default_levers:  # iteration-1 / fallback levers; also the pipeline-wide default for junction_window & beam_width
+    junction_window: 1  # residues masked per junction when scoring
+    search_mode: "greedy"  # "greedy" or "beam"
+    beam_width: 25  # candidate orderings kept per beam step
+    edge_mode: "hard"  # "hard" or "soft" handling of confirmed overlap edges
+    confirmed_bonus: 0.0  # score bonus for confirmed edges (used when edge_mode = "soft")
 
-  early_stop_patience: 5 # non-improving iterations before stopping early; == max_iterations disables early stopping (fixed budget). Kept equal to max_iterations here so every sample runs the full budget.
-  improvement_margin: 0.0 # relative validity drop a later iteration must clear to replace the incumbent best; 0.0 = raw argmin (the agent's best-scoring candidate wins). Set to 0.0 for the fully-agentic config (iteration1_deterministic=false), where the old "protect the config-default incumbent" rationale no longer applies — see CLAUDE.md. It is still a real winner's-curse guard whose value GROWS with max_iterations, so if you raise max_iterations toward ~10 consider a small positive margin (~0.03) again. When iteration1_deterministic=true, restore ~0.030.
+  validity_junction_window: 5  # residues scored per junction for the selection signal
+  validity_confirmed_penalty: 0.75  # weight on confirmed-adjacency disagreement in the selection signal
 
-  # best-candidate selection signal (validity_scorer); see CLAUDE.md for the full formula
-  validity_junction_window: 5 # residues scored per junction for the validity signal
-  validity_confirmed_penalty: 0.75 # weight on confirmed-adjacency disagreement
-
-data: # organism/replica_count/missed_cleavage_ratio require rerunning preprocessing
-  organism: "ecoli" # ecoli, yeast, or mixture
-  test_samples: 100 # samples drawn per run, shuffled with misc.seed
-  replica_count: 100 # digestion replicas generated per protein
-  missed_cleavage_ratio: 0.3 # base rate; K sites sampled at 1.5x this
+# === Data (changing organism/replica_count/missed_cleavage_ratio reruns preprocessing) ===
+data:
+  organism: "ecoli"  # "ecoli", "yeast", or "mixture"
+  test_samples: 100  # evaluation samples per run (shuffled with misc.seed)
+  replica_count: 20  # digestion replicas generated per protein
+  missed_cleavage_ratio: 0.3  # base missed-cleavage rate (K sites sampled at 1.5x)
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
   raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
   fragmented_ecoli: "data/ecoli/fragmented_ecoli.jsonl"
   fragmented_yeast: "data/yeast/fragmented_yeast.jsonl"
   fragmented_mixture: "data/mixture/fragmented_mixture.jsonl"
 
-sweep: # main.py reads this; enabled: false runs once via run.method above
+# === Sweep (enabled: true loops the grid instead of a single run) ===
+sweep:
   enabled: false
-  test_samples: 100 # samples per combo
-  grid: # cartesian product of the axes below
+  test_samples: 100  # samples per combo
+  grid:  # cartesian product of these axes (full axis-key list in CLAUDE.md)
     organism: [ecoli, yeast]
     replica_count: [5, 20, 100]
     mlm_profile: [esm_small]
-  extra_runs: [] # one-off combos, e.g. [{organism: mixture, replica_count: 5, mlm_profile: esm_small, method: sequential, test_samples: 5}]
+  extra_runs: []  # one-off combos appended to the grid
 
+# === LLM (the lever-choosing model for agentic runs) ===
 llm_model:
-  profile: "microsoft_foundry" # microsoft_foundry or openai_api
-  # Sampling / reasoning controls. Only non-null values are ever sent to the
-  # model, so leaving a knob null means "use the model's default" (and, for
-  # unsupported knobs, "never send it"). The active gpt-5*/o-series deployments
-  # are REASONING models: the API rejects any temperature or top_p other than
-  # the default (1.0), so those stay null here and the model is steered with
-  # reasoning_effort + verbosity instead. Set temperature/top_p only if you
-  # switch to a non-reasoning chat model. top_k is not an OpenAI Chat
-  # Completions parameter; it is forwarded (via model_kwargs) only when non-null,
-  # for non-OpenAI backends, and is otherwise a documented no-op here.
-  sampling:
-    temperature: null # reasoning models reject non-default values; keep null unless using a plain chat model
-    top_p: null # as above; nucleus sampling is unsupported on reasoning models
-    top_k: null # not an OpenAI parameter; only sent to non-OpenAI backends when set
-    seed: 42 # run-to-run reproducibility of the LLM's lever choices (OpenAI best-effort determinism)
-    reasoning_effort: "low" # minimal | low | medium | high — how hard the model reasons before choosing levers
-    verbosity: "low" # low | medium | high — lever rationale stays brief; the decision is a structured object
+  profile: "microsoft_foundry"  # "microsoft_foundry" or "openai_api"
+  sampling:  # only non-null knobs are sent to the model
+    temperature: null  # leave null for reasoning models (they reject non-default values)
+    top_p: null  # leave null for reasoning models
+    top_k: null  # non-OpenAI backends only; ignored otherwise
+    seed: 42  # best-effort determinism of the LLM's lever choices
+    reasoning_effort: "low"  # minimal | low | medium | high
+    verbosity: "low"  # low | medium | high
   profiles:
     openai_api:
       kind: "openai"
@@ -69,14 +80,15 @@ llm_model:
       api_key_env: "OPENAI_API_KEY"
     microsoft_foundry:
       kind: "microsoft_foundry"
-      model: "gpt-5-mini" # Azure Foundry deployment name
+      model: "gpt-5-mini"  # Azure Foundry deployment name
       endpoint_env: "AZURE_ENDPOINT"
       api_key_env: "AZURE_API_KEY"
-      auth_mode: "auto" # auto prefers AZURE_API_KEY, else DefaultAzureCredential
+      auth_mode: "auto"  # "auto" prefers AZURE_API_KEY, else DefaultAzureCredential
       token_scope: "https://ai.azure.com/.default"
 
+# === MLM (junction + validity scoring model) ===
 mlm_model:
-  profile: "esm_small" # esm_small, esm_medium, or protbert
+  profile: "esm_small"  # "esm_small", "esm_medium", or "protbert"
   profiles:
     esm_small:
       type: "esm"
@@ -90,7 +102,7 @@ mlm_model:
     esm_medium:
       type: "esm"
       name: "facebook/esm2_t33_650M_UR50D"
-      batch_size: 8 # ~25x heavier than esm_small; keep batch small to fit alongside validity model on ~8GB VRAM
+      batch_size: 8  # ~25x heavier than esm_small; small batch to fit alongside the validity model
       max_length: 1024
       validity_model:
         name: "facebook/esm2_t33_650M_UR50D"
@@ -106,6 +118,7 @@ mlm_model:
         batch_size: 32
         max_length: 512
 
+# === Folding (optional structural scoring) ===
 folding_model:
   type: "esm"
   name: "facebook/esmfold_v1"

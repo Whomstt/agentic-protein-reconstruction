@@ -170,7 +170,9 @@ def selected_best_label(config: dict) -> str:
     return "Agentic Best (iteratively selected)"
 
 
-def run_type_summary(config: dict) -> list[str]:
+def run_type_summary(
+    config: dict, has_control: bool = False, has_oracle: bool = False
+) -> list[str]:
     """Markdown lines spelling out, for THIS run's config, exactly what each
     compared column means — so a reader never has to guess which numbers came from
     the deterministic pipeline and which are the LLM agent's iteratively-selected
@@ -203,12 +205,28 @@ def run_type_summary(config: dict) -> list[str]:
             "- **Agentic 1st Pass** — iteration 1 is itself an LLM lever decision "
             "(`run.iteration1_deterministic=false`); there is no deterministic baseline inside this run."
         )
+    if has_control:
+        lines.append(
+            "- **Control (non-LLM)** — the matched-budget control arm: the SAME iteration "
+            "budget, SAME fixed tool pipeline and SAME best-validity selection as the agentic "
+            "arm, but the five levers are chosen by a non-LLM policy (random/grid) instead of the "
+            "LLM, and it runs paired on the same protein with 0 LLM calls. **`Δ Agentic − Control` "
+            'is the isolated value of the LLM\'s reasoning** — it separates "the agent reasons '
+            'well" from "trying several candidates and keeping the best-validity one helps."'
+        )
     lines.append(
         "- **Agentic Best** — the agent's result: iterations 2+ are LLM lever choices, and the "
         "kept candidate is the best-validity one across all iterations (subject to "
         "`search.improvement_margin`). Since iteration 1 (the deterministic baseline) is in the "
         'candidate set, read the **true-metric** columns for the real "does the agent help?" answer.'
     )
+    if has_oracle:
+        lines.append(
+            "- **Oracle (ceiling)** — for each metric, the best value achievable by selecting "
+            "among the candidates the agent actually generated. Not a method (it peeks at the "
+            "ground truth); the **Oracle − Agentic** gap is what the imperfect (~57–61%) validity "
+            "concordance leaves on the table — reachable by better selection alone, no new candidate."
+        )
     lines.append("")
     return lines
 
@@ -704,6 +722,126 @@ def _format_iteration_gain_distribution_rows(sample_reports: list[dict]) -> list
     return rows
 
 
+def _control_label(payload: dict) -> str:
+    policy = payload.get("control_policy") or "random"
+    return f"Control ({policy}, no LLM)"
+
+
+def _format_multi_arm_benchmark(
+    payload: dict, fp_label: str, best_label: str
+) -> tuple[list[str] | None, list[list[str]] | None]:
+    """Headline benchmark row set, widened to include the matched-budget control
+    arm and the oracle ceiling when those were produced. Columns are emitted only
+    for arms that exist, so a plain run (no control/oracle) renders exactly the
+    original three-arm table. Returns (headers, rows) or (None, None) when there
+    is no first-pass arm to compare against (sequential runs)."""
+    baseline = payload.get("baseline_averages", {})
+    first_pass = payload.get("first_pass_averages")
+    recon = payload.get("recon_averages", {})
+    control = payload.get("control_averages")
+    oracle = payload.get("oracle_averages")
+    if not first_pass:
+        return None, None
+
+    headers = ["Metric", "Shuffled Baseline", fp_label]
+    if control:
+        headers.append(_control_label(payload))
+    headers.append(best_label)
+    if oracle:
+        headers.append("Oracle (ceiling)")
+    headers.append("Δ Agentic − Deterministic")
+    if control:
+        headers.append("Δ Agentic − Control")
+    headers.append("Direction")
+
+    rows = []
+    for key, label in METRIC_NAMES.items():
+        rc = recon.get(key, 0.0)
+        fp = first_pass.get(key, 0.0)
+        row = [label, f"{baseline.get(key, 0.0):.4f}", f"{fp:.4f}"]
+        if control:
+            row.append(f"{control.get(key, 0.0):.4f}")
+        row.append(f"{rc:.4f}")
+        if oracle:
+            row.append(f"{oracle.get(key, 0.0):.4f}")
+        det_delta = rc - fp
+        row.append(f"{det_delta:+.4f}")
+        if control:
+            row.append(f"{rc - control.get(key, 0.0):+.4f}")
+        if key in LOWER_IS_BETTER:
+            status = "better" if det_delta < 0 else ("worse" if det_delta > 0 else "same")
+        else:
+            status = "better" if det_delta > 0 else ("worse" if det_delta < 0 else "same")
+        row.append(status)
+        rows.append(row)
+    return headers, rows
+
+
+def _format_agent_vs_control_distribution_rows(
+    sample_reports: list[dict],
+) -> list[list[str]]:
+    """Paired per-sample gain of the agentic arm over the matched-budget control
+    arm (Agentic − Control on the same protein). This is the isolated value of the
+    LLM's reasoning: both arms had the same budget, pipeline and selection rule, so
+    a positive, consistent gain here is what separates 'the agent reasons well'
+    from 'trying N candidates and keeping the best helps'."""
+    rows = []
+    for key, label in METRIC_NAMES.items():
+        stats = distribution_stats(
+            [
+                (r.get("agent_vs_control_gain") or {}).get(key)
+                for r in sample_reports
+            ]
+        )
+        if stats is None:
+            continue
+        rows.append(
+            [
+                label,
+                f"{stats['mean']:+.4f}",
+                f"{stats['std']:.4f}",
+                f"{stats['min']:+.4f}",
+                f"{stats['max']:+.4f}",
+            ]
+        )
+    validity_gain_stats = distribution_stats(
+        [
+            r.get("best_validity_score") - r.get("control_validity_score")
+            for r in sample_reports
+            if isinstance(r.get("best_validity_score"), (int, float))
+            and isinstance(r.get("control_validity_score"), (int, float))
+        ]
+    )
+    if validity_gain_stats is not None:
+        rows.append(
+            [
+                "Best Validity Score (lower=better; negative = agentic more plausible)",
+                f"{validity_gain_stats['mean']:+.4f}",
+                f"{validity_gain_stats['std']:.4f}",
+                f"{validity_gain_stats['min']:+.4f}",
+                f"{validity_gain_stats['max']:+.4f}",
+            ]
+        )
+    return rows
+
+
+def _format_oracle_gap_rows(payload: dict) -> list[list[str]]:
+    """Per-metric gap between the validity-selected Agentic Best and the oracle
+    (best candidate the agent actually generated). The gap is quality the run left
+    on the table purely to imperfect selection — it is reachable with better
+    selection alone, no new candidate needed."""
+    recon = payload.get("recon_averages", {})
+    oracle = payload.get("oracle_averages")
+    if not oracle:
+        return []
+    rows = []
+    for key, label in METRIC_NAMES.items():
+        rc = recon.get(key, 0.0)
+        orc = oracle.get(key, 0.0)
+        rows.append([label, f"{rc:.4f}", f"{orc:.4f}", f"{orc - rc:+.4f}"])
+    return rows
+
+
 def _format_distribution_rows(sample_reports: list[dict]) -> list[list[str]]:
     """Per-metric mean/std/min/median/max across samples — the single-glance
     summary that scales to n~100, where a full per-sample table doesn't."""
@@ -761,8 +899,24 @@ def _format_cost_rows(payload: dict) -> list[list[str]]:
         ["Avg LLM calls / sample", f"{cost.get('avg_llm_calls_per_sample', 0):.2f}"],
         ["Total LLM tokens", str(cost.get("total_llm_tokens", 0))],
         ["Avg LLM tokens / sample", f"{cost.get('avg_llm_tokens_per_sample', 0):.0f}"],
-        ["Avg wall-clock / sample", _format_duration(cost.get("avg_seconds_per_sample"))],
+        ["Avg wall-clock / sample (total)", _format_duration(cost.get("avg_seconds_per_sample"))],
     ]
+    if cost.get("control_enabled"):
+        rows.extend(
+            [
+                ["— Matched-budget control arm (no LLM) —", ""],
+                ["Control lever policy", str(cost.get("control_policy", "random"))],
+                ["Control LLM calls", "0"],
+                [
+                    "Avg wall-clock / sample — agentic arm",
+                    _format_duration(cost.get("avg_agentic_seconds_per_sample")),
+                ],
+                [
+                    "Avg wall-clock / sample — control arm",
+                    _format_duration(cost.get("avg_control_seconds_per_sample")),
+                ],
+            ]
+        )
     return rows
 
 
@@ -959,6 +1113,8 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         else "Agentic 1st Pass"
     )
     best_short = "Reconstructed" if is_sequential else "Agentic Best"
+    has_control = bool(payload.get("control_averages"))
+    has_oracle = bool(payload.get("oracle_averages"))
 
     bar_chart_svg = render_metric_bar_chart_svg(
         payload.get("baseline_averages", {}),
@@ -970,7 +1126,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
     (run_dir / "metric_comparison.svg").write_text(bar_chart_svg, encoding="utf-8")
 
     lines = [f"# {payload['run_name']}", ""]
-    lines.extend(run_type_summary(config))
+    lines.extend(run_type_summary(config, has_control=has_control, has_oracle=has_oracle))
 
     duration = payload.get("duration_seconds")
     overview_lines = [
@@ -997,29 +1153,48 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         ]
     )
 
-    three_arm_rows = _format_iteration_gain_rows(payload)
-    if three_arm_rows:
-        # Agentic run with a deterministic baseline: headline is the three-arm
-        # comparison the research question asks for.
+    bench_headers, bench_rows = _format_multi_arm_benchmark(payload, fp_label, best_label)
+    three_arm_rows = bench_rows
+    if bench_rows:
+        # Agentic run with a deterministic baseline: headline is the multi-arm
+        # comparison the research question asks for (control/oracle columns appear
+        # only when those arms were produced).
+        title = "## Benchmark: Shuffled Baseline vs. Deterministic vs. Agentic"
+        if has_control:
+            title += " vs. Control"
         lines.extend(
             [
-                "## Benchmark: Shuffled Baseline vs. Deterministic vs. Agentic",
-                _markdown_table(
-                    [
-                        "Metric",
-                        "Shuffled Baseline",
-                        fp_label,
-                        best_label,
-                        "Δ Agentic − Deterministic",
-                        "Direction",
-                    ],
-                    three_arm_rows,
-                ),
+                title,
+                _markdown_table(bench_headers, bench_rows),
                 "",
                 "![Metric comparison](metric_comparison.svg)",
                 "",
             ]
         )
+        oracle_gap_rows = _format_oracle_gap_rows(payload)
+        if oracle_gap_rows:
+            lines.extend(
+                [
+                    "### Selection Ceiling (Oracle)",
+                    "The Oracle column is the best true-metric value reachable by selecting among "
+                    "the candidates the agent already generated (it peeks at ground truth, so it is "
+                    "a ceiling, not a method). The gap below is quality the run left on the table "
+                    "purely to imperfect validity selection — reachable with better selection alone, "
+                    "no new candidate generated. A large gap says the bottleneck is the selection "
+                    "signal, not the search.",
+                    "",
+                    _markdown_table(
+                        [
+                            "Metric",
+                            best_label,
+                            "Oracle (best generated)",
+                            "Gap (Oracle − Agentic)",
+                        ],
+                        oracle_gap_rows,
+                    ),
+                    "",
+                ]
+            )
     else:
         # Sequential (no deterministic-vs-agentic split): two-arm summary.
         lines.extend(
@@ -1057,6 +1232,31 @@ def write_run_results(run_name: str, payload: dict) -> Path:
                     _markdown_table(
                         ["Metric", "Mean Gain", "Std Dev", "Min Gain", "Max Gain"],
                         gain_dist_rows,
+                    ),
+                    "",
+                ]
+            )
+
+    if has_control:
+        control_gain_rows = _format_agent_vs_control_distribution_rows(sample_reports)
+        if control_gain_rows:
+            lines.extend(
+                [
+                    f"## Agentic vs. Control (paired, matched budget, n={len(sample_reports)})",
+                    "**The isolated value of the LLM's reasoning.** Per-sample gain of the agentic "
+                    "arm over the non-LLM control arm (Agentic − Control on the same protein), where "
+                    "both arms ran the same iteration budget, the same fixed tool pipeline and the "
+                    "same best-validity selection — only the lever *source* differed (LLM vs a "
+                    f"{payload.get('control_policy', 'random')} policy). A plain Agentic − "
+                    "Deterministic gain conflates 'the agent reasons well' with 'trying several "
+                    "candidates and keeping the best helps'; this comparison holds the budget and "
+                    "selection fixed, so a positive, consistent gain here is attributable to the "
+                    "LLM. Run a paired Wilcoxon signed-rank test on these per-sample gains for the "
+                    "significance claim.",
+                    "",
+                    _markdown_table(
+                        ["Metric", "Mean Gain", "Std Dev", "Min Gain", "Max Gain"],
+                        control_gain_rows,
                     ),
                     "",
                 ]
