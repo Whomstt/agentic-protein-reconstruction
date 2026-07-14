@@ -432,7 +432,7 @@ An agentic AI approach using Protein Language Models (PLMs) and Large Language M
 tools which allow for more effective protein reconstruction. Results from the experiments confirm that the iterated, agentic
 approach performs better on average than manually predefined system parameters. This research indicates that there is
 a much larger potential gain to come of agentic AI in the field of proteomics, especially for environments with fewer
-computational constraints.
+computational constraints and richer informational signals.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
@@ -473,7 +473,30 @@ agentic AI, protein language models, proteomics, de novo protein reconstruction.
 % 
 % Here we have the typical use of a "T" for an initial drop letter
 % and "HIS" in caps to complete the first word.
-\IEEEPARstart{O}{ur} understanding of proteins has been critical in the discovery of
+\IEEEPARstart{M}{icroorganisms} are observed in almost every corner of the world, from land to sea to air.
+Capturing the functional interactions that occur within a microbial ecosystem and understanding their characteristics
+has given rise to many advancements in the domains of human biology, bioengineering, and more \cite{10.1111/j.1574-6941.2011.01284.x}.
+Key findings through metaproteomics enabled creation of activated sludge systems capable of treating wastewater through a
+two-step anaerobic-aerobic treatment process, something which would have been near-impossible without a reference genome or
+metagenome \cite{10.1111/j.1574-6941.2011.01284.x}.
+
+A proteome is the complete set of proteins expressed by a cell, tissue, or organism; correspondingly, proteomics is the study of these revealed proteins 
+\cite{https://doi.org/10.1002/imt2.70031}. Proteomics involves analysing proteins fragments that resulted from enzymatic digestion,
+and because of this, the original parent protein must be inferred from this jigsaw puzzle of fragments \cite{https://doi.org/10.1002/imt2.70031}.
+
+Enzymatic digestions are not perfect, often resulting in missed cleavages and ambiguous fragments which could belong to multiple
+parent proteins \cite{MCDONNELL20232732}. This motivates the need for more capable reconstruction alogrithms, particularly when
+no reference database entry exists for a given protein.
+
+Agentic AI has already shown great promise in de novo protein design problems; \cite{ghafarollahi2024protagentsproteindiscoverylarge}
+and \cite{ni2025agenticendtoendnovoprotein}. The primary objective of this project was to investigate the application of agentic AI 
+in reconstructing proteins from their fragments; to observe intelligence from the LLM as it receives feedback during the
+reconstruction process, and its respective decision-making process to produce a better candidate solution.
+
+
+
+
+understanding of proteins has been critical in the discovery of
 much of modern therapeutics and biotechnology which we benefit from today.
 Artificial intelligence is increasingly being applied to the field of proteomics,
 enabling unprecedented breakthroughs in structural prediction and functional analysis.

@@ -45,7 +45,7 @@ search:
 data:
   organism: "ecoli"  # "ecoli", "yeast", or "mixture"
   test_samples: 100  # evaluation samples per run (shuffled with misc.seed)
-  replica_count: 20  # digestion replicas generated per protein
+  replica_count: 100  # digestion replicas generated per protein
   missed_cleavage_ratio: 0.3  # base missed-cleavage rate (K sites sampled at 1.5x)
   raw_uniprot: "data/raw/uniprot_sprot.fasta"
   raw_ecoli_yeast: "data/raw/ecoli_yeast.fasta"
