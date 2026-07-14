@@ -1,7 +1,7 @@
 [project]
 name = "agentic-protein-reconstruction"
 version = "0.1.0"
-description = "Add your description here"
+description = "Agentic reconstruction of protein sequences from unordered trypsin-digestion fragments."
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [

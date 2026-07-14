@@ -39,7 +39,7 @@ def score_junctions(
         return normalized
 
     if model_type == "prot":
-        from models.prot import mlm, reset_cache, tokeniser
+        from models.prot import mlm, model_lock, reset_cache, tokeniser
 
         reset_cache(mlm)
         is_prot = True

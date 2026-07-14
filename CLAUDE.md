@@ -169,7 +169,7 @@ Config lives in [config.yaml](config.yaml); all access goes through `from config
 
 JSONL records with fields like `fragments`, organism-specific originals (`ecoli_original`, `yeast_original`), `target_reconstruction`, `num_fragments`, `replica_count`, `missed_cleavage_ratio`.
 
-`preprocessing/preprocessing.py` filters the raw UniProt FASTA to the active organism, deduplicates by gene (`GN=` tag) so the same protein is not repeated across near-identical strains, then generates `replica_count` digestion replicas per protein. There is no train/test split, so preprocessing writes one deduped fragmented file per organism (`data.fragmented_ecoli`, etc.) and evaluation draws directly from it.
+`preprocessing/preprocessing.py` filters the raw UniProt FASTA to the active organism, deduplicates by gene (`GN=` tag) so the same protein is not repeated across near-identical strains, then generates `replica_count` digestion replicas per protein. There is no train/test split, so preprocessing writes one deduped fragmented file per organism (`data.fragmented_ecoli`, etc.) and evaluation draws directly from it. Only `trypsin_digest` is wired into the pipeline; `lys_c_digest`/`asp_n_digest`/`glu_c_digest` are unused extension points for other cleavage enzymes.
 
 Each fragmented output has a `.meta.json` sidecar recording the `organism`/`replica_count`/`missed_cleavage_ratio` it was generated with. `ensure_fresh_dataset()` compares that against the active config and regenerates the dataset if any of the three changed; `main.py` calls it before every non-sweep run, so editing `data.replica_count` (or organism, or missed-cleavage ratio) and running `python main.py` picks it up without a manual preprocessing step. Each sweep combo re-enters `main.py` as its own subprocess, so this check re-runs preprocessing once per distinct combination, not on every combo.
 
@@ -213,4 +213,5 @@ python -m evaluation.junction_ranking # search-independent pLM junction-ranking 
 - All config access goes through `from config import cfg`.
 - Algorithms stay pure; tools manage state.
 - ESM-2 is the default MLM; ProtBERT is also supported.
+- Each model module (`models/esm.py`, `models/esm_validity.py`, `models/prot.py`) exposes a module-level `model_lock`; `score_junctions` and `pseudo_perplexity` hold it around every model call so junction and validity scoring can share the process without racing.
 - The repo is installed editable, so imports resolve from the project root.

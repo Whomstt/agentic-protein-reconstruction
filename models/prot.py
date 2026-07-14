@@ -1,6 +1,10 @@
+from threading import Lock
+
 from transformers import BertForMaskedLM, BertTokenizer
 
 from config import cfg
+
+model_lock = Lock()
 
 
 def load_model():

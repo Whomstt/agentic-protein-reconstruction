@@ -24,16 +24,13 @@ def greedy_order(
         incoming = scores.sum(dim=0)
         start = min(start_candidates, key=lambda i: incoming[i].item())
     else:
-        start = (
-            scores.sum(dim=0).argmin().item()
-        )  # start with fragment least likely to be after any other
+        # Start from the fragment least likely to follow any other.
+        start = scores.sum(dim=0).argmin().item()
     order = [start]
     used.add(start)
     while len(order) < n:
-        row = scores[
-            order[-1]
-        ].clone()  # consider all candidates after the last fragment in order
-        row[list(used)] = float("-inf")  # ignore already used fragments
+        row = scores[order[-1]].clone()
+        row[list(used)] = float("-inf")
         for idx in range(n):
             if (order[-1], idx) in impossible:
                 row[idx] = float("-inf")
@@ -46,7 +43,7 @@ def greedy_order(
             forced_impossible_count += 1
             row = scores[order[-1]].clone()
             row[list(used)] = float("-inf")
-        nxt = row.argmax().item()  # pick highest probability
+        nxt = row.argmax().item()
         order.append(nxt)
         used.add(nxt)
     if diagnostics is not None:

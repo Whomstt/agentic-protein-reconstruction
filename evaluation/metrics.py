@@ -267,19 +267,6 @@ def compute_all(target, reconstruction, fragments=None, order=None):
     }
 
 
-def print_metrics(metrics):
-    """Print a single sample's metrics."""
-    for key, label in METRIC_NAMES.items():
-        print(f"  {label}: {metrics[key]:.4f}")
-
-
-def print_averages(summary, n):
-    """Print averaged metrics across samples (NaN-safe)."""
-    for key, label in METRIC_NAMES.items():
-        avg = nanmean(summary[key])
-        print(f"  {label}: {avg:.4f}")
-
-
 def print_comparison(baseline_summary, recon_summary, n):
     """Print averaged metrics side-by-side: shuffled baseline vs reconstructed vs
     delta. Delta is raw (reconstructed - baseline); a trailing tag marks the
