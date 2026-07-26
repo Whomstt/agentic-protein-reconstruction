@@ -475,35 +475,28 @@ agentic AI, protein language models, proteomics, de novo protein reconstruction.
 % and "HIS" in caps to complete the first word.
 \IEEEPARstart{M}{icroorganisms} are observed in almost every corner of the world, from land to sea to air.
 Capturing the functional interactions that occur within a microbial ecosystem and understanding their characteristics
-has given rise to many advancements in the domains of human biology, bioengineering, and more \cite{10.1111/j.1574-6941.2011.01284.x}.
-Key findings through metaproteomics enabled creation of activated sludge systems capable of treating wastewater through a
-two-step anaerobic-aerobic treatment process, something which would have been near-impossible without a reference genome or
-metagenome \cite{10.1111/j.1574-6941.2011.01284.x}.
+has given rise to many advancements in the domains of human biology, soil and marine environments, and biogengineered systems \cite{10.1111/j.1574-6941.2011.01284.x}.
+In activated sluge, metaproteomic analysis was capable of distinguishing functioning and non-functioning systems from protein expression alone, demonstrating the potential
+of protein profiling to diagnose performance issues in microbial communities such as wastewater treatment \cite{10.1111/j.1574-6941.2011.01284.x}.
+These types of analyses are constrained by the lack of available relevant genome and metagenome sequences, and in cases where none exist, de novo peptide sequencing
+is required \cite{10.1111/j.1574-6941.2011.01284.x}.
 
-A proteome is the complete set of proteins expressed by a cell, tissue, or organism; correspondingly, proteomics is the study of these revealed proteins 
-\cite{https://doi.org/10.1002/imt2.70031}. Proteomics involves analysing proteins fragments that resulted from enzymatic digestion,
+A proteome is the complete set of proteins expressed by a genome under a set of given conditions; correspondingly, proteomics is the profiling of these expressed proteins 
+\cite{https://doi.org/10.1002/imt2.70031}.
+Metaproteomics is the equivalent profiling performed on a community level, where from a given sample not all proteins may belong to the same organism.
+Metagenomes and genomes tell us what an ecosystem is capable of, whereas the proteins expressed during sampling reveal the story of what it is actually doing;
+protein profiling allows us to link "community members" to the functions which they carry out \cite{10.1111/j.1574-6941.2011.01284.x}.
+
+Proteomics involves analysing protein fragments that resulted from enzymatic digestion,
 and because of this, the original parent protein must be inferred from this jigsaw puzzle of fragments \cite{https://doi.org/10.1002/imt2.70031}.
-
 Enzymatic digestions are not perfect, often resulting in missed cleavages and ambiguous fragments which could belong to multiple
-parent proteins \cite{MCDONNELL20232732}. This motivates the need for more capable reconstruction alogrithms, particularly when
+parent proteins \cite{MCDONNELL20232732}. This motivates the need for more capable reconstruction algorithms, particularly when
 no reference database entry exists for a given protein.
 
-Agentic AI has already shown great promise in de novo protein design problems; \cite{ghafarollahi2024protagentsproteindiscoverylarge}
-and \cite{ni2025agenticendtoendnovoprotein}. The primary objective of this project was to investigate the application of agentic AI 
+Agentic AI has already shown great promise in de novo protein design problems; \cite{ghafarollahi2024protagentsproteindiscoverylarge}, \cite{ni2025agenticendtoendnovoprotein}. 
+The primary objective of this project was to investigate the application of agentic AI 
 in reconstructing proteins from their fragments; to observe intelligence from the LLM as it receives feedback during the
 reconstruction process, and its respective decision-making process to produce a better candidate solution.
-
-
-
-
-understanding of proteins has been critical in the discovery of
-much of modern therapeutics and biotechnology which we benefit from today.
-Artificial intelligence is increasingly being applied to the field of proteomics,
-enabling unprecedented breakthroughs in structural prediction and functional analysis.
-However, a critical unsolved problem remains open in the reconstruction of de novo proteins.
-Agentic AI has already proven useful for similar problems in the field of proteomics, as such,
-the aim of this project was to investigate its applicability to this specific problem.
-
 
 % An example of a floating figure using the graphicx package.
 % Note that \label must occur AFTER (or within) \caption.
@@ -863,8 +856,8 @@ by the LLM is the initial peptide fragments, where it must first reason to decid
 should call next; receiving feedback, and then iterating until a satisfying reconstruction remains.
 
 To preserve the components of the reconstruction, a shared memory state is accessible between tools
-so that each output returned acts as a signal for the proceeding one. GPT-5.4 is the model which has
-been selected as the LLM brain, accessed through OpenAI's API platform; it is powerful and
+so that each output returned acts as a signal for the proceeding one. GPT-5-mini is the model which has
+been selected as the LLM brain, accessed through Microsoft's Foundry platform; it is powerful and
 easily accessible. Fig.~\ref{fig:agentic_pipeline}
 provides an overview of the procedure which the agentic pipeline follows.
 

@@ -139,7 +139,7 @@ def kendall_tau(pred_order, true_order, fragments):
     return (concordant - discordant) / total if total else 0.0
 
 
-def junction_ranking_stats(score_matrix, true_order, num_fragments):
+def junction_ranking_stats(score_matrix, true_order, num_fragments, skip_pairs=None):
     """Search-independent quality of the pLM junction scorer: does it rank each
     true successor at the top, before any search or constraint is applied?
 
@@ -147,9 +147,18 @@ def junction_ranking_stats(score_matrix, true_order, num_fragments):
     j != i by score_matrix[i][j] (higher = more plausible). Returns top-1/top-3
     accuracy and mean reciprocal rank over those true junctions. This is the one
     measurement of the pipeline's core assumption; every other metric is measured
-    *after* search and entangles scorer quality with search dynamics."""
+    *after* search and entangles scorer quality with search dynamics.
+
+    `skip_pairs` optionally excludes specific true junctions from the
+    measurement. Pass the overlap graph's confirmed junctions when scoring a
+    matrix that carries the graph's sentinel values, so the result measures the
+    pLM on the junctions it actually had to discriminate rather than being
+    inflated by adjacencies handed to it as already known. Omit it (the default)
+    for a dense raw matrix, which leaves the original behaviour unchanged."""
     if not true_order or len(true_order) < 2 or num_fragments < 2:
         return {"top1_acc": None, "top3_acc": None, "mrr": None, "num_junctions": 0}
+
+    skip = {tuple(pair) for pair in skip_pairs} if skip_pairs else set()
 
     def score(i, j):
         return float(score_matrix[i][j])
@@ -160,6 +169,8 @@ def junction_ranking_stats(score_matrix, true_order, num_fragments):
     for k in range(len(true_order) - 1):
         i, s = true_order[k], true_order[k + 1]
         if i >= num_fragments or s >= num_fragments:
+            continue
+        if (i, s) in skip:
             continue
         s_score = score(i, s)
         better = sum(

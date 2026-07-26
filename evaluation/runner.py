@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from openai import AuthenticationError
 
 from config import cfg
+from evaluation.instrumentation import safe_sample_diagnostics
 from evaluation.metrics import METRIC_NAMES, compute_all, is_clean_permutation, nanmean
 from evaluation.reporting import (
     build_config_snapshot,
@@ -258,8 +259,20 @@ def run_sequential() -> Path | None:
 
         total_junctions = len(fragments) * (len(fragments) - 1)
         pruned = len(constraints["impossible_junctions"])
+        # Same optional diagnostics as the agentic path, from state already
+        # computed. The sequential pipeline does not surface its score matrix,
+        # so junction ranking is absent here and reports as 'n/a'.
+        diagnostics = safe_sample_diagnostics(
+            target,
+            fragments,
+            {
+                "impossible_junctions": constraints["impossible_junctions"],
+                "confirmed_junctions": graph.get("confirmed_junctions"),
+            },
+        )
         sample_reports.append(
             {
+                **diagnostics,
                 "index": i,
                 "target": target,
                 "reconstruction": reconstruction,
@@ -313,9 +326,35 @@ def run_sequential() -> Path | None:
         "duration_seconds": total_duration,
     }
     run_dir = write_run_results("sequential", run_payload)
+    _build_analysis_artifacts(run_dir)
     _print_saved_artifacts(run_dir)
     print(f"{'═' * 60}\n")
     return run_dir
+
+
+def _build_analysis_artifacts(run_dir) -> None:
+    """Generate the statistical report, CSVs, LaTeX tables and figures for a
+    finished run.
+
+    Called automatically so every run produces these with no manual step. It is
+    a pure reporting pass over the results just written to disk — it reads
+    samples.jsonl and writes alongside it, never touching the run's data or the
+    original report.md. Wrapped defensively: a run represents hours of GPU and
+    LLM spend, and a reporting bug must never be able to fail it.
+    """
+    try:
+        from evaluation.rebuild import generate_run_artifacts
+
+        print(f"\n{BOLD}  Building statistical report...{RESET}")
+        generate_run_artifacts(run_dir)
+    except Exception as exc:
+        name = getattr(run_dir, "name", run_dir)
+        print(
+            f"{YELLOW}  Statistical report skipped "
+            f"({type(exc).__name__}: {exc}).{RESET}\n"
+            f"{DIM}  The run itself is saved and intact; rebuild it later with:\n"
+            f"    python -m evaluation.rebuild --run {name}{RESET}"
+        )
 
 
 def run_agentic() -> Path | None:
@@ -552,8 +591,12 @@ def run_agentic() -> Path | None:
                 oracle_summary[k].append(oracle_metrics[k])
 
         total_junctions = len(fragments) * (len(fragments) - 1)
+        # Optional diagnostics derived from state the run has already produced.
+        # Purely additive: no model calls, no effect on any result above.
+        diagnostics = safe_sample_diagnostics(target, fragments, state_snapshot)
         sample_reports.append(
             {
+                **diagnostics,
                 "index": i,
                 "target": target,
                 "reconstruction": reconstruction,
@@ -686,6 +729,7 @@ def run_agentic() -> Path | None:
         "duration_seconds": total_duration,
     }
     run_dir = write_run_results("agentic", run_payload)
+    _build_analysis_artifacts(run_dir)
     _print_saved_artifacts(run_dir)
     print(f"{'═' * 60}\n")
     return run_dir

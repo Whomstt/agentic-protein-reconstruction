@@ -186,6 +186,25 @@ Each fragmented output has a `.meta.json` sidecar recording the `organism`/`repl
 
 Each run's `results/<timestamp>_<name>/` folder contains `summary.json`, `samples.jsonl` (full per-sample and per-iteration history for auditability), `report.md`, and `metric_comparison.svg`.
 
+### Statistical Reporting Layer
+
+Every run additionally produces a statistical report, CSVs, LaTeX tables and figures, generated automatically by `evaluation/runner.py::_build_analysis_artifacts()` after the run is written. That hook is wrapped defensively — a reporting bug prints a warning and a rebuild command, and can never fail a finished run. The same generator can be re-run offline over any past run:
+
+```bash
+python -m evaluation.rebuild --all              # every run in results/ + cross-run report
+python -m evaluation.rebuild --run <folder>     # one run
+python -m evaluation.rebuild --all --resamples 2000   # faster, wider CIs
+```
+
+**No GPU, no model loading, no network** — everything derives from `samples.jsonl` plus the config snapshot. Artifacts per run: `analysis_report.md` (sections A–G), `results.csv` (one row per sample), `summary.csv` (aggregates with CIs), `tables/*.tex` (booktabs, `\input{}`-able), `figures/*.pdf` (vector; PNG twins for the markdown preview). Cross-run output lands in `results/_analysis/`. The run's original `report.md` is never overwritten.
+
+- `evaluation/stats.py` — Wilson intervals (Exact Match is a binomial count), BCa bootstrap CIs (fixed seed, so a rebuild is reproducible), exact McNemar and Wilcoxon signed-rank for the **paired** agentic-vs-control arms, and Holm correction across the five metrics. stdlib only; scipy is not a dependency.
+- `evaluation/analysis.py` — per-sample derivations: fragment-count bins, breakpoints, N-terminal start, error taxonomy, concordance, oracle gap.
+- `evaluation/exports.py` / `evaluation/figures.py` — CSV + booktabs LaTeX from shared row data, and the figure house style (light theme, greyscale-safe, 3.5 in, 8 pt minimum, Kendall tau axes on [-1, 1]).
+- `evaluation/instrumentation.py` — optional per-sample fields (`fragments`, `true_order`, `junction_ranking`, `trypsin_recall`) derived from state the run already computed. Purely additive: no model calls, no effect on any result. Older runs lack these and the report prints `n/a — requires field: X` rather than guessing.
+
+Two facts make the derived analyses possible without storing fragment strings: **the ground-truth order is the identity permutation** (`fragments = fragment_samples[0]`, and the digest is emitted left-to-right, so replica 0 tiles the target in order); and duplicate fragments are common, so anything adjacency-shaped is derived from the **stored** metric values (computed with correct string-multiset semantics) rather than recounted from `order`. The N-terminal check (`order[0] == 0`) is the one index-space proxy used, validated against string truth on 197/197 checkable samples.
+
 An agentic report leads with the benchmark table — **Shuffled Baseline → Deterministic → Agentic Best**, with a `Δ Agentic − Deterministic` column — plus the paired per-sample gain distribution. When `run.control_baseline.enabled` is on the table also carries the Control arm and a `Δ Agentic − Control` column, with a dedicated "Agentic vs. Control (paired)" section; that Δ is the defensible reasoning claim. When `run.report_oracle` is on the table gains an Oracle column and a "Selection Ceiling (Oracle)" section. Columns and sections are emitted only for arms that were actually produced, so a run with both flags off renders the plain three-arm table. Two sections are always emitted for agentic runs: **Validity Signal Concordance** (does the selection signal track true quality, within-sample across iterations via `rank_concordance`; ~0.50 = chance) and **Cost, Efficiency & Completion** (LLM calls/tokens/wall-clock per sample, completion and lever-choice-failure rates, and agentic vs. control wall-clock). A "How to Read This Report" block (`run_type_summary`) names each column for the active config. The multi-arm table and its sections are built by `evaluation/reporting.py::_format_multi_arm_benchmark()` / `_format_agent_vs_control_distribution_rows()` / `_format_oracle_gap_rows()`.
 
 For a significance claim, run a paired Wilcoxon signed-rank test on the per-sample gains — `Agentic − Control` for the reasoning claim, `Agentic − Deterministic` for the end-to-end gain.
@@ -205,6 +224,10 @@ python -m preprocessing.preprocessing # regenerate the fragmented dataset for th
 python -m evaluation.sequential       # deterministic baseline only, bypassing run.method
 python -m evaluation.agentic          # agentic evaluation only, bypassing run.method
 python -m evaluation.junction_ranking # search-independent pLM junction-ranking diagnostic (top-1/top-3/MRR)
+python -m evaluation.rebuild --all    # regenerate reports/CSVs/tables/figures offline (no GPU, no model, no network)
+python tests/test_stats.py            # unit tests (stdlib unittest; pytest is not a dependency)
+python tests/test_analysis.py         # includes the regression test against the shipped report.md tables
+python tests/test_instrumentation.py
 ```
 
 ## Conventions
