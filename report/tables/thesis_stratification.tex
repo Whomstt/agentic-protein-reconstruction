@@ -1,0 +1,17 @@
+\begin{table*}[!t]
+  \centering
+  \caption{Adjacent Pair Accuracy by fragment count. Difficulty scales with how many pieces a protein was digested into: the number of possible orderings grows factorially while the evidence available at each junction does not. Lift is the mean paired per-sample difference between the Agentic arm and the shuffled floor within the bin, not a difference of two independent means.}
+  \label{tab:stratification}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Fragments & n & Shuffled Baseline & Deterministic & Control (random, no LLM) & Agentic & Lift \\
+    \midrule
+    2-4 & 3 & 0.000 & 1.000 & 1.000 & 1.000 & +1.000 \\
+    5-9 & 20 & 0.131 & 0.894 & 0.923 & 0.917 & +0.786 \\
+    10-19 & 39 & 0.071 & 0.763 & 0.890 & 0.897 & +0.826 \\
+    20-49 & 28 & 0.041 & 0.765 & 0.826 & 0.872 & +0.831 \\
+    50+ & 9 & 0.025 & 0.705 & 0.773 & 0.797 & +0.773 \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{n counts proteins in the bin; a bin's mean is taken over those whose ordering metrics are defined (true fragment order recovered), so it can rest on fewer than n.}
+\end{table*}

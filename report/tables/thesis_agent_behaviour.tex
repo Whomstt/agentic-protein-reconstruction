@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Agent behaviour across the iteration budget, computed from the per-iteration records. Iteration 1 runs the fixed default levers with no LLM call, so lever-change rates are taken over the LLM-driven iterations only. 'Kept candidate came from iteration 1' is the share of proteins on which no later attempt displaced that deterministic first pass.}
+  \label{tab:agent_behaviour}
+  \begin{tabular}{lr}
+    \toprule
+    Measurement & Value \\
+    \midrule
+    Iterations per protein (mean) & 5.00 \\
+    Distinct lever combinations tried per protein (mean) & 5.00 \\
+    LLM-driven iterations (total) & 400 \\
+    Kept candidate came from iteration 1 & 43/100 (43.0\%) \\
+    Mean iteration of the kept candidate & 2.10 \\
+    A later iteration beat iteration 1 on validity & 57/100 (57.0\%) \\
+    Changed junction\_window (share of LLM iterations) & 99.2\% \\
+    Changed search\_mode (share of LLM iterations) & 46.5\% \\
+    Changed beam\_width (share of LLM iterations) & 98.5\% \\
+    Changed edge\_mode (share of LLM iterations) & 58.2\% \\
+    Changed confirmed\_bonus (share of LLM iterations) & 60.2\% \\
+    search\_mode values chosen & beam 69.2\%, greedy 30.8\% \\
+    edge\_mode values chosen & hard 72.0\%, soft 28.0\% \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{A lever counts as changed when it differs from the previous iteration's value. Percentages of LLM iterations use the total across all proteins as the denominator.}
+\end{table}

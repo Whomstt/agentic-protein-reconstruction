@@ -65,6 +65,7 @@ from evaluation.exports import (
     fmt,
     fmt_ci,
     fmt_p,
+    stamp_tables,
     write_rows_csv,
     write_tables_tex,
 )
@@ -990,6 +991,12 @@ def generate_run_artifacts(
 
     results_csv = write_rows_csv(rows, out / "results.csv")
     summary_csv = write_rows_csv(summary_records, out / "summary.csv")
+    stamp_tables(
+        tables,
+        source_run=run.path.name,
+        command=f"python -m evaluation.rebuild --run {run.path.name}",
+        n_rows=len(rows),
+    )
     tex_paths = write_tables_tex(tables, tables_dir)
 
     if not quiet:
@@ -1411,6 +1418,12 @@ def generate_cross_run(artifacts: list[dict], out_dir: Path, quiet: bool = False
     ]
 
     # Written once, after every section has contributed its tables.
+    stamp_tables(
+        tables,
+        source_run=", ".join(art["run"].path.name for art in artifacts),
+        command="python -m evaluation.rebuild --all",
+        n_rows=len(all_rows),
+    )
     tex_paths = write_tables_tex(tables, out_dir / "tables")
     report_path = out_dir / "cross_run_report.md"
     report_path.write_text("\n".join(text), encoding="utf-8")

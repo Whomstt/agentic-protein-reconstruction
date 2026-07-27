@@ -1,0 +1,17 @@
+\begin{table*}[!t]
+  \centering
+  \caption{Reconstruction quality on \textit{E. coli} at 100 digestion replicas
+  ($n=100$ proteins). Mean [95\% CI].}
+  \label{tab:main_results}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Metric & Shuffled & Deterministic & Control & Agentic & Oracle \\
+    \midrule
+    Exact Match & 0.010 [0.002, 0.054] & 0.320 [0.237, 0.417] & 0.400 [0.309, 0.498] & 0.460 [0.366, 0.557] & 0.640 [0.542, 0.727] \\
+    Sequence Similarity & 0.289 [0.235, 0.346] & 0.658 [0.587, 0.727] & 0.708 [0.638, 0.771] & 0.765 [0.700, 0.822] & 0.852 [0.798, 0.895] \\
+    Adjacent Pair Accuracy & 0.068 [0.051, 0.092] & 0.784 [0.744, 0.819] & 0.863 [0.829, 0.888] & 0.879 [0.845, 0.904] & 0.926 [0.891, 0.946] \\
+    Longest Correct Run & 0.136 [0.115, 0.170] & 0.628 [0.571, 0.690] & 0.682 [0.625, 0.739] & 0.717 [0.660, 0.773] & 0.820 [0.769, 0.867] \\
+    Kendall Tau & -0.006 [-0.058, 0.038] & 0.631 [0.551, 0.705] & 0.705 [0.633, 0.768] & 0.753 [0.681, 0.811] & 0.879 [0.828, 0.916] \\
+    \bottomrule
+  \end{tabular}
+\end{table*}

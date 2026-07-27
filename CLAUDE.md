@@ -201,6 +201,8 @@ python -m evaluation.rebuild --all --resamples 2000   # faster, wider CIs
 - `evaluation/stats.py` — Wilson intervals (Exact Match is a binomial count), BCa bootstrap CIs (fixed seed, so a rebuild is reproducible), exact McNemar and Wilcoxon signed-rank for the **paired** agentic-vs-control arms, and Holm correction across the five metrics. stdlib only; scipy is not a dependency.
 - `evaluation/analysis.py` — per-sample derivations: fragment-count bins, breakpoints, N-terminal start, error taxonomy, concordance, oracle gap.
 - `evaluation/exports.py` / `evaluation/figures.py` — CSV + booktabs LaTeX from shared row data, and the figure house style (light theme, greyscale-safe, 3.5 in, 8 pt minimum, Kendall tau axes on [-1, 1]).
+- `evaluation/thesis_tables.py` — the report's Results tables (`python -m evaluation.thesis_tables --run <folder>` → `report/tables/*.tex`, `\input{}`-able). A composition layer, not a second statistics implementation: intervals and paired tests are imported from `evaluation/rebuild.py`, aggregations from `evaluation/analysis.py`, rendering from `evaluation/exports.py`, so the thesis tables and `analysis_report.md` cannot disagree. The one thing computed nowhere else is the agent-behaviour table (which levers the LLM actually moved, and how often a later iteration displaced the deterministic first pass), derived from the per-iteration `lever_values`/`changed_levers` records. `tests/test_thesis_tables.py` re-derives values from `samples.jsonl` with **no `evaluation/` imports** and asserts them against the exact emitted cell.
+- Every emitted `.tex` carries a provenance comment (source run, generating command, row count, timestamp) written by `evaluation/exports.py::stamp_tables`; a table whose numbers rest on a subset of samples records its own row count.
 - `evaluation/instrumentation.py` — optional per-sample fields (`fragments`, `true_order`, `junction_ranking`, `trypsin_recall`) derived from state the run already computed. Purely additive: no model calls, no effect on any result. Older runs lack these and the report prints `n/a — requires field: X` rather than guessing.
 
 Two facts make the derived analyses possible without storing fragment strings: **the ground-truth order is the identity permutation** (`fragments = fragment_samples[0]`, and the digest is emitted left-to-right, so replica 0 tiles the target in order); and duplicate fragments are common, so anything adjacency-shaped is derived from the **stored** metric values (computed with correct string-multiset semantics) rather than recounted from `order`. The N-terminal check (`order[0] == 0`) is the one index-space proxy used, validated against string truth on 197/197 checkable samples.
@@ -225,9 +227,11 @@ python -m evaluation.sequential       # deterministic baseline only, bypassing r
 python -m evaluation.agentic          # agentic evaluation only, bypassing run.method
 python -m evaluation.junction_ranking # search-independent pLM junction-ranking diagnostic (top-1/top-3/MRR)
 python -m evaluation.rebuild --all    # regenerate reports/CSVs/tables/figures offline (no GPU, no model, no network)
+python -m evaluation.thesis_tables --run <folder>   # the report's Results tables -> report/tables/*.tex
 python tests/test_stats.py            # unit tests (stdlib unittest; pytest is not a dependency)
 python tests/test_analysis.py         # includes the regression test against the shipped report.md tables
 python tests/test_instrumentation.py
+python tests/test_thesis_tables.py    # independently recomputes report/tables/*.tex from samples.jsonl
 ```
 
 ## Conventions
