@@ -1,15 +1,12 @@
 def trypsin_filter(fragments):
-    """Identify trypsin-rule junction constraints among fragments (does not
-    discard any). Returns:
+    """Trypsin-rule junction constraints among fragments; discards nothing. Returns:
 
-    - impossible_junctions: pairs (i, j) that cannot be adjacent — either a
-      K/R→P violation, or fragment i not ending in K/R (so it must be
-      C-terminal and has no valid successor).
-    - missed_cleavage_fragments: fragments with an internal K/R not followed
-      by P (a legitimate cut site trypsin skipped).
-    - start_candidates: fragments starting with M, as an N-terminal hint for
-      beam initialization.
-    """
+    - impossible_junctions: pairs (i, j) that cannot be adjacent, either a K/R->P
+      violation or fragment i not ending in K/R (so it must be C-terminal).
+    - missed_cleavage_fragments: fragments with an internal K/R not followed by P,
+      a legitimate cut site trypsin skipped.
+    - start_candidates: fragments starting with M, an N-terminal hint for beam
+      initialization."""
     n = len(fragments)
 
     impossible_junctions = set()

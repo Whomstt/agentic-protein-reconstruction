@@ -46,13 +46,14 @@ class Agent:
 
 
 def _llm_sampling_kwargs() -> dict:
-    """Translate llm_model.sampling into ChatOpenAI kwargs, sending only the
-    knobs the user actually set. Reasoning models (gpt-5*/o-series) reject any
-    temperature/top_p other than the default, so those are omitted unless the
-    config explicitly sets them; reasoning_effort/verbosity/seed are the levers
-    that do apply. top_k is not an OpenAI parameter, so it is routed through
-    model_kwargs only when set (a no-op for OpenAI/Azure, honored by backends
-    that support it)."""
+    """Translate llm_model.sampling into ChatOpenAI kwargs, sending only the knobs
+    actually set.
+
+    Reasoning models (gpt-5*/o-series) reject any temperature/top_p other than the
+    default, so those are omitted unless explicitly configured; reasoning_effort,
+    verbosity and seed are the levers that do apply. top_k is not an OpenAI
+    parameter and is routed through model_kwargs, honoured only by backends that
+    support it."""
     sampling = cfg["llm_model"].get("sampling") or {}
     kwargs: dict = {}
     for key in ("temperature", "top_p", "seed", "reasoning_effort", "verbosity"):

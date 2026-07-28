@@ -1,22 +1,15 @@
 """Inferential statistics for the evaluation reports.
 
-Pure functions only — no I/O, no config, no model loading, no global RNG use.
-Every interval and p-value that appears in a generated report comes from here,
-so no number in a report is ever transcribed or estimated by hand.
+Pure functions: no I/O, no config, no model loading, no global RNG use. Every
+interval and p-value in a generated report comes from here.
 
-Design notes:
-
-- Dependency-free (stdlib only). scipy is not installed in this project and the
-  rebuild CLI must run without a GPU or network, so the tests, the exact
-  distributions and the percentile helper are all implemented here and checked
-  against independent brute-force implementations in ``tests/test_stats.py``.
-- Every randomized routine takes an explicit ``seed`` and uses its own
-  ``random.Random`` instance, so the same input always yields the same output
-  regardless of what else in the process has touched the global RNG.
-- NaN inputs are dropped rather than propagated (ordering metrics are NaN when
-  a sample's fragments do not tile the target, see ``metrics.compute_all``).
-  Every result carries the ``n`` actually used so a report can state it.
-"""
+stdlib only. scipy is not installed and the rebuild CLI must run without a GPU
+or network, so the tests, exact distributions and percentile helper are
+implemented here and checked against independent brute-force implementations in
+tests/test_stats.py. Randomized routines take an explicit seed and use their own
+random.Random, so results do not depend on the global RNG. NaN inputs are
+dropped rather than propagated (ordering metrics are NaN when a sample's
+fragments do not tile the target) and every result carries the n actually used."""
 
 from __future__ import annotations
 
@@ -45,11 +38,9 @@ METRIC_FAMILY = (
 
 @dataclass(frozen=True)
 class Interval:
-    """A point estimate with a confidence interval.
-
-    ``method`` records how the interval was actually produced, including any
-    documented fallback, so a report never silently mislabels its own maths.
-    """
+    """A point estimate with a confidence interval. ``method`` records how the
+    interval was produced, including any fallback, so a report cannot mislabel its
+    own maths."""
 
     point: float
     low: float
@@ -64,12 +55,8 @@ class Interval:
 
 @dataclass(frozen=True)
 class TestResult:
-    """A hypothesis test outcome.
-
-    ``detail`` carries the counts a reader needs to judge the test — the
-    discordant pair counts for McNemar, the number of non-zero differences for
-    Wilcoxon — because a p-value alone hides how thin the evidence is.
-    """
+    """A hypothesis test outcome. ``detail`` carries the counts needed to judge it:
+    discordant pairs for McNemar, non-zero differences for Wilcoxon."""
 
     name: str
     statistic: float
@@ -91,9 +78,8 @@ def _is_number(value) -> bool:
 
 
 def clean(values) -> list[float]:
-    """Drop None/NaN/inf, returning plain floats. Used everywhere so a NaN
-    ordering metric (fragments did not tile the target) shrinks n rather than
-    poisoning the statistic."""
+    """Drop None/NaN/inf, returning plain floats, so a NaN ordering metric shrinks n
+    rather than poisoning the statistic."""
     out = []
     for v in values:
         if _is_number(v) and not math.isnan(float(v)) and not math.isinf(float(v)):
@@ -102,8 +88,8 @@ def clean(values) -> list[float]:
 
 
 def clean_pairs(xs, ys) -> tuple[list[float], list[float]]:
-    """Drop pairs where either side is missing. Paired tests must compare the
-    same samples on both arms, so a sample is dropped from both or neither."""
+    """Drop pairs where either side is missing: a paired test must compare the same
+    samples on both arms, so a sample is dropped from both or neither."""
     a, b = [], []
     for x, y in zip(xs, ys):
         if (
@@ -120,9 +106,9 @@ def clean_pairs(xs, ys) -> tuple[list[float], list[float]]:
 
 
 def percentile(sorted_values: list[float], q: float) -> float:
-    """Linear-interpolation percentile (q in [0, 100]) over an ALREADY SORTED
-    list — matches numpy's default 'linear' method. Implemented here to keep
-    this module dependency-free; the test suite checks it against numpy."""
+    """Linear-interpolation percentile (q in [0, 100]) over an already-sorted list,
+    matching numpy's default 'linear' method. Implemented here to stay
+    dependency-free; the test suite checks it against numpy."""
     if not sorted_values:
         return float("nan")
     if len(sorted_values) == 1:
@@ -148,15 +134,11 @@ def mean(values) -> float:
 
 
 def wilson_interval(successes: int, n: int, confidence: float = 0.95) -> Interval:
-    """Wilson score interval for a binomial proportion.
+    """Wilson score interval for a binomial proportion, used for Exact Match.
 
-    Used for Exact Match, which is a count of successes out of n proteins, not
-    a continuous mean. The Wald interval is wrong here: at the small
-    proportions this task produces (EM is often 0.02-0.14) Wald undercovers
-    badly and can put the lower bound below zero, and at 0 successes it
-    collapses to the degenerate [0, 0]. Wilson stays inside [0, 1] and keeps
-    sensible width at the boundaries, so it is the interval reported.
-    """
+    Wald is wrong at the small proportions this task produces: it undercovers, can
+    put the lower bound below zero, and collapses to [0, 0] at zero successes.
+    Wilson stays inside [0, 1] and keeps sensible width at the boundaries."""
     if n <= 0:
         return Interval(float("nan"), float("nan"), float("nan"), 0, confidence, "wilson")
     if successes < 0 or successes > n:
@@ -188,7 +170,7 @@ def wilson_interval(successes: int, n: int, confidence: float = 0.95) -> Interva
 
 def _jackknife_acceleration(values: list[float], statistic) -> float:
     """Acceleration from the jackknife distribution's skewness. Zero when the
-    statistic is perfectly symmetric across leave-one-out samples."""
+    statistic is symmetric across leave-one-out samples."""
     n = len(values)
     thetas = []
     for i in range(n):
@@ -209,24 +191,18 @@ def bca_bootstrap_ci(
     seed: int = 20260726,
 ) -> Interval:
     """Bias-corrected and accelerated (BCa) bootstrap CI for a statistic of one
-    sample. Defaults to the mean, which is what the four continuous metrics
-    report.
+    sample, defaulting to the mean.
 
-    BCa rather than the plain percentile bootstrap because these metrics are
-    bounded in [0, 1] (or [-1, 1] for Kendall tau) and skewed near the floor —
-    percentile intervals are visibly off-centre there. BCa corrects for both
-    median bias (z0) and for the statistic's variance changing with its value
-    (a), which is exactly the boundary behaviour these metrics have.
+    BCa rather than a plain percentile bootstrap because these metrics are bounded
+    and skewed near the floor, where percentile intervals are visibly off-centre.
+    BCa corrects for median bias (z0) and for the statistic's variance changing with
+    its value (a). Resampling uses a private random.Random(seed), so the same input
+    and seed always give the same interval.
 
-    Deterministic: the resampling uses a private ``random.Random(seed)``, so the
-    same input and seed always give the same interval.
-
-    Documented fallbacks (recorded in ``Interval.method``, never silent):
-      - fewer than 2 usable values -> NaN interval
-      - a constant sample (zero variance) -> a degenerate interval at the point
-      - every bootstrap replicate on one side of the observed statistic, which
-        makes z0 infinite -> plain percentile interval
-    """
+    Fallbacks, recorded in ``Interval.method`` rather than applied silently: fewer
+    than 2 usable values gives a NaN interval; a constant sample gives a degenerate
+    interval at the point; bootstrap replicates all on one side of the observed
+    statistic make z0 infinite and fall back to a percentile interval."""
     statistic = statistic or (lambda vs: sum(vs) / len(vs))
     vals = clean(values)
     n = len(vals)
@@ -298,9 +274,8 @@ def bca_paired_delta_ci(
     seed: int = 20260726,
 ) -> Interval:
     """BCa CI for the mean paired difference (arm_a - arm_b), resampling whole
-    samples so the pairing is preserved. This is the interval to put next to
-    `Delta Agentic - Control`: the arms are run on the same proteins, so an
-    interval built from the two arms' marginal CIs would be wrong."""
+    samples so the pairing is preserved. The arms run on the same proteins, so an
+    interval built from their marginal CIs would be wrong."""
     a, b = clean_pairs(arm_a, arm_b)
     deltas = [x - y for x, y in zip(a, b)]
     return bca_bootstrap_ci(
@@ -324,19 +299,12 @@ def _binom_two_sided_p(k: int, n: int) -> float:
 
 
 def mcnemar_exact(arm_a, arm_b, name: str = "mcnemar") -> TestResult:
-    """Exact McNemar test on a paired binary outcome — used for Exact Match
-    between the agentic and control arms.
+    """Exact McNemar test on a paired binary outcome, used for Exact Match.
 
-    The arms are paired on the same protein, so the question is only about the
-    discordant samples: how many proteins did A solve that B did not (n10), and
-    vice versa (n01). Concordant samples carry no information about which arm is
-    better and are excluded by construction. The exact binomial form is used
-    rather than the chi-square approximation because the discordant counts here
-    are small (single digits), where chi-square is unreliable.
-
-    Inputs are truthy/0-1 per sample. ``detail`` exposes n01 and n10 so the
-    report can print the discordant pair counts alongside the p-value.
-    """
+    The arms are paired on the same protein, so only the discordant samples carry
+    information: how many proteins A solved that B did not (n10) and vice versa
+    (n01). The exact binomial form is used rather than chi-square because the
+    discordant counts here are single digits. Inputs are truthy/0-1 per sample."""
     a, b = clean_pairs(arm_a, arm_b)
     n01 = sum(1 for x, y in zip(a, b) if x <= 0 and y > 0)  # only B succeeded
     n10 = sum(1 for x, y in zip(a, b) if x > 0 and y <= 0)  # only A succeeded
@@ -361,9 +329,9 @@ def mcnemar_exact(arm_a, arm_b, name: str = "mcnemar") -> TestResult:
 
 
 def _wilcoxon_exact_p(w: float, ranks: list[int]) -> float:
-    """Exact two-sided p for the signed-rank statistic via subset-sum DP over
-    the integer ranks: counts how many of the 2^n sign assignments give a
-    statistic at least as extreme as observed."""
+    """Exact two-sided p for the signed-rank statistic by subset-sum DP over the
+    integer ranks: how many of the 2^n sign assignments are at least as extreme as
+    observed."""
     n = len(ranks)
     total = sum(ranks)
     counts = [0] * (total + 1)
@@ -381,21 +349,14 @@ def _wilcoxon_exact_p(w: float, ranks: list[int]) -> float:
 def wilcoxon_signed_rank(arm_a, arm_b, name: str = "wilcoxon") -> TestResult:
     """Paired Wilcoxon signed-rank test on arm_a - arm_b.
 
-    The per-sample gains are bounded, discrete-ish and not normal, and the arms
-    are paired on the same protein, so this is the test the report uses for
-    `Agentic - Control` and `Agentic - Deterministic` rather than a t-test or
-    any comparison of overlapping CIs.
+    The per-sample gains are bounded, discrete-ish and not normal, and the arms are
+    paired on the same protein. Zero differences are dropped, Wilcoxon's standard
+    handling, which matters here because many proteins give the two arms an
+    identical ordering.
 
-    Zero differences are dropped (Wilcoxon's standard handling), which matters
-    here: many proteins give the two arms an identical ordering, and counting
-    those as evidence would understate the test. ``detail`` reports how many
-    non-zero pairs actually carried the test.
-
-    Exact p-value by subset-sum enumeration when there are no ties among the
-    absolute differences and n is small enough to enumerate; otherwise the
-    normal approximation with tie and continuity correction. The branch taken is
-    recorded in ``detail['method']``.
-    """
+    Exact p by subset-sum enumeration when the absolute differences have no ties and
+    n is small enough; otherwise the normal approximation with tie and continuity
+    correction. The branch taken is recorded in ``detail['method']``."""
     a, b = clean_pairs(arm_a, arm_b)
     diffs = [x - y for x, y in zip(a, b)]
     nonzero = [d for d in diffs if d != 0]
@@ -479,16 +440,13 @@ def wilcoxon_signed_rank(arm_a, arm_b, name: str = "wilcoxon") -> TestResult:
 def holm_bonferroni(pvalues: dict | list, alpha: float = 0.05):
     """Holm step-down correction across a family of tests.
 
-    The report tests five metrics on the same pair of arms, so an uncorrected
-    0.05 threshold would give roughly a 1-in-4 chance of a spurious "significant"
-    metric. Holm controls the family-wise error rate while being uniformly more
-    powerful than Bonferroni.
+    Five metrics are tested on the same pair of arms, so an uncorrected 0.05
+    threshold would give roughly a 1-in-4 chance of a spurious result. Holm controls
+    the family-wise error rate and is uniformly more powerful than Bonferroni.
 
-    Accepts a dict (name -> p) or a list, returning the same shape with adjusted
-    p-values. Adjusted values are enforced monotone non-decreasing in p, which
-    is what makes "reject iff adjusted p <= alpha" equivalent to the step-down
-    procedure. Adjusted p-values are capped at 1.0.
-    """
+    Accepts a dict (name -> p) or a list and returns the same shape. Adjusted values
+    are enforced monotone non-decreasing in p, which makes 'reject iff adjusted
+    p <= alpha' equivalent to the step-down procedure, and capped at 1.0."""
     is_dict = isinstance(pvalues, dict)
     items = list(pvalues.items()) if is_dict else list(enumerate(pvalues))
     usable = [(k, float(p)) for k, p in items if _is_number(p) and not math.isnan(float(p))]
@@ -531,12 +489,10 @@ def compare_arms(
 ) -> dict:
     """Full paired comparison of two arms across the metric family.
 
-    ``arm_a``/``arm_b`` map metric name -> list of per-sample values, aligned by
-    sample. Exact Match goes through exact McNemar (paired binary), the four
-    continuous metrics through Wilcoxon signed-rank, and Holm is applied across
-    all five together. Returns per-metric test results with the paired delta CI
-    attached, plus the Holm table.
-    """
+    ``arm_a``/``arm_b`` map metric name -> per-sample values, aligned by sample.
+    Exact Match goes through exact McNemar, the four continuous metrics through
+    Wilcoxon signed-rank, and Holm is applied across all five together. Returns the
+    per-metric test results with the paired delta CI attached, plus the Holm table."""
     results = {}
     raw_p = {}
     for metric in metrics:

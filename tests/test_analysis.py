@@ -1,12 +1,10 @@
-"""Unit + regression tests for evaluation/analysis.py.
+"""Unit and regression tests for evaluation/analysis.py.
 
-Run:  python tests/test_analysis.py
+    python tests/test_analysis.py
 
-The regression tests parse the benchmark table out of each existing
-``report.md`` and require the values recomputed from ``samples.jsonl`` to match
-the printed numbers EXACTLY. That is the guard that the new report generator
-tells the same story as the reports already written into the dissertation.
-"""
+The regression tests parse the benchmark table out of each existing report.md
+and require the values recomputed from samples.jsonl to match exactly, so the
+report generator cannot drift from the reports already written."""
 
 from __future__ import annotations
 

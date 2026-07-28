@@ -1,16 +1,13 @@
-"""Search-independent diagnostic for the pipeline's core assumption: that the
-pLM junction scorer ranks the true successor fragment above the wrong ones.
+"""Search-independent check on the pipeline's core assumption: that the pLM
+junction scorer ranks the true successor fragment above the wrong ones.
 
-Every metric in evaluation/metrics.py is measured *after* greedy/beam search, so
-it entangles scorer quality with search dynamics, trypsin constraints, and
-overlap-graph confirmations. This module scores a dense junction matrix over all
-ordered fragment pairs and asks, for each true adjacency i->s, where s ranks
-among all candidate successors of i — with no search involved.
+Every metric in evaluation/metrics.py is measured after greedy/beam search, so it
+entangles scorer quality with search dynamics, trypsin constraints and
+overlap-graph confirmations. This scores a dense junction matrix over all ordered
+pairs and asks, for each true adjacency i->s, where s ranks among the candidate
+successors of i.
 
-Run directly:
-
-    python -m evaluation.junction_ranking
-"""
+    python -m evaluation.junction_ranking"""
 
 from __future__ import annotations
 

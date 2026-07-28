@@ -1,14 +1,11 @@
-"""Tests for evaluation/instrumentation.py and the end-to-end reporting hook.
+"""Tests for evaluation/instrumentation.py and the end-of-run reporting hook.
 
-Run:  python tests/test_instrumentation.py
+    python tests/test_instrumentation.py
 
-The contract these protect:
-  1. The diagnostics are ADDITIVE — they never change an experiment result.
-  2. They actually close the two gaps the field inventory found (junction
-     ranking, trypsin recall).
-  3. They can never raise into the run loop.
-  4. Reports built from old runs (which lack these fields) still work.
-"""
+The contract: the diagnostics are additive and never change an experiment
+result, they close the junction-ranking and trypsin-recall gaps, they can never
+raise into the run loop, and reports built from older runs that lack the fields
+still work."""
 
 from __future__ import annotations
 

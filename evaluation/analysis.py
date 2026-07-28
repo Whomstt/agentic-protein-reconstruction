@@ -1,28 +1,23 @@
 """Derived analyses over a completed run's stored per-sample data.
 
-Pure functions plus one loader. Nothing here loads a model, touches the GPU, or
-hits the network — every number is derived from ``samples.jsonl`` and the config
-snapshot in ``summary.json``, so the whole report layer can be re-run offline
-over runs that finished months ago.
+Pure functions plus one loader: no model, no GPU, no network. Everything comes
+from ``samples.jsonl`` and the config snapshot in ``summary.json``, so the report
+layer re-runs offline over runs that finished months ago.
 
-Two facts about the stored data drive the design (both verified against the
-shipped runs, see ``tests/test_analysis.py``):
+Two facts about the stored data drive the design, both checked in
+``tests/test_analysis.py``:
 
 1. ``fragments = fragment_samples[0]`` and the digest is emitted left-to-right,
-   so replica 0 tiles the target in true order — **the ground-truth order is the
-   identity permutation** in each run's fragment index space. That is what makes
-   the N-terminal and permutation-level analyses possible even though the
-   fragment strings themselves are not stored.
-2. Fragment *strings* are NOT stored, and duplicate fragments are common (short
-   `K`/`R` peptides). Index-space adjacency counting therefore disagrees with the
-   string-multiset metrics the run actually reported, on ~10-30% of samples. So
-   anything adjacency-shaped is derived from the STORED metric values, which were
-   computed with the correct string semantics, never recounted from ``order``.
+   so replica 0 tiles the target in order and the ground-truth order is the
+   identity permutation in each run's fragment index space.
+2. Fragment strings are not stored and duplicates are common, so index-space
+   adjacency counting disagrees with the string-multiset metrics the run
+   reported on ~10-30% of samples. Anything adjacency-shaped is therefore
+   derived from the stored metric values, never recounted from ``order``.
 
-The one exception is the N-terminal check (``order[0] == 0``), which was
-validated against string truth on 197/197 samples where the fragment strings
-survive: the N-terminal peptide is never duplicated, so the index proxy is exact.
-"""
+The exception is the N-terminal check (``order[0] == 0``), exact because the
+N-terminal peptide is never duplicated; validated on 197/197 samples whose
+fragment strings survive."""
 
 from __future__ import annotations
 
@@ -222,26 +217,21 @@ def _metric(sample: dict, arm: str, metric: str):
 def n_terminal_correct(order) -> bool | None:
     """Did the ordering place the true first fragment first?
 
-    True order is the identity permutation, so this is ``order[0] == 0``. The
-    index proxy is exact here (unlike adjacency counting): validated against
-    string truth on 197/197 samples where fragment strings survive, because the
-    N-terminal peptide is never a duplicate of another fragment.
-    """
+    True order is the identity permutation, so this is ``order[0] == 0``. Unlike
+    adjacency counting the index proxy is exact here: the N-terminal peptide is
+    never a duplicate of another fragment."""
     if not order:
         return None
     return order[0] == 0
 
 
 def breakpoints(sample: dict, arm: str = "agentic"):
-    """Number of wrong joins in the ordering: ``(n-1) - correct_adjacencies``.
+    """Wrong joins in the ordering: ``(n-1) - correct_adjacencies``.
 
-    Derived from the STORED adjacent-pair accuracy rather than recounted from
-    ``order``, because APA was computed on fragment strings as a multiset and an
-    index-space recount disagrees with it whenever duplicate fragments exist
-    (measured: 28/99 and 9/98 samples on the two runs where both are checkable).
-
-    Returns None when the ordering metrics are NaN (fragments did not tile).
-    """
+    Derived from the stored adjacent-pair accuracy, which was computed on fragment
+    strings as a multiset; an index-space recount disagrees with it wherever
+    duplicate fragments exist (28/99 and 9/98 samples on the two checkable runs).
+    None when the ordering metrics are NaN (fragments did not tile)."""
     n = fragment_count(sample)
     apa = _metric(sample, arm, "adjacent_pair_acc")
     if n < 2 or apa is None or math.isnan(apa):
@@ -252,17 +242,11 @@ def breakpoints(sample: dict, arm: str = "agentic"):
 def classify_error(sample: dict, arm: str = "agentic") -> str:
     """Label the failure shape from stored, string-correct metric values.
 
-    Categories are checked in a fixed order, most specific first, so each sample
-    lands in exactly one. See TAXONOMY_THRESHOLDS for the (disclosed, untuned)
-    cut points.
-
-    The order matters and encodes a claim: a reversal or a scramble is a
-    *shape* of failure that subsumes a wrong start, so those are tested before
-    the start check. Only an ordering with real structure that nonetheless
-    begins on the wrong fragment is labelled ``wrong_start`` — which is the
-    interesting case, since the assembly is greedy and left-to-right, so a wrong
-    first fragment displaces everything after it.
-    """
+    Categories are checked most specific first, so each sample lands in exactly one.
+    A reversal or a scramble is a shape of failure that subsumes a wrong start, so
+    those are tested before the start check and only an ordering with real structure
+    that begins on the wrong fragment is labelled ``wrong_start``. Cut points are in
+    TAXONOMY_THRESHOLDS."""
     em = _metric(sample, arm, "exact_match")
     apa = _metric(sample, arm, "adjacent_pair_acc")
     lcr = _metric(sample, arm, "longest_correct_run")
@@ -289,13 +273,11 @@ def classify_error(sample: dict, arm: str = "agentic") -> str:
 
 
 def sample_concordance(sample: dict, quality_metric: str = "adjacent_pair_acc", control=False):
-    """Within-sample concordance between the validity signal and true quality
-    across the iterations this sample actually tried. ~0.50 is chance.
+    """Within-sample concordance between the validity signal and true quality across
+    the iterations this sample tried; ~0.50 is chance.
 
-    This is the trust check for the selection signal: the run picks the
-    lowest-validity candidate, so if validity does not track true quality, the
-    Oracle-Agentic gap is unrecoverable by better search alone.
-    """
+    The run keeps the lowest-validity candidate, so if validity does not track true
+    quality the Oracle-Agentic gap cannot be closed by better search alone."""
     key = "control_iteration_history" if control else "iteration_history"
     history = sample.get(key) or []
     pairs = []

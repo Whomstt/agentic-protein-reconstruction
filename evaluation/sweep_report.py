@@ -1,8 +1,6 @@
-"""Builds one combined report across every combo in a sweep, instead of
-leaving results scattered across N separate per-combo folders. Each combo
-keeps its own full report (charts, per-sample detail); this adds a single
-cross-combo comparison on top, in its own results/ folder.
-"""
+"""One combined report across every combo in a sweep. Each combo keeps its own
+full report (charts, per-sample detail); this adds the cross-combo comparison
+on top, in its own results/ folder."""
 
 from __future__ import annotations
 
@@ -75,14 +73,12 @@ def _combo_gain_table(entry: dict) -> tuple[str, list[list[str]]] | None:
 
 
 def _first_combo_config(manifest: list[dict]) -> dict:
-    """The run config from the first successful combo, used only to derive the
-    deterministic-vs-agentic column labels for the whole cross-combo report.
-    This assumes every combo shares run.method/calling_mode/iteration1_deterministic
-    (the usual case: only organism/replica_count/mlm_profile/max_iterations/
-    improvement_margin are swept). If you deliberately sweep run.method or
-    run.iteration1_deterministic across combos, these cross-combo column labels
-    follow the FIRST combo and may not match every row — each combo's own
-    report.md is still individually correct."""
+    """Run config from the first successful combo, used only for the
+    deterministic-vs-agentic column labels of the whole cross-combo report.
+
+    This assumes every combo shares run.method/calling_mode/iteration1_deterministic,
+    which holds unless those are themselves swept; if they are, the cross-combo
+    labels follow the first combo while each combo's own report.md stays correct."""
     for entry in manifest:
         payload = _load_combo_payload(entry.get("result_dir"))
         if payload is not None:

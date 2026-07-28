@@ -1,13 +1,11 @@
 """Non-LLM lever selector for the matched-budget control arm.
 
-The control arm exists to answer the question a plain deterministic-vs-agentic
-table cannot: is the agentic gain due to the LLM's *reasoning*, or merely due to
-trying several diverse candidates and keeping the best-validity one? This policy
-produces the same five levers the agent would, but from a fixed random/grid rule
-instead of model reasoning, so an arm driven by it shares the agent's budget,
-tool pipeline and selection rule and differs only in where the lever values come
-from. Agentic-best minus control-best is then the isolated value of the LLM.
-"""
+A deterministic-vs-agentic table cannot separate the value of the LLM's
+reasoning from the value of trying several candidates and keeping the best. This
+policy picks the same five levers from a fixed random or grid rule, so an arm
+driven by it shares the agent's budget, pipeline and selection rule and differs
+only in where the lever values come from. Agentic best minus control best is
+then the isolated value of the LLM."""
 
 from __future__ import annotations
 
@@ -52,13 +50,12 @@ class LeverPolicy:
 
     kind="random": seeded uniform draw over lever_space each iteration, skipping a
     combination already tried this run where possible. kind="grid": a deterministic
-    spread across the full lever grid (shuffled once by a fixed seed so a small
-    budget still samples diverse combos rather than only varying the last lever).
+    spread across the lever grid, shuffled once by a fixed seed so a small budget
+    still samples diverse combos rather than only varying the last lever.
 
-    When run.iteration1_deterministic is set, iteration 1 returns the fixed
-    search.default_levers exactly as the agentic arm does, so both arms share the
-    same starting candidate and only iterations 2+ differ by lever source.
-    """
+    Under run.iteration1_deterministic, iteration 1 returns the fixed
+    search.default_levers exactly as the agentic arm does, so both arms share a
+    starting candidate and only iterations 2+ differ by lever source."""
 
     def __init__(self, kind: str | None = None, seed: int | None = None):
         control = cfg["run"].get("control_baseline") or {}

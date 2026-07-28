@@ -1,4 +1,4 @@
-"""Statistical report generator — the default reporting layer for every run.
+"""Statistical report generator, the default reporting layer for every run.
 
 Regenerates, from stored per-sample data alone:
 
@@ -14,16 +14,12 @@ Run offline over any finished run:
     python -m evaluation.rebuild --run <folder>  # one run
     python -m evaluation.rebuild --all --resamples 2000   # faster, wider CIs
 
-**No GPU, no model loading, no network.** Everything is read from
-``samples.jsonl`` plus the config snapshot in ``summary.json``.
+No GPU, no model loading, no network: everything is read from samples.jsonl plus
+the config snapshot in summary.json. It is also called at the end of every run
+(see evaluation/runner.py) and never rewrites the run's original report.md.
 
-This module is also called automatically at the end of every run (see
-``evaluation/runner.py``), so a future run produces these artifacts with no
-manual step. It never rewrites the run's original ``report.md``.
-
-Any measurement that stored data cannot support is printed explicitly as
-``n/a - requires field: X`` rather than estimated or quietly omitted.
-"""
+A measurement the stored data cannot support is printed as
+``n/a - requires field: X`` rather than estimated or quietly omitted."""
 
 from __future__ import annotations
 
@@ -107,13 +103,9 @@ MISSING_TRYPSIN_RECALL = (
 
 
 def metric_interval(rows, arm: str, metric: str, resamples: int = DEFAULT_RESAMPLES):
-    """The right interval for the metric's type.
-
-    Exact Match is a count of successes out of n proteins, so it gets a Wilson
-    score interval. The other four are continuous means and get a BCa bootstrap.
-    Using a bootstrap on a 0/1 mean would be defensible but noisier, and a Wald
-    interval on it would be wrong at these small proportions.
-    """
+    """The right interval for the metric's type: a Wilson score interval for Exact
+    Match, which is a count of successes out of n proteins, and a BCa bootstrap for
+    the four continuous means."""
     if metric == "exact_match":
         from evaluation.stats import wilson_interval
 
@@ -339,8 +331,8 @@ def paired_comparisons(run: Run, rows) -> dict:
     """
     out = {}
     for label, other in (
-        ("Agentic - Control", "control"),
-        ("Agentic - Deterministic", "deterministic"),
+        ("Agentic − Control", "control"),
+        ("Agentic − Deterministic", "deterministic"),
     ):
         if other not in run.arms or "agentic" not in run.arms:
             continue
@@ -1032,12 +1024,9 @@ def _run_identity(run: Run, rows) -> dict:
 
 
 def overview_row(run: Run, rows, comparisons) -> dict:
-    """One wide row per run: every headline number at a glance.
-
-    This is the 'key metrics' view — six rows total across the study, meant to
-    be read directly or dropped into a spreadsheet, as opposed to the long-format
-    files which are meant to be grouped and plotted.
-    """
+    """One wide row per run, every headline number at a glance. Meant to be read
+    directly or dropped into a spreadsheet, unlike the long-format files which are
+    meant to be grouped and plotted."""
     row = _run_identity(run, rows)
 
     for arm in run.arms:
@@ -1092,11 +1081,8 @@ def overview_row(run: Run, rows, comparisons) -> dict:
 
 
 def tests_rows(run: Run, rows, comparisons) -> list[dict]:
-    """One row per (run, comparison, metric): the full paired-test result.
-
-    Everything section D prints, machine-readable — so a combined significance
-    view across runs can be computed without reading a .tex file.
-    """
+    """One row per (run, comparison, metric): the full paired-test result that
+    section D prints, machine-readable."""
     out = []
     identity = _run_identity(run, rows)
     for label, entry in comparisons.items():

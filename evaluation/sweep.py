@@ -1,23 +1,14 @@
 """Sweep orchestration for config.yaml's `sweep` section.
 
-Loops through every combination in sweep.grid (+ sweep.extra_runs). Each combo
-key maps to a config override in _apply_overrides: data.organism,
-data.replica_count, mlm_model.profile, run.method, run.iteration1_deterministic,
-search.max_iterations (which also pins search.early_stop_patience to the same
-value unless early_stop_patience is swept too, so a max_iterations A/B runs a
-fixed budget), search.early_stop_patience, and search.improvement_margin. Each
-combo runs `python -m main` as its own subprocess against a generated override
-config (via AGENTIC_CONFIG_PATH), with that combo's sweep.enabled forced to
-false so it runs exactly once using cfg.run.method. The checked-in config.yaml
-is never modified.
+Loops through every combination in sweep.grid (plus sweep.extra_runs). Each combo
+key maps to a config override in _apply_overrides, and runs `python -m main` as
+its own subprocess against a generated override config (via AGENTIC_CONFIG_PATH)
+with sweep.enabled forced false, so it runs exactly once using cfg.run.method.
+The checked-in config.yaml is never modified.
 
-Each combo subprocess regenerates its own fragmented dataset automatically
-if needed (see preprocessing.preprocessing.ensure_fresh_dataset, called from
-main.py) by comparing organism/replica_count/missed_cleavage_ratio against
-the sidecar .meta.json saved next to the fragmented file, so preprocessing
-naturally re-runs once per distinct combination in the grid without this
-module having to track that itself.
-"""
+Each subprocess regenerates its own fragmented dataset if needed (see
+preprocessing.ensure_fresh_dataset, called from main.py), so preprocessing
+re-runs once per distinct combination without this module tracking it."""
 
 from __future__ import annotations
 

@@ -7,13 +7,12 @@ from config import cfg
 
 
 def junction_local_logprob(fragments, order, window, confirmed_junctions=None) -> float | None:
-    """Mean masked-LM log-prob over the fragment junctions the ordering uses
-    (successor's first `window` residues at each boundary), skipping any
-    junction the overlap graph already confirmed by real multi-replica overlap
-    evidence — those are already known-valid, so spending noisy PLM scoring on
-    them would only dilute the signal; confirmed_agreement() scores them
-    instead. Returns None when there is no junction left to score. Higher
-    (less negative) = more plausible."""
+    """Mean masked-LM log-prob over the junctions the ordering uses (the successor's
+    first `window` residues at each boundary). Higher is more plausible.
+
+    Junctions the overlap graph already confirmed are skipped: they are known-valid,
+    so noisy PLM scores on them would only dilute the signal, and confirmed_agreement
+    scores them instead. None when no junction is left to score."""
     from algorithms.score_junctions import score_junctions
 
     if not order or len(order) < 2:
@@ -51,18 +50,16 @@ def blended_validity_detailed(
     junction_window,
     confirmed_penalty,
 ) -> dict:
-    """Selection signal for best-candidate choice (lower = better), broken down
-    into its two components so a caller can tell *why* a score is bad:
+    """Selection signal for best-candidate choice, lower is better, broken into its
+    two components so a caller can tell why a score is bad:
 
         j_ppl * (1 + confirmed_penalty * (1 - confirmed_agreement))
 
-    where j_ppl is junction-local pseudo-perplexity (PLM plausibility of the
-    ordering's non-confirmed junctions; high => weak/implausible junctions,
-    consider a different junction_window) and confirmed_agreement is the
-    fraction of overlap-graph confirmed adjacencies the ordering actually
-    realizes as consecutive fragments (low => the ordering disagrees with
-    real multi-replica overlap evidence; consider edge_mode='hard' or a
-    higher confirmed_bonus)."""
+    j_ppl is junction-local pseudo-perplexity over the ordering's non-confirmed
+    junctions; high means implausible junctions, so try a different junction_window.
+    confirmed_agreement is the fraction of overlap-graph confirmed adjacencies the
+    ordering places consecutively; low means the ordering disagrees with real
+    multi-replica evidence, so try edge_mode='hard' or a higher confirmed_bonus."""
     mean_lp = junction_local_logprob(fragments, order, junction_window, confirmed_junctions)
     agreement = confirmed_agreement(order, confirmed_junctions)
     penalty = 0.0 if agreement is None else confirmed_penalty * (1.0 - agreement)

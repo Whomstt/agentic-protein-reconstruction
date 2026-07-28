@@ -336,12 +336,10 @@ def _build_analysis_artifacts(run_dir) -> None:
     """Generate the statistical report, CSVs, LaTeX tables and figures for a
     finished run.
 
-    Called automatically so every run produces these with no manual step. It is
-    a pure reporting pass over the results just written to disk — it reads
-    samples.jsonl and writes alongside it, never touching the run's data or the
-    original report.md. Wrapped defensively: a run represents hours of GPU and
-    LLM spend, and a reporting bug must never be able to fail it.
-    """
+    A pure reporting pass over the results just written: it reads samples.jsonl and
+    writes alongside it, never touching the run's data or the original report.md.
+    Wrapped defensively, because a run costs hours of GPU and LLM spend and a
+    reporting bug must not be able to fail it."""
     try:
         from evaluation.rebuild import generate_run_artifacts
 

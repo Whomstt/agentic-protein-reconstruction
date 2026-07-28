@@ -7,14 +7,12 @@ def greedy_order(
     confirmed_bonus=0.0,
     diagnostics: dict | None = None,
 ):
-    """Greedily pick the next fragment with highest score from current fragment.
+    """Greedily pick the next fragment with highest score from the current one.
 
-    diagnostics, if passed, is populated in place with forced_impossible_count:
-    how many steps had every remaining candidate marked impossible (trypsin
-    K/R->P or non-K/R-terminal violations) and had to pick one anyway — a
-    sign the junction scores/constraints are fighting each other for this
-    fragment set, independent of which levers were chosen.
-    """
+    diagnostics, if passed, is populated in place with forced_impossible_count: how
+    many steps had every remaining candidate marked impossible (trypsin K/R->P or
+    non-K/R-terminal) and had to pick one anyway, a sign the scores and constraints
+    are fighting each other for this fragment set."""
     n = scores.shape[0]
     impossible = impossible_junctions or set()
     confirmed_successors = confirmed_successors or {}

@@ -1,15 +1,11 @@
 """Unit tests for evaluation/stats.py.
 
-Run:  python tests/test_stats.py          (or: python -m unittest tests.test_stats)
+    python tests/test_stats.py
 
-pytest is not installed in this project, so these use stdlib unittest.
-
-Where possible the tests check against something INDEPENDENT of the
-implementation under test — brute-force enumeration of the full sign space for
-Wilcoxon, direct binomial summation for McNemar, numpy for the percentile
-helper, and published textbook values for Wilson — rather than re-deriving the
-same formula twice and calling that agreement.
-"""
+stdlib unittest, since pytest is not a dependency. Where possible the checks are
+independent of the implementation under test: brute-force enumeration of the
+full sign space for Wilcoxon, direct binomial summation for McNemar, numpy for
+the percentile helper, published values for Wilson."""
 
 from __future__ import annotations
 

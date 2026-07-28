@@ -141,10 +141,9 @@ def _svg_escape(text: str) -> str:
 
 
 def _iteration1_is_deterministic(config: dict) -> bool:
-    """Whether iteration 1 (the 'first pass') runs with no LLM call. This is true
-    only in single_call mode with run.iteration1_deterministic set: react mode
-    always drives iteration 1 through the LLM regardless of that flag, so the flag
-    alone can't be trusted to describe what actually happened."""
+    """Whether iteration 1 (the 'first pass') runs with no LLM call: true only in
+    single_call mode with run.iteration1_deterministic set, since react mode always
+    drives iteration 1 through the LLM regardless of the flag."""
     run = config.get("run", {})
     if run.get("calling_mode") == "react":
         return False
@@ -152,10 +151,9 @@ def _iteration1_is_deterministic(config: dict) -> bool:
 
 
 def first_pass_label(config: dict) -> str:
-    """Label for the iteration-1 ('first pass') column. When iteration 1 is a
-    no-LLM config-defaults pass, it is labelled as deterministic so the number is
-    never mistaken for an agent decision; otherwise it is a genuine LLM lever
-    choice (see CLAUDE.md's research-validity note)."""
+    """Label for the iteration-1 column. A no-LLM config-defaults pass is labelled
+    deterministic so the number is not mistaken for an agent decision; otherwise it
+    is a genuine LLM lever choice."""
     if _iteration1_is_deterministic(config):
         return "Deterministic (config defaults, no LLM)"
     return "Agentic 1st Pass (LLM)"
@@ -173,10 +171,9 @@ def selected_best_label(config: dict) -> str:
 def run_type_summary(
     config: dict, has_control: bool = False, has_oracle: bool = False
 ) -> list[str]:
-    """Markdown lines spelling out, for THIS run's config, exactly what each
-    compared column means — so a reader never has to guess which numbers came from
-    the deterministic pipeline and which are the LLM agent's iteratively-selected
-    result."""
+    """Markdown lines spelling out, for this run's config, what each compared column
+    means, so a reader need not guess which numbers came from the deterministic
+    pipeline and which from the agent."""
     run = config.get("run", {})
     if run.get("method") == "sequential":
         return [
@@ -328,11 +325,9 @@ def render_metric_bar_chart_svg(
 def render_validity_progression_svg(sample_reports: list[dict]) -> str:
     """Line chart of best-so-far validity score across iterations.
 
-    With few samples, draws one labeled line per sample (small-multiples view).
-    Beyond AGGREGATE_LINE_THRESHOLD samples, per-sample lines and a same-sized
-    legend stop being readable, so it switches to a mean line with a min-max
-    band across samples instead.
-    """
+    One labelled line per sample up to AGGREGATE_LINE_THRESHOLD samples; beyond it,
+    per-sample lines and a same-sized legend stop being readable, so it switches to
+    a mean line with a min-max band."""
     series = _validity_best_so_far_series(sample_reports)
     if not series:
         return ""
@@ -730,11 +725,10 @@ def _control_label(payload: dict) -> str:
 def _format_multi_arm_benchmark(
     payload: dict, fp_label: str, best_label: str
 ) -> tuple[list[str] | None, list[list[str]] | None]:
-    """Headline benchmark row set, widened to include the matched-budget control
-    arm and the oracle ceiling when those were produced. Columns are emitted only
-    for arms that exist, so a plain run (no control/oracle) renders exactly the
-    original three-arm table. Returns (headers, rows) or (None, None) when there
-    is no first-pass arm to compare against (sequential runs)."""
+    """Headline benchmark rows, including the matched-budget control arm and the
+    oracle ceiling when those were produced. Columns are emitted only for arms that
+    exist. Returns (headers, rows), or (None, None) when there is no first-pass arm
+    to compare against (sequential runs)."""
     baseline = payload.get("baseline_averages", {})
     first_pass = payload.get("first_pass_averages")
     recon = payload.get("recon_averages", {})
@@ -780,11 +774,10 @@ def _format_multi_arm_benchmark(
 def _format_agent_vs_control_distribution_rows(
     sample_reports: list[dict],
 ) -> list[list[str]]:
-    """Paired per-sample gain of the agentic arm over the matched-budget control
-    arm (Agentic − Control on the same protein). This is the isolated value of the
-    LLM's reasoning: both arms had the same budget, pipeline and selection rule, so
-    a positive, consistent gain here is what separates 'the agent reasons well'
-    from 'trying N candidates and keeping the best helps'."""
+    """Paired per-sample gain of the agentic arm over the matched-budget control arm
+    on the same protein. Both arms share budget, pipeline and selection rule, so
+    this separates the LLM's reasoning from the value of trying several candidates
+    and keeping the best."""
     rows = []
     for key, label in METRIC_NAMES.items():
         stats = distribution_stats(
@@ -826,9 +819,8 @@ def _format_agent_vs_control_distribution_rows(
 
 
 def _format_oracle_gap_rows(payload: dict) -> list[list[str]]:
-    """Per-metric gap between the validity-selected Agentic Best and the oracle
-    (best candidate the agent actually generated). The gap is quality the run left
-    on the table purely to imperfect selection — it is reachable with better
+    """Per-metric gap between the validity-selected Agentic Best and the oracle (best
+    candidate the agent actually generated). The gap is reachable with better
     selection alone, no new candidate needed."""
     recon = payload.get("recon_averages", {})
     oracle = payload.get("oracle_averages")
@@ -921,12 +913,10 @@ def _format_cost_rows(payload: dict) -> list[list[str]]:
 
 
 def _format_validity_concordance_rows(sample_reports: list[dict]) -> list[list[str]]:
-    """Does the validity selection signal actually track reconstruction quality?
-    For each sample, pools the (validity_score, true-metric) pairs across that
-    sample's iterations and measures rank concordance — the fraction of
-    within-sample candidate pairs where the lower-validity candidate is also the
-    higher-quality one. 0.50 means the signal is no better than a coin flip at
-    picking the better of two candidates it actually saw."""
+    """Does the validity signal track reconstruction quality? Pools each sample's
+    (validity_score, true-metric) pairs across its iterations and measures rank
+    concordance: the fraction of within-sample candidate pairs whose lower-validity
+    candidate is also the higher-quality one. 0.50 is a coin flip."""
     rows = []
     for quality_key, quality_label in (
         ("kendall_tau", "Kendall Tau"),
@@ -955,10 +945,9 @@ def _format_validity_concordance_rows(sample_reports: list[dict]) -> list[list[s
 def _select_display_samples(
     sample_reports: list[dict], limit: int = 30, head: int = 15, tail: int = 5
 ) -> tuple[list[dict], int]:
-    """Returns (rows_to_show, hidden_count). Below `limit` samples, shows all
-    of them; beyond that, shows the first `head` and last `tail` so the
-    markdown report stays scannable at n~100 while samples.jsonl keeps the
-    full record and the PDF appendix keeps the full table."""
+    """Returns (rows_to_show, hidden_count): all samples below `limit`, otherwise the
+    first `head` and last `tail`, so the markdown stays scannable at n~100 while
+    samples.jsonl keeps the full record."""
     if len(sample_reports) <= limit:
         return sample_reports, 0
     displayed = sample_reports[:head] + sample_reports[-tail:]

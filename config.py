@@ -16,11 +16,8 @@ CONFIG_PATH = Path(
 
 
 def _load_dotenv(path: Path) -> None:
-    """Minimal, dependency-free .env loader so `python main.py` picks up API
-    keys regardless of launcher (a plain terminal doesn't inject .env the way
-    the VSCode Python extension does). Real environment variables always win —
-    values are only filled in when not already set — so shell exports, CI, and
-    the sweep parent's env are never clobbered."""
+    """Minimal .env loader so `python main.py` picks up API keys from any launcher.
+    Real environment variables win: values are only filled in when not already set."""
     if not path.exists():
         return
     for raw in path.read_text(encoding="utf-8").splitlines():

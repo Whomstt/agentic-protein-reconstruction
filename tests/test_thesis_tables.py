@@ -1,21 +1,16 @@
 """Independent verification of the report's Results tables.
 
-Every check here recomputes a value **from scratch** out of the run's
-``samples.jsonl`` and asserts that the exact formatted string appears in the
-emitted ``.tex``. The point is independence, so this file deliberately imports
-nothing from ``evaluation/`` — no shared aggregation, no shared formatter, no
-shared statistics. Only ``json``, ``math``, ``statistics`` and the stdlib
-``unittest``. If a helper in ``evaluation/`` were wrong, importing it here would
-hide the error rather than catch it.
-
-Three or more values are verified per table, at the precision the table prints.
+Every check recomputes a value from scratch out of the run's samples.jsonl and
+asserts the exact formatted string appears in the emitted .tex. For that
+independence the file imports nothing from ``evaluation/``: no shared
+aggregation, formatter or statistics, only json, math and stdlib unittest. Three
+or more values are verified per table, at the precision the table prints.
 
     python tests/test_thesis_tables.py
 
 Regenerate the tables first if the run data changed:
 
-    python -m evaluation.thesis_tables --run 130726_224804_agentic
-"""
+    python -m evaluation.thesis_tables --run 130726_224804_agentic"""
 
 from __future__ import annotations
 
@@ -68,6 +63,24 @@ def parse_table(name: str):
         cells = split(line)
         rows[cells[0]] = dict(zip(headers, cells))
     return headers, rows
+
+
+def paired_blocks():
+    """The paired table as one list of cell-lists per comparison, split on the
+    rule between the two comparisons. Its rows cannot be keyed by their first
+    cell: the comparison label is printed once per block."""
+    lines = tex("thesis_paired_tests").splitlines()
+    start = lines.index(r"    \midrule")
+    end = lines.index(r"    \bottomrule")
+    blocks, current = [], []
+    for line in lines[start + 1 : end]:
+        if line.strip() == r"\midrule":
+            blocks.append(current)
+            current = []
+            continue
+        current.append([c.strip() for c in line.strip().removesuffix(r"\\").strip().split("&")])
+    blocks.append(current)
+    return blocks
 
 
 def values(samples, arm, metric):
@@ -181,7 +194,7 @@ class ThesisTableTest(unittest.TestCase):
         self.assertCellStartsWith(
             "thesis_main_results",
             "Kendall Tau",
-            "Shuffled Baseline",
+            "Shuffled",
             f3(mean(values(s, "shuffled", "kendall_tau"))),
             "Shuffled Kendall Tau",
         )
@@ -221,14 +234,21 @@ class ThesisTableTest(unittest.TestCase):
             "McNemar discordant pairs, Exact Match, Agentic - Control",
         )
 
-        # ...and its exact two-sided binomial p-value.
+        # The table prints the Holm-adjusted p. Holm over a family of five can
+        # only raise a raw p, and never past 5x it, so the printed value is
+        # bounded either side by the independently computed exact McNemar p.
         k, n = min(only_a, only_b), only_a + only_b
         tail = sum(math.comb(n, i) for i in range(0, k + 1)) / 2**n
-        self.assertInTex(
-            "thesis_paired_tests",
-            f"{min(1.0, 2 * tail):.3f}",
-            "McNemar exact p, Exact Match, Agentic - Control",
-        )
+        raw_p = min(1.0, 2 * tail)
+        blocks = paired_blocks()
+        self.assertEqual(blocks[0][0][1], "Exact Match")
+        printed = float(blocks[0][0][5])
+        self.assertGreaterEqual(round(printed, 3), round(raw_p, 3))
+        self.assertLessEqual(printed, min(1.0, 5 * raw_p) + 1e-9)
+
+        # Sequence Similarity is tested but deliberately not printed.
+        printed_metrics = {row[1] for block in blocks for row in block}
+        self.assertNotIn("Sequence Similarity", printed_metrics)
 
         # Wilcoxon non-zero pair counts, Kendall Tau, Agentic vs Deterministic.
         tau = paired(s, "agentic", "deterministic", "kendall_tau")
@@ -364,7 +384,7 @@ class ThesisTableTest(unittest.TestCase):
         above = sum(1 for c in per_sample if c > 0.5)
         self.assertCell(
             "thesis_validity_concordance",
-            "Samples above chance (> 0.50)",
+            "Samples above chance ($>$ 0.50)",
             "Value",
             f"{above}/{len(per_sample)} ({100.0 * above / len(per_sample):.1f}\\%)",
             "Samples above chance",
@@ -480,24 +500,26 @@ class ThesisTableTest(unittest.TestCase):
         calls = sum(x.get("llm_calls") or 0 for x in s)
         tokens = sum(x.get("llm_tokens") or 0 for x in s)
         self.assertCell(
-            "thesis_cost", "LLM calls per protein", "Value", f"{calls / n:.2f}",
+            "thesis_cost", "LLM calls", "Agentic", f"{calls / n:.2f}",
             "LLM calls per protein",
         )
         self.assertCell(
-            "thesis_cost", "Total LLM calls / tokens", "Value", f"{calls} / {tokens}",
-            "Total LLM calls and tokens",
-        )
-        completed = sum(1 for x in s if x.get("completed"))
-        self.assertCell(
-            "thesis_cost", "Completed reconstructions", "Value",
-            f"{completed}/{n} ({100.0 * completed / n:.1f}\\%)",
-            "Completed reconstructions",
+            "thesis_cost", "LLM tokens", "Agentic", f"{tokens / n:.1f}",
+            "LLM tokens per protein",
         )
         agentic = sum(x.get("agentic_duration_seconds") or 0 for x in s) / n
         control = sum(x.get("control_duration_seconds") or 0 for x in s) / n
         self.assertCell(
-            "thesis_cost", "Agentic / control time ratio", "Value",
-            f"{agentic / control:.2f}", "Agentic / control wall-clock ratio",
+            "thesis_cost", "Wall clock (s)", "Agentic", f"{agentic:.1f}",
+            "Agentic wall clock per protein",
+        )
+        self.assertCell(
+            "thesis_cost", "Wall clock (s)", "Control", f"{control:.1f}",
+            "Control wall clock per protein",
+        )
+        self.assertInTex(
+            "thesis_cost", f"{agentic / control:.2f}$\\times$",
+            "Agentic / control wall-clock ratio",
         )
 
 

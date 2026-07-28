@@ -1,21 +1,13 @@
 """Optional per-sample diagnostics recorded into samples.jsonl.
 
-These fields close the gaps the field inventory found in the runs shipped before
-this module existed: the junction score matrix and the trypsin filter's pruned
-mask were both computed during a run and then discarded, which made two
-measurements permanently unrecoverable offline.
+Instrumentation, not logic: every field is derived from state the pipeline has
+already produced, after the reconstruction is finished. No model calls, no
+change to any search input, so a run's reconstruction, metrics and cost are
+identical whether or not this is called, and the caller swallows any exception
+for the same reason.
 
-**This is instrumentation, not logic.** Everything here is derived from state
-the pipeline has already produced, after the reconstruction is finished. It
-makes no model calls, changes no search input, and its return value is only ever
-written to the report record — so a run's reconstruction, metrics and cost are
-bit-identical whether or not this is called. Any exception is swallowed by the
-caller for the same reason: a diagnostic must never cost a finished experiment.
-
-Every field is optional. Older runs simply lack them, and
-``evaluation/analysis.py`` reports 'n/a - requires field: X' rather than
-assuming a value.
-"""
+Every field is optional. Older runs lack them and ``evaluation/analysis.py``
+reports 'n/a - requires field: X' rather than assuming a value."""
 
 from __future__ import annotations
 
@@ -23,22 +15,18 @@ from evaluation.metrics import junction_ranking_stats, recover_true_order
 
 
 def sample_diagnostics(target: str, fragments, state_snapshot: dict) -> dict:
-    """Diagnostics for one finished sample.
+    """Diagnostics for one finished sample, as optional fields to merge into the
+    sample record:
 
-    Returns a dict of optional fields to merge into the sample record:
-
-    ``fragments``       replica-0 fragment strings. Not otherwise stored, and
-                        the digestion RNG is unseeded, so without this a run's
-                        fragment set is unrecoverable once the dataset is
-                        regenerated at a different replica count.
-    ``true_order``      ground-truth permutation, so no consumer has to
-                        re-derive it by tiling.
-    ``junction_ranking``top-1/top-3/MRR of the true successor under the run's
-                        own score matrix, over the junctions the pLM actually
-                        had to discriminate (confirmed adjacencies excluded).
-    ``trypsin_recall``  whether constraint pruning ever removed a TRUE junction.
-                        The pruned COUNT alone cannot answer this.
-    """
+    ``fragments``       replica-0 fragment strings. Not otherwise stored, and the
+                        digestion RNG is unseeded, so without this a run's fragment
+                        set is lost once the dataset is regenerated.
+    ``true_order``      ground-truth permutation, so no consumer re-derives it.
+    ``junction_ranking``top-1/top-3/MRR of the true successor under the run's own
+                        score matrix, over the junctions the pLM actually had to
+                        discriminate (confirmed adjacencies excluded).
+    ``trypsin_recall``  whether constraint pruning ever removed a true junction,
+                        which the pruned count alone cannot answer."""
     out: dict = {}
     if not fragments:
         return out

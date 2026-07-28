@@ -2,26 +2,18 @@
 
     python -m evaluation.thesis_tables --run 130726_224804_agentic
 
-Every number is computed here from that run's ``samples.jsonl``; nothing is read
-out of ``analysis_report.md``, ``report.md``, ``results.csv`` or ``summary.csv``,
-and nothing is transcribed by hand. Each emitted ``.tex`` carries a provenance
-comment naming the source run, the command that made it, the row count the
-numbers were computed over, and the timestamp.
+Every number is computed from that run's ``samples.jsonl``; nothing is read out
+of a generated report or CSV, and nothing is transcribed by hand. Files are
+written camera-ready (no provenance comments) into ``report/tables``.
 
-This module is a *composition* layer, not a second statistics implementation.
-The aggregations come from ``evaluation/analysis.py``, the intervals and paired
-tests from ``evaluation/rebuild.py`` (which is where they live for the
-``analysis_report.md`` tables), and the rendering from ``evaluation/exports.py``.
-So the thesis tables and the per-run analysis report cannot disagree: they are
-the same numbers, formatted for a two-column IEEE float.
+This is a composition layer, not a second statistics implementation: the
+aggregations come from ``evaluation/analysis.py``, the intervals and paired tests
+from ``evaluation/rebuild.py``, the rendering from ``evaluation/exports.py``. So
+these tables and ``analysis_report.md`` cannot disagree. The exception is the
+agent-behaviour table, computed nowhere else, which reads the per-iteration
+``lever_values`` / ``changed_levers`` / ``validity_score`` records.
 
-What is new here, and computed nowhere else, is Table VI: the agent's behaviour
-across iterations (which levers it actually moved, and whether a later iteration
-ever displaced the deterministic first pass), derived from the per-iteration
-``lever_values`` / ``changed_levers`` / ``validity_score`` records that
-``samples.jsonl`` already stores.
-
-**No GPU, no model loading, no network.**
+No GPU, no model loading, no network.
 """
 
 from __future__ import annotations
@@ -50,12 +42,19 @@ from evaluation.analysis import (
     stratify_by_bin,
     taxonomy_counts,
 )
-from evaluation.exports import Table, fmt, fmt_ci, fmt_p, stamp_tables, write_tables_tex
+from evaluation.exports import (
+    MIDRULE,
+    Table,
+    fmt,
+    fmt_ci,
+    fmt_p,
+    latex_escape,
+    stamp_tables,
+    write_tables_tex,
+)
 from evaluation.metrics import METRIC_NAMES, nanmean
 
-# The interval, paired-test and label machinery already used by the per-run
-# analysis report. Imported, not reimplemented, so both outputs agree by
-# construction.
+# Imported, not reimplemented, so these tables and analysis_report.md agree.
 from evaluation.rebuild import (
     BOOTSTRAP_SEED,
     CONFIDENCE,
@@ -69,15 +68,29 @@ from evaluation.rebuild import (
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUT = PROJECT_ROOT / "report" / "tables"
 
-# Paper precision. The analysis report prints 4 decimals; a printed table reads
-# better at 3, and 3 is already past the resolution the CIs support.
+# Paper precision: 3 places is already past the resolution the CIs support.
 PLACES = 3
 
 LEVERS = ("junction_window", "search_mode", "beam_width", "edge_mode", "confirmed_bonus")
 
-# Cells, headers and captions are written as PLAIN TEXT: exports.latex_escape
-# escapes them on the way out (and maps Δ, τ, % and _ to their LaTeX forms), so
-# hand-written markup here would be escaped into literal backslashes.
+# Column headings for the headline table, where the full arm labels do not fit.
+SHORT_ARM_LABELS = {
+    "shuffled": "Shuffled",
+    "deterministic": "Deterministic",
+    "control": "Control",
+    "agentic": "Agentic",
+    "oracle": "Oracle",
+}
+
+# Sequence Similarity is bought largely by fragment composition, which every arm
+# shares, so it is tested but not printed in the paired table.
+PAIRED_TABLE_METRICS = tuple(m for m in METRIC_KEYS if m != "similarity")
+
+# Species names for the configuration table; the configs carry short keys.
+SPECIES = {"ecoli": "E. coli", "yeast": "S. cerevisiae"}
+
+# A table whose caption, notes or headers need maths or font commands sets
+# raw_latex=True and writes them as LaTeX; data cells are always escaped.
 
 
 def _command(run_dir_name: str) -> str:
@@ -194,46 +207,41 @@ def table_main_results(run: Run, rows, resamples) -> Table:
 
     return Table(
         key="thesis_main_results",
-        headers=["Metric"] + [_arm_label(run, a) for a in arms],
+        headers=["Metric"] + [SHORT_ARM_LABELS[a] for a in arms],
         rows=table_rows,
         caption=(
-            f"Reconstruction quality on {run.organism} at {run.replica_count} digestion "
-            f"replicas (n={len(rows)} proteins). Each cell is the mean with a 95% "
-            "confidence interval: a Wilson score interval for Exact Match (a binomial "
-            "count of successes out of n) and a BCa bootstrap for the four continuous "
-            "metrics. The Shuffled Baseline is a random fragment ordering (a floor, not "
-            "a method) and the Oracle picks, per metric, the best candidate the agent "
-            "actually generated using ground truth (a ceiling, not a method)."
+            rf"Reconstruction quality on \textit{{{run.organism}}} at "
+            rf"{run.replica_count} digestion replicas ($n={len(rows)}$ proteins). "
+            r"Mean [95\% CI]."
         ),
         label="tab:main_results",
-        notes=(
-            f"BCa bootstrap: {resamples} resamples, fixed seed {BOOTSTRAP_SEED}. Kendall "
-            "tau ranges over [-1, 1]; every other metric over [0, 1]. Sequence Similarity "
-            "is bought largely by fragment composition, which is identical across arms, "
-            "so it should be read only as a delta against the shuffled floor."
-        ),
         environment="table*",
         placement="!t",
+        raw_latex=True,
     )
 
 
 def table_paired_tests(run: Run, rows, comparisons) -> Table:
-    """II - the significance table. Both paired comparisons in one float."""
+    """II - the significance table. Both paired comparisons in one float.
+
+    Every metric is tested and Holm-corrected across the family of five; the
+    table prints the four ordering-sensitive ones.
+    """
     table_rows = []
     for label, entry in comparisons.items():
+        if table_rows:
+            table_rows.append(MIDRULE)
         comparison = entry["comparison"]
-        for i, metric in enumerate(METRIC_KEYS):
+        for i, metric in enumerate(PAIRED_TABLE_METRICS):
             result = comparison["metrics"][metric]
             test, ci, holm = result["test"], result["delta_ci"], result["holm"]
             detail = test["detail"]
             if "discordant" in detail:
-                test_name = "McNemar"
                 pairs = (
                     f"{detail['discordant']} "
                     f"({detail['n10_only_a']}/{detail['n01_only_b']})"
                 )
             else:
-                test_name = "Wilcoxon"
                 pairs = (
                     f"{detail['n_nonzero']} "
                     f"({detail['n_positive']}/{detail['n_negative']})"
@@ -245,41 +253,33 @@ def table_paired_tests(run: Run, rows, comparisons) -> Table:
                     fmt(ci["point"], PLACES, signed=True),
                     f"[{fmt(ci['low'], PLACES, signed=True)}, "
                     f"{fmt(ci['high'], PLACES, signed=True)}]",
-                    test_name,
                     pairs,
-                    fmt_p(test["pvalue"]),
                     fmt_p(holm["p_adjusted"]),
-                    "yes" if holm["reject"] else "no",
                 ]
             )
 
     return Table(
         key="thesis_paired_tests",
         headers=[
-            "Comparison", "Metric", "Mean Δ", "95% CI", "Test",
-            "Pairs (+/-)", "p", "p (Holm)", "Sig.",
+            r"Comparison", r"Metric", r"Mean $\Delta$", r"95\% CI",
+            r"Pairs (+/-)", r"$p$ (Holm)",
         ],
         rows=table_rows,
+        column_spec="llrrrr",
         caption=(
-            f"Paired per-sample comparisons on {run.organism} at r{run.replica_count} "
-            f"(n={len(rows)} proteins). The arms run on the same proteins with the same "
-            "iteration budget, tool pipeline and selection rule, so the tests are paired: "
-            "an exact McNemar test on the discordant pairs for Exact Match, a Wilcoxon "
-            "signed-rank test for the continuous metrics. Holm correction is applied "
-            "across the five metrics within each comparison; alpha = 0.05."
+            rf"Paired per-sample comparisons on \textit{{{run.organism}}} at "
+            rf"{run.replica_count} replicas ($n={len(rows)}$). Mean difference "
+            r"[95\% CI], with $p$ values Holm-corrected across the five metrics "
+            r"within each comparison."
         ),
         label="tab:paired_tests",
         notes=(
-            "Pairs column: discordant pairs (Agentic-only/baseline-only) for McNemar, "
-            "non-zero differences (positive/negative) for Wilcoxon. Mean Δ CIs are "
-            "BCa bootstraps over per-sample differences, resampling whole proteins so "
-            "the pairing is preserved. Agentic - Control isolates the LLM's reasoning "
-            "from the value of trying several candidates and keeping the best; because "
-            "iteration 1 is inside the agent's candidate set, Agentic - Deterministic "
-            "cannot be negative on the selection signal and is the weaker claim."
+            "Pairs: discordant pairs (Agentic-only/baseline-only) for Exact Match, "
+            "non-zero differences (positive/negative) otherwise."
         ),
         environment="table*",
         placement="!t",
+        raw_latex=True,
     )
 
 
@@ -474,45 +474,91 @@ def table_error_taxonomy(run: Run, rows) -> Table:
 
 
 def table_cost(run: Run, rows) -> Table:
-    """VIII - what the agentic arm costs against the control arm."""
+    """VIII - what the agentic arm costs against the control arm.
+
+    The control arm is a non-LLM lever policy, so its call and token counts are
+    zero by construction and the time ratio is the price of the reasoning.
+    """
     cost = cost_summary(rows)
-    llm = run.config.get("llm_model", {}) or {}
-    mlm = run.config.get("mlm_model", {}) or {}
-    n = len(rows) or 1
     agentic_seconds = cost["agentic_seconds_per_sample"]
     control_seconds = cost["control_seconds_per_sample"]
     ratio = agentic_seconds / control_seconds if control_seconds else float("nan")
 
     table_rows = [
-        ["LLM", str(llm.get("name", "n/a"))],
-        ["Protein language model", str(mlm.get("name", "n/a"))],
-        ["LLM calls per protein", fmt(cost["llm_calls_per_sample"], 2)],
-        ["LLM tokens per protein", fmt(cost["llm_tokens_per_sample"], 1)],
-        ["Total LLM calls / tokens",
-         f"{fmt(cost['total_llm_calls'], 0)} / {fmt(cost['total_llm_tokens'], 0)}"],
-        ["Lever-choice failures", fmt(cost["llm_failures"], 0)],
-        ["Wall clock per protein, agentic arm", f"{fmt(agentic_seconds, 1)} s"],
-        ["Wall clock per protein, control arm", f"{fmt(control_seconds, 1)} s"],
-        ["Agentic / control time ratio", fmt(ratio, 2)],
-        ["Completed reconstructions", f"{cost['completed']}/{n} ({_pct(cost['completed'], n)})"],
-        ["True fragment order recovered",
-         f"{cost['true_order_recovered']}/{n} ({_pct(cost['true_order_recovered'], n)})"],
+        ["LLM calls", fmt(cost["llm_calls_per_sample"], 2), "0"],
+        ["LLM tokens", fmt(cost["llm_tokens_per_sample"], 1), "0"],
+        ["Wall clock (s)", fmt(agentic_seconds, 1), fmt(control_seconds, 1)],
     ]
     return Table(
         key="thesis_cost",
-        headers=["Measurement", "Value"],
+        headers=["Measurement", "Agentic", "Control"],
         rows=table_rows,
         caption=(
-            "Cost, efficiency and completion. The control arm runs the same budget and "
-            "pipeline with lever values from a non-LLM policy, so the time ratio is the "
-            "price of the LLM's reasoning and the paired tests are the return on it. "
-            "'True fragment order recovered' counts proteins whose fragments could be "
-            "re-tiled against the target; the three ordering metrics are undefined on "
-            "the remainder and those proteins are excluded from them rather than scored "
-            "as zero."
+            "Cost per protein. The control arm runs the same budget and pipeline "
+            "with lever values from a non-LLM policy."
         ),
         label="tab:cost",
+        notes=rf"Agentic/control time ratio: {fmt(ratio, 2)}$\times$.",
+        placement="!t",
+        raw_latex=True,
     )
+
+
+def config_table_tex(runs: list[Run]) -> str:
+    """The experimental-configuration table, derived from every run's config
+    snapshot so it cannot drift from what was actually executed.
+
+    Written from a literal IEEE-style template rather than through ``Table``:
+    it is the one table in the report that is not booktabs.
+    """
+
+    def distinct(getter, key=None):
+        seen = []
+        for run in runs:
+            value = getter(run)
+            if value is not None and value not in seen:
+                seen.append(value)
+        return ", ".join(str(v) for v in sorted(seen, key=key or str))
+
+    def config(run, section, field, default=None):
+        return (run.config.get(section) or {}).get(field, default)
+
+    organisms = distinct(
+        lambda r: SPECIES.get(config(r, "data", "organism"), config(r, "data", "organism"))
+    )
+    rows = [
+        ("Dataset", "UniProt Reviewed (Swiss-Prot)"),
+        ("Organisms", ", ".join(rf"\textit{{{o}}}" for o in organisms.split(", "))),
+        ("Digestion replica counts", distinct(lambda r: config(r, "data", "replica_count"), key=int)),
+        ("Missed cleavage ratio", distinct(lambda r: config(r, "data", "missed_cleavage_ratio"))),
+        ("Proteins per configuration", distinct(lambda r: len(r.samples), key=int)),
+        ("Protein language model", rf"\texttt{{{latex_escape(distinct(lambda r: _model_short(config(r, 'mlm_model', 'name'))))}}}"),
+        ("LLM", rf"\texttt{{{latex_escape(distinct(lambda r: config(r, 'llm_model', 'name')))}}}"),
+        ("Iterations", distinct(lambda r: config(r, "search", "max_iterations"), key=int)),
+        ("Random seed", distinct(lambda r: config(r, "misc", "seed"), key=int)),
+    ]
+    body = "\n".join(rf"{name} & {value} \\" for name, value in rows)
+    return (
+        "\\begin{table}[!t]\n"
+        "\\caption{Experimental Configuration}\n"
+        "\\label{tab:config}\n"
+        "\\centering\n"
+        "\\begin{tabular}{ll}\n"
+        "\\hline\n"
+        "\\textbf{Parameter} & \\textbf{Value} \\\\\n"
+        "\\hline\n"
+        f"{body}\n"
+        "\\hline\n"
+        "\\end{tabular}\n"
+        "\\end{table}\n"
+    )
+
+
+def _model_short(name) -> str:
+    """'facebook/esm2_t6_8M_UR50D' -> 'esm2_t6_8M'."""
+    if not name:
+        return "n/a"
+    return str(name).split("/")[-1].removesuffix("_UR50D")
 
 
 # The registry. Adding or removing a thesis table is one entry here.
@@ -533,8 +579,18 @@ REQUIRES_ARM = {
 }
 
 
+def _sibling_runs(run: Run, results_root: Path) -> list[Run]:
+    """Every run under ``results_root``, for the configuration table: it reports
+    the whole experimental grid, not just the run the result tables come from."""
+    runs = []
+    for path in sorted(Path(results_root).iterdir()):
+        if (path / "samples.jsonl").exists():
+            runs.append(run if path.name == run.path.name else load_run(path))
+    return runs or [run]
+
+
 def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
-                 quiet: bool = False) -> list[Path]:
+                 results_root: Path = RESULTS_ROOT, quiet: bool = False) -> list[Path]:
     """Compute and write every thesis table for one run."""
     run = load_run(run_dir)
     rows = sample_rows(run)
@@ -560,7 +616,12 @@ def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
         n_rows=len(rows),
         source_file=f"results/{run.path.name}/samples.jsonl",
     )
-    paths = write_tables_tex(tables, out_dir)
+    # Camera-ready: no provenance comments in the files the report inputs.
+    paths = write_tables_tex(tables, out_dir, comments=False, extra_inputs=["config_table"])
+
+    config_path = out_dir / "config_table.tex"
+    config_path.write_text(config_table_tex(_sibling_runs(run, results_root)), encoding="utf-8")
+    paths.append(config_path)
 
     if not quiet:
         print(f"{run.path.name} -> {out_dir}")
@@ -595,7 +656,13 @@ def main(argv=None) -> int:
         print(f"No samples.jsonl under {run_dir}")
         return 1
 
-    build_tables(run_dir, Path(args.out), resamples=args.resamples, quiet=args.quiet)
+    build_tables(
+        run_dir,
+        Path(args.out),
+        resamples=args.resamples,
+        results_root=root,
+        quiet=args.quiet,
+    )
     return 0
 
 

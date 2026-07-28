@@ -36,15 +36,11 @@ def log_memory(label: str) -> None:
 
 
 def free_gpu_memory() -> None:
-    """Releases cached (but currently unused) GPU memory back to the driver.
+    """Release cached but unused GPU memory back to the driver.
 
-    PyTorch's caching allocator doesn't proactively release freed blocks, so a
-    long run with many differently-shaped tensors (varying fragment counts,
-    varying sequence lengths across samples/iterations) can grow the reserved
-    memory pool until it OOMs even though the active memory at any instant is
-    modest. Call this between samples/iterations to keep the reserved pool
-    from climbing unbounded over a long evaluation or sweep.
-    """
+    PyTorch's caching allocator does not return freed blocks on its own, so a long
+    run over differently-shaped tensors can grow the reserved pool until it OOMs
+    while active memory stays modest. Called between samples and iterations."""
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()

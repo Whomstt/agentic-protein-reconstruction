@@ -1,22 +1,17 @@
 """Publication figures for the evaluation reports.
 
-House style, applied by ``apply_style()`` and relied on by every figure here:
+House style, applied by ``apply_style()``:
 
-- **Light theme, vector PDF.** PDF is the artifact to ``\\includegraphics{}``.
-  A PNG twin is written alongside purely so the markdown report has something
-  to preview; the PDF is the one that goes in the dissertation.
-- **Greyscale-safe.** Series are distinguished by MARKER and LINESTYLE first;
-  colour is a grey ramp that survives a black-and-white printer. Nothing in a
-  figure is identifiable by hue alone.
-- **3.5 in wide** (single column) and **8 pt minimum** type anywhere, including
-  tick labels, so nothing becomes unreadable after the figure is placed.
-- **Kendall tau axes span [-1, 1]**, not [0, 1]: tau is a correlation whose
-  negative half is meaningful (a reversed ordering), and clipping it at 0 hides
-  the reversal failures the error taxonomy is about.
+- Light theme, vector PDF for LaTeX inclusion. The PNG twin exists only
+  so the markdown report has something to preview.
+- Greyscale-safe: series are distinguished by marker and linestyle first, colour
+  is a grey ramp. Nothing is identifiable by hue alone.
+- 3.5 in wide (single column), 8 pt minimum type including tick labels.
+- Kendall tau axes span [-1, 1]: its negative half means a reversed ordering,
+  and clipping at 0 would hide the reversal failures.
 
 matplotlib is imported lazily and the module degrades to a no-op with a clear
-message if it is missing, so the rest of the report still generates.
-"""
+message if it is missing, so the rest of the report still generates."""
 
 from __future__ import annotations
 
@@ -101,11 +96,8 @@ def apply_style() -> None:
 def _series_style(index: int, total: int | None = None) -> dict:
     """Style for series ``index`` of ``total``.
 
-    The grey ramp runs light-to-dark so the LAST series carries the most visual
-    weight: series are passed in method-ladder order, which puts the arm under
-    test last. Marker and linestyle still carry the identity on their own, so
-    the figure survives greyscale printing regardless of the shading.
-    """
+    The grey ramp runs light-to-dark so the last series carries the most weight:
+    series arrive in method-ladder order, which puts the arm under test last."""
     if total and total > 1:
         step = min(total, len(GREYS))
         color = GREYS[max(0, step - 1 - min(index, step - 1))]
@@ -147,12 +139,8 @@ def _save(fig, out_dir: Path, name: str) -> dict:
 def fragment_stratification(
     per_bin_by_arm: dict, metric: str, metric_label: str, out_dir: Path, name: str
 ) -> dict:
-    """Metric vs fragment-count bin, one series per arm.
-
-    The headline difficulty axis: performance against how many pieces the
-    protein was cut into. Bins with no samples are left as gaps rather than
-    interpolated over.
-    """
+    """Metric vs fragment-count bin, one series per arm. Bins with no samples are
+    left as gaps rather than interpolated over."""
     plt = _pyplot()
     apply_style()
     fig, ax = plt.subplots()
@@ -256,12 +244,9 @@ def method_ladder(records: list[dict], metric: str, metric_label: str, out_dir: 
 def replica_scaling(
     series: dict, metric: str, metric_label: str, out_dir: Path, name: str
 ) -> dict:
-    """Metric vs replica count, one series per organism.
-
-    Replica count controls how many confirmed adjacencies the overlap graph can
-    assert, so this is the figure that shows whether more digestion replicas buy
-    real reconstruction quality.
-    """
+    """Metric vs replica count, one series per organism. Replica count controls how
+    many adjacencies the overlap graph can confirm, so this shows whether more
+    digestion replicas buy real reconstruction quality."""
     plt = _pyplot()
     apply_style()
     fig, ax = plt.subplots()
