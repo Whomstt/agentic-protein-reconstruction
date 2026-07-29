@@ -255,15 +255,15 @@ def compute_all(target, reconstruction, fragments=None, order=None):
 
 
 def print_comparison(baseline_summary, recon_summary, n):
-    """Print averaged shuffled-baseline vs reconstructed metrics and their raw
+    """Print averaged Random Order vs reconstructed metrics and their raw
     delta, tagged for direction via LOWER_IS_BETTER. NaN-safe."""
     label_width = max(len(label) for label in METRIC_NAMES.values())
-    col_base = 10
+    col_base = 12  # wide enough for the "Random Order" heading
     col_recon = 14
     col_delta = 18
     header = (
         f"  {'Metric'.ljust(label_width)}  "
-        f"{'Shuffled'.rjust(col_base)}  "
+        f"{'Random Order'.rjust(col_base)}  "
         f"{'Reconstructed'.rjust(col_recon)}  "
         f"{'Delta'.rjust(col_delta)}"
     )

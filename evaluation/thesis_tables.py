@@ -75,19 +75,40 @@ LEVERS = ("junction_window", "search_mode", "beam_width", "edge_mode", "confirme
 
 # Column headings for the headline table, where the full arm labels do not fit.
 SHORT_ARM_LABELS = {
-    "shuffled": "Shuffled",
-    "deterministic": "Deterministic",
-    "control": "Control",
-    "agentic": "Agentic",
-    "oracle": "Oracle",
+    "shuffled": "Random Order",
+    "deterministic": "Fixed Settings",
+    "control": "Random Search",
+    "agentic": "LLM-Guided",
+    "oracle": "Best Candidate",
 }
 
-# Sequence Similarity is bought largely by fragment composition, which every arm
-# shares, so it is tested but not printed in the paired table.
-PAIRED_TABLE_METRICS = tuple(m for m in METRIC_KEYS if m != "similarity")
+# The metrics the report's two headline tables PRINT, in reading order: the
+# primary ordering metric first, then the two that qualify it.
+#
+# Every metric in METRIC_KEYS is still computed and still corrected against, so
+# this is a display filter and nothing else. Sequence Similarity is bought
+# largely by fragment composition, which every arm shares; Kendall Tau moves
+# with Adjacent Pair Accuracy and adds no independent evidence at this width.
+# Both remain in analysis_report.md and in the selection-ceiling table.
+REPORTED_METRICS = ("adjacent_pair_acc", "exact_match", "longest_correct_run")
+
+# The Holm family is the full set of metrics tested, NOT the subset printed:
+# narrowing the printed rows must never relax the correction the shown p values
+# already carry.
+HOLM_FAMILY_SIZE = len(METRIC_KEYS)
 
 # Species names for the configuration table; the configs carry short keys.
 SPECIES = {"ecoli": "E. coli", "yeast": "S. cerevisiae"}
+
+
+def _species(run: Run) -> str:
+    """The binomial for a caption that italicises it.
+
+    ``run.organism`` is a display name meant for prose ("Yeast"), which must not
+    go inside \\textit{}; the binomial is what belongs there.
+    """
+    key = (run.config.get("data") or {}).get("organism")
+    return SPECIES.get(key, run.organism)
 
 # A table whose caption, notes or headers need maths or font commands sets
 # raw_latex=True and writes them as LaTeX; data cells are always escaped.
@@ -199,7 +220,7 @@ def table_main_results(run: Run, rows, resamples) -> Table:
     """I - the headline table: every arm, every metric, with 95% CIs."""
     arms = run.arms
     table_rows = []
-    for metric in METRIC_KEYS:
+    for metric in REPORTED_METRICS:
         cells = [METRIC_NAMES[metric]]
         for arm in arms:
             cells.append(fmt_ci(metric_interval(rows, arm, metric, resamples), PLACES))
@@ -210,11 +231,16 @@ def table_main_results(run: Run, rows, resamples) -> Table:
         headers=["Metric"] + [SHORT_ARM_LABELS[a] for a in arms],
         rows=table_rows,
         caption=(
-            rf"Reconstruction quality on \textit{{{run.organism}}} at "
+            rf"Reconstruction quality on \textit{{{_species(run)}}} at "
             rf"{run.replica_count} digestion replicas ($n={len(rows)}$ proteins). "
             r"Mean [95\% CI]."
         ),
         label="tab:main_results",
+        notes=(
+            rf"{METRIC_NAMES[PRIMARY_METRIC]} is the primary ordering metric. All "
+            rf"{HOLM_FAMILY_SIZE} metrics were computed; Sequence Similarity and "
+            r"Kendall Tau are reported in full in the supplementary analysis."
+        ),
         environment="table*",
         placement="!t",
         raw_latex=True,
@@ -225,14 +251,16 @@ def table_paired_tests(run: Run, rows, comparisons) -> Table:
     """II - the significance table. Both paired comparisons in one float.
 
     Every metric is tested and Holm-corrected across the family of five; the
-    table prints the four ordering-sensitive ones.
+    table prints the three reported ones. The p values shown are the ones the
+    five-metric correction produced - narrowing the printed rows does not
+    recompute Holm over three, which would silently make every p smaller.
     """
     table_rows = []
     for label, entry in comparisons.items():
         if table_rows:
             table_rows.append(MIDRULE)
         comparison = entry["comparison"]
-        for i, metric in enumerate(PAIRED_TABLE_METRICS):
+        for i, metric in enumerate(REPORTED_METRICS):
             result = comparison["metrics"][metric]
             test, ci, holm = result["test"], result["delta_ci"], result["holm"]
             detail = test["detail"]
@@ -262,20 +290,21 @@ def table_paired_tests(run: Run, rows, comparisons) -> Table:
         key="thesis_paired_tests",
         headers=[
             r"Comparison", r"Metric", r"Mean $\Delta$", r"95\% CI",
-            r"Pairs (+/-)", r"$p$ (Holm)",
+            r"Proteins (+/-)", r"Adjusted $p$",
         ],
         rows=table_rows,
         column_spec="llrrrr",
         caption=(
             rf"Paired per-sample comparisons on \textit{{{run.organism}}} at "
             rf"{run.replica_count} replicas ($n={len(rows)}$). Mean difference "
-            r"[95\% CI], with $p$ values Holm-corrected across the five metrics "
-            r"within each comparison."
+            r"[95\% CI], with $p$ values Holm-corrected within each comparison."
         ),
         label="tab:paired_tests",
         notes=(
-            "Pairs: discordant pairs (Agentic-only/baseline-only) for Exact Match, "
-            "non-zero differences (positive/negative) otherwise."
+            rf"Proteins: discordant pairs (LLM-Guided-only/baseline-only) for Exact "
+            rf"Match, non-zero differences (positive/negative) otherwise. The Holm "
+            rf"adjustment covers the {HOLM_FAMILY_SIZE} metrics computed, not only "
+            rf"the {len(REPORTED_METRICS)} shown."
         ),
         environment="table*",
         placement="!t",
@@ -310,9 +339,9 @@ def table_stratification(run: Run, rows) -> Table:
             f"{METRIC_NAMES[PRIMARY_METRIC]} by fragment count. Difficulty scales with "
             "how many pieces a protein was digested into: the number of possible "
             "orderings grows factorially while the evidence available at each junction "
-            "does not. Lift is the mean paired per-sample difference between the Agentic "
-            "arm and the shuffled floor within the bin, not a difference of two "
-            "independent means."
+            "does not. Lift is the mean paired per-sample difference between the "
+            "LLM-Guided arm and the Random Order floor within the bin, not a difference "
+            "of two independent means."
         ),
         label="tab:stratification",
         notes=(
@@ -340,11 +369,12 @@ def table_selection_ceiling(run: Run, rows) -> Table:
     ]
     return Table(
         key="thesis_selection_ceiling",
-        headers=["Metric", "Agentic", "Oracle", "Gap", "Samples with a gap"],
+        headers=["Metric", "LLM-Guided", "Best Candidate", "Gap", "Samples with a gap"],
         rows=table_rows,
         caption=(
-            "Selection ceiling. The Oracle takes, per metric, the best candidate the "
-            "agent had already generated, using ground truth to choose. The gap is "
+            "Selection ceiling. The Best Candidate column takes, per metric, the best "
+            "candidate the agent had already generated, using ground truth to choose. "
+            "The gap is "
             "therefore quality the run reached and then discarded - recoverable by a "
             "better selection signal alone, with no additional search."
         ),
@@ -459,7 +489,7 @@ def table_error_taxonomy(run: Run, rows) -> Table:
         headers=["Failure mode", "Proteins", "Share"],
         rows=table_rows,
         caption=(
-            "Error taxonomy of the Agentic arm's reconstructions. Each protein falls in "
+            "Error taxonomy of the LLM-Guided arm's reconstructions. Each protein falls in "
             "exactly one class, checked most-specific first, and classified from the "
             "stored metric values (which were computed with the correct fragment-string "
             "semantics rather than recounted from fragment indices)."
@@ -491,14 +521,14 @@ def table_cost(run: Run, rows) -> Table:
     ]
     return Table(
         key="thesis_cost",
-        headers=["Measurement", "Agentic", "Control"],
+        headers=["Measurement", "LLM-Guided", "Random Search"],
         rows=table_rows,
         caption=(
-            "Cost per protein. The control arm runs the same budget and pipeline "
+            "Cost per protein. The Random Search arm runs the same budget and pipeline "
             "with lever values from a non-LLM policy."
         ),
         label="tab:cost",
-        notes=rf"Agentic/control time ratio: {fmt(ratio, 2)}$\times$.",
+        notes=rf"LLM-Guided/Random Search time ratio: {fmt(ratio, 2)}$\times$.",
         placement="!t",
         raw_latex=True,
     )
@@ -590,16 +620,30 @@ def _sibling_runs(run: Run, results_root: Path) -> list[Run]:
 
 
 def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
-                 results_root: Path = RESULTS_ROOT, quiet: bool = False) -> list[Path]:
-    """Compute and write every thesis table for one run."""
+                 results_root: Path = RESULTS_ROOT, quiet: bool = False,
+                 only: tuple[str, ...] | None = None, suffix: str = "") -> list[Path]:
+    """Compute and write thesis tables for one run.
+
+    ``only`` restricts the build to those table keys; ``suffix`` is appended to
+    each table's filename and LaTeX label so a second run's tables (a different
+    organism, say) can sit in the same directory and be \\input into the same
+    document without colliding on either.
+    """
     run = load_run(run_dir)
     rows = sample_rows(run)
     comparisons = paired_comparisons(run, rows)
     ctx = {"resamples": resamples, "comparisons": comparisons}
 
+    if only:
+        unknown = set(only) - {key for key, _ in BUILDERS}
+        if unknown:
+            raise SystemExit(f"unknown table key(s): {', '.join(sorted(unknown))}")
+
     tables: list[Table] = []
     skipped: list[str] = []
     for key, builder in BUILDERS:
+        if only and key not in only:
+            continue
         needed = REQUIRES_ARM.get(key)
         if needed and needed not in run.arms:
             skipped.append(f"{key} (run has no {needed} arm)")
@@ -607,7 +651,12 @@ def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
         if key == "thesis_paired_tests" and not comparisons:
             skipped.append(f"{key} (run has no paired baseline arm)")
             continue
-        tables.append(builder(run, rows, ctx))
+        table = builder(run, rows, ctx)
+        if suffix:
+            table.key += suffix
+            if table.label:
+                table.label += suffix
+        tables.append(table)
 
     stamp_tables(
         tables,
@@ -616,12 +665,20 @@ def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
         n_rows=len(rows),
         source_file=f"results/{run.path.name}/samples.jsonl",
     )
-    # Camera-ready: no provenance comments in the files the report inputs.
-    paths = write_tables_tex(tables, out_dir, comments=False, extra_inputs=["config_table"])
+    # Camera-ready: no provenance comments in the files the report inputs. The
+    # index always merges, so neither a partial build nor a later full one drops
+    # tables built for another run (a second organism's suffixed variants).
+    partial = bool(only or suffix)
+    paths = write_tables_tex(
+        tables, out_dir, comments=False,
+        extra_inputs=[] if partial else ["config_table"],
+        merge_index=True,
+    )
 
-    config_path = out_dir / "config_table.tex"
-    config_path.write_text(config_table_tex(_sibling_runs(run, results_root)), encoding="utf-8")
-    paths.append(config_path)
+    if not partial:
+        config_path = out_dir / "config_table.tex"
+        config_path.write_text(config_table_tex(_sibling_runs(run, results_root)), encoding="utf-8")
+        paths.append(config_path)
 
     if not quiet:
         print(f"{run.path.name} -> {out_dir}")
@@ -647,6 +704,17 @@ def main(argv=None) -> int:
         "--resamples", type=int, default=DEFAULT_RESAMPLES,
         help=f"bootstrap resamples (default {DEFAULT_RESAMPLES})",
     )
+    parser.add_argument(
+        "--only", default="",
+        help="comma-separated table keys to build (default: all)",
+    )
+    parser.add_argument(
+        "--suffix", default="",
+        help=(
+            "appended to each table's filename and LaTeX label, so a second run's "
+            "tables can coexist (e.g. --suffix _yeast -> tab:main_results_yeast)"
+        ),
+    )
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args(argv)
 
@@ -662,6 +730,8 @@ def main(argv=None) -> int:
         resamples=args.resamples,
         results_root=root,
         quiet=args.quiet,
+        only=tuple(k.strip() for k in args.only.split(",") if k.strip()) or None,
+        suffix=args.suffix,
     )
     return 0
 

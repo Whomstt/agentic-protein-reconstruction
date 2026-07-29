@@ -43,11 +43,11 @@ ARMS = {
 }
 
 ARM_LABELS = {
-    "shuffled": "Shuffled Baseline",
-    "deterministic": "Deterministic",
-    "control": "Control (no LLM)",
-    "agentic": "Agentic",
-    "oracle": "Oracle (ceiling)",
+    "shuffled": "Random Order",
+    "deterministic": "Fixed Settings",
+    "control": "Random Search (no LLM)",
+    "agentic": "LLM-Guided",
+    "oracle": "Best Candidate (ceiling)",
 }
 
 # Fragment-count bins. A protein's difficulty scales with how many pieces it was

@@ -155,8 +155,8 @@ def first_pass_label(config: dict) -> str:
     deterministic so the number is not mistaken for an agent decision; otherwise it
     is a genuine LLM lever choice."""
     if _iteration1_is_deterministic(config):
-        return "Deterministic (config defaults, no LLM)"
-    return "Agentic 1st Pass (LLM)"
+        return "Fixed Settings (config defaults, no LLM)"
+    return "LLM-Guided 1st Pass (LLM)"
 
 
 def selected_best_label(config: dict) -> str:
@@ -165,7 +165,7 @@ def selected_best_label(config: dict) -> str:
     just the deterministic pipeline output."""
     if config.get("run", {}).get("method") == "sequential":
         return "Reconstructed (deterministic pipeline)"
-    return "Agentic Best (iteratively selected)"
+    return "LLM-Guided Best (iteratively selected)"
 
 
 def run_type_summary(
@@ -180,7 +180,7 @@ def run_type_summary(
             "## How to Read This Report",
             "**Run type: Sequential (deterministic, no LLM).** Each sample gets a "
             "single fixed reconstruction from the tool pipeline — there is no agent, "
-            "no iteration, and no LLM call. **Shuffled Baseline** is a random fragment "
+            "no iteration, and no LLM call. **Random Order** is a random fragment "
             "ordering (the floor); **Reconstructed** is the deterministic pipeline's output.",
             "",
         ]
@@ -190,38 +190,38 @@ def run_type_summary(
         "## How to Read This Report",
         f"**Run type: Agentic ({calling_mode}).** Each metric compares:",
         "",
-        "- **Shuffled Baseline** — a random fragment ordering. The floor, not a method.",
+        "- **Random Order** — a random fragment ordering. The floor, not a method.",
     ]
     if _iteration1_is_deterministic(config):
         lines.append(
-            "- **Deterministic (config defaults)** — the non-agentic baseline: iteration 1 run "
+            "- **Fixed Settings (config defaults)** — the non-agentic baseline: iteration 1 run "
             "with the fixed `search.default_levers` and **no LLM call**. The agent refines from it."
         )
     else:
         lines.append(
-            "- **Agentic 1st Pass** — iteration 1 is itself an LLM lever decision "
+            "- **LLM-Guided 1st Pass** — iteration 1 is itself an LLM lever decision "
             "(`run.iteration1_deterministic=false`); there is no deterministic baseline inside this run."
         )
     if has_control:
         lines.append(
-            "- **Control (non-LLM)** — the matched-budget control arm: the SAME iteration "
+            "- **Random Search (non-LLM)** — the matched-budget control arm: the SAME iteration "
             "budget, SAME fixed tool pipeline and SAME best-validity selection as the agentic "
             "arm, but the five levers are chosen by a non-LLM policy (random/grid) instead of the "
-            "LLM, and it runs paired on the same protein with 0 LLM calls. **`Δ Agentic − Control` "
+            "LLM, and it runs paired on the same protein with 0 LLM calls. **`Δ LLM-Guided − Random Search` "
             'is the isolated value of the LLM\'s reasoning** — it separates "the agent reasons '
             'well" from "trying several candidates and keeping the best-validity one helps."'
         )
     lines.append(
-        "- **Agentic Best** — the agent's result: iterations 2+ are LLM lever choices, and the "
+        "- **LLM-Guided Best** — the agent's result: iterations 2+ are LLM lever choices, and the "
         "kept candidate is the best-validity one across all iterations (subject to "
         "`search.improvement_margin`). Since iteration 1 (the deterministic baseline) is in the "
         'candidate set, read the **true-metric** columns for the real "does the agent help?" answer.'
     )
     if has_oracle:
         lines.append(
-            "- **Oracle (ceiling)** — for each metric, the best value achievable by selecting "
+            "- **Best Candidate (ceiling)** — for each metric, the best value achievable by selecting "
             "among the candidates the agent actually generated. Not a method (it peeks at the "
-            "ground truth); the **Oracle − Agentic** gap is what the imperfect (~57–61%) validity "
+            "ground truth); the **Best Candidate − LLM-Guided** gap is what the imperfect (~57–61%) validity "
             "concordance leaves on the table — reachable by better selection alone, no new candidate."
         )
     lines.append("")
@@ -233,7 +233,7 @@ def render_metric_bar_chart_svg(
     recon_averages: dict,
     first_pass_averages: dict | None = None,
     first_pass_label_text: str = "1st Pass",
-    recon_label_text: str = "Agentic Best",
+    recon_label_text: str = "LLM-Guided Best",
 ) -> str:
     """Grouped horizontal bar chart comparing baseline vs. (optionally first-pass
     vs.) reconstructed metrics. When first_pass_averages is given, a third bar
@@ -295,7 +295,7 @@ def render_metric_bar_chart_svg(
         )
 
     legend_y = top_pad + row_h * len(keys) + 20
-    legend_entries = [(BASELINE_COLOR, "Shuffled baseline")]
+    legend_entries = [(BASELINE_COLOR, "Random Order")]
     if first_pass_averages is not None:
         legend_entries.append((FIRST_PASS_COLOR, first_pass_label_text))
     legend_entries.append((RECON_COLOR, recon_label_text))
@@ -309,7 +309,7 @@ def render_metric_bar_chart_svg(
     legend = "".join(legend_parts)
 
     title_text = (
-        f"Metric Comparison: Shuffled Baseline vs. {first_pass_label_text} vs. {recon_label_text}"
+        f"Metric Comparison: Random Order vs. {first_pass_label_text} vs. {recon_label_text}"
         if first_pass_averages is not None
         else f"Metric Comparison: Baseline vs. {recon_label_text}"
     )
@@ -599,7 +599,7 @@ def _format_config_rows(config: dict) -> list[list[str]]:
         ["Max Iterations", str(config.get("search", {}).get("max_iterations"))],
         [
             "Iteration 1 Mode",
-            "Deterministic — config defaults (no LLM call)"
+            "Fixed Settings — config defaults (no LLM call)"
             if _iteration1_is_deterministic(config)
             else "LLM (genuine agent decision)",
         ],
@@ -719,7 +719,8 @@ def _format_iteration_gain_distribution_rows(sample_reports: list[dict]) -> list
 
 def _control_label(payload: dict) -> str:
     policy = payload.get("control_policy") or "random"
-    return f"Control ({policy}, no LLM)"
+    # "Random Search (random, no LLM)" stutters; only a non-default policy is named.
+    return "Random Search (no LLM)" if policy == "random" else f"Random Search ({policy} policy, no LLM)"
 
 
 def _format_multi_arm_benchmark(
@@ -737,15 +738,15 @@ def _format_multi_arm_benchmark(
     if not first_pass:
         return None, None
 
-    headers = ["Metric", "Shuffled Baseline", fp_label]
+    headers = ["Metric", "Random Order", fp_label]
     if control:
         headers.append(_control_label(payload))
     headers.append(best_label)
     if oracle:
-        headers.append("Oracle (ceiling)")
-    headers.append("Δ Agentic − Deterministic")
+        headers.append("Best Candidate (ceiling)")
+    headers.append("Δ LLM-Guided − Fixed Settings")
     if control:
-        headers.append("Δ Agentic − Control")
+        headers.append("Δ LLM-Guided − Random Search")
     headers.append("Direction")
 
     rows = []
@@ -819,7 +820,7 @@ def _format_agent_vs_control_distribution_rows(
 
 
 def _format_oracle_gap_rows(payload: dict) -> list[list[str]]:
-    """Per-metric gap between the validity-selected Agentic Best and the oracle (best
+    """Per-metric gap between the validity-selected LLM-Guided Best and the best candidate (best
     candidate the agent actually generated). The gap is reachable with better
     selection alone, no new candidate needed."""
     recon = payload.get("recon_averages", {})
@@ -897,8 +898,8 @@ def _format_cost_rows(payload: dict) -> list[list[str]]:
         rows.extend(
             [
                 ["— Matched-budget control arm (no LLM) —", ""],
-                ["Control lever policy", str(cost.get("control_policy", "random"))],
-                ["Control LLM calls", "0"],
+                ["Random Search lever policy", str(cost.get("control_policy", "random"))],
+                ["Random Search LLM calls", "0"],
                 [
                     "Avg wall-clock / sample — agentic arm",
                     _format_duration(cost.get("avg_agentic_seconds_per_sample")),
@@ -982,7 +983,7 @@ def print_run_header(title: str, config_snapshot: dict) -> None:
     if method != "sequential":
         print(f"  Calling Mode: {config_snapshot['run'].get('calling_mode')}")
     iter1_mode = (
-        "Deterministic — config defaults (no LLM call)"
+        "Fixed Settings — config defaults (no LLM call)"
         if _iteration1_is_deterministic(config_snapshot)
         else "LLM (genuine agent decision)"
     )
@@ -1001,7 +1002,7 @@ def print_sample_result(index: int, sample_report: dict) -> None:
         score = sample_report.get("best_validity_score")
         score_text = f"{score:.4f}" if isinstance(score, (int, float)) else "n/a"
         print(f"  Best iteration:  {sample_report['best_iteration']} ({score_text})")
-    print(f"  Shuffled order:  {sample_report['baseline_order']}")
+    print(f"  Random order:    {sample_report['baseline_order']}")
     print(f"  Reconstructed:   {sample_report['order']}")
     if sample_report.get("num_pruned") is not None:
         print(
@@ -1022,7 +1023,7 @@ def print_sample_result(index: int, sample_report: dict) -> None:
 def print_summary(
     baseline_summary: dict, recon_summary: dict, sample_count: int
 ) -> None:
-    print(f"Average Results ({sample_count} Samples) — Shuffled vs Reconstructed")
+    print(f"Average Results ({sample_count} Samples) — Random Order vs Reconstructed")
     print("-" * 60)
     print_comparison(baseline_summary, recon_summary, sample_count)
 
@@ -1097,11 +1098,11 @@ def write_run_results(run_name: str, payload: dict) -> Path:
     fp_label = first_pass_label(config)
     best_label = selected_best_label(config)
     fp_short = (
-        "Deterministic (fixed)"
+        "Fixed Settings"
         if _iteration1_is_deterministic(config)
-        else "Agentic 1st Pass"
+        else "LLM-Guided 1st Pass"
     )
-    best_short = "Reconstructed" if is_sequential else "Agentic Best"
+    best_short = "Reconstructed" if is_sequential else "LLM-Guided Best"
     has_control = bool(payload.get("control_averages"))
     has_oracle = bool(payload.get("oracle_averages"))
 
@@ -1148,9 +1149,9 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         # Agentic run with a deterministic baseline: headline is the multi-arm
         # comparison the research question asks for (control/oracle columns appear
         # only when those arms were produced).
-        title = "## Benchmark: Shuffled Baseline vs. Deterministic vs. Agentic"
+        title = "## Benchmark: Random Order vs. Fixed Settings vs. LLM-Guided"
         if has_control:
-            title += " vs. Control"
+            title += " vs. Random Search"
         lines.extend(
             [
                 title,
@@ -1164,8 +1165,8 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         if oracle_gap_rows:
             lines.extend(
                 [
-                    "### Selection Ceiling (Oracle)",
-                    "The Oracle column is the best true-metric value reachable by selecting among "
+                    "### Selection Ceiling (Best Candidate)",
+                    "The Best Candidate column is the best true-metric value reachable by selecting among "
                     "the candidates the agent already generated (it peeks at ground truth, so it is "
                     "a ceiling, not a method). The gap below is quality the run left on the table "
                     "purely to imperfect validity selection — reachable with better selection alone, "
@@ -1176,8 +1177,8 @@ def write_run_results(run_name: str, payload: dict) -> Path:
                         [
                             "Metric",
                             best_label,
-                            "Oracle (best generated)",
-                            "Gap (Oracle − Agentic)",
+                            "Best Candidate (best generated)",
+                            "Gap (Best Candidate − LLM-Guided)",
                         ],
                         oracle_gap_rows,
                     ),
@@ -1192,7 +1193,7 @@ def write_run_results(run_name: str, payload: dict) -> Path:
                 _markdown_table(
                     [
                         "Metric",
-                        "Shuffled Baseline",
+                        "Random Order",
                         best_label,
                         "Delta",
                         "Interpretation",
@@ -1211,9 +1212,9 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         if gain_dist_rows:
             lines.extend(
                 [
-                    f"## Agentic vs. Deterministic (paired, per sample, n={len(sample_reports)})",
-                    "Per-sample gain of the agentic result over the deterministic best-fixed "
-                    "baseline (Agentic − Deterministic on the same protein). Mean is the average "
+                    f"## LLM-Guided vs. Fixed Settings (paired, per sample, n={len(sample_reports)})",
+                    "Per-sample gain of the agentic result over the fixed-settings best-fixed "
+                    "baseline (LLM-Guided − Fixed Settings on the same protein). Mean is the average "
                     "improvement; std dev shows how consistently the agent helps vs. swings the "
                     "other way on individual samples. For a significance claim on n samples, run a "
                     "paired Wilcoxon signed-rank test on these per-sample gains.",
@@ -1231,13 +1232,13 @@ def write_run_results(run_name: str, payload: dict) -> Path:
         if control_gain_rows:
             lines.extend(
                 [
-                    f"## Agentic vs. Control (paired, matched budget, n={len(sample_reports)})",
+                    f"## LLM-Guided vs. Random Search (paired, matched budget, n={len(sample_reports)})",
                     "**The isolated value of the LLM's reasoning.** Per-sample gain of the agentic "
-                    "arm over the non-LLM control arm (Agentic − Control on the same protein), where "
+                    "arm over the non-LLM control arm (LLM-Guided − Random Search on the same protein), where "
                     "both arms ran the same iteration budget, the same fixed tool pipeline and the "
                     "same best-validity selection — only the lever *source* differed (LLM vs a "
-                    f"{payload.get('control_policy', 'random')} policy). A plain Agentic − "
-                    "Deterministic gain conflates 'the agent reasons well' with 'trying several "
+                    f"{payload.get('control_policy', 'random')} policy). A plain LLM-Guided − "
+                    "Fixed Settings gain conflates 'the agent reasons well' with 'trying several "
                     "candidates and keeping the best helps'; this comparison holds the budget and "
                     "selection fixed, so a positive, consistent gain here is attributable to the "
                     "LLM. Run a paired Wilcoxon signed-rank test on these per-sample gains for the "

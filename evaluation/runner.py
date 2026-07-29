@@ -526,7 +526,7 @@ def run_agentic() -> Path | None:
 
         # Oracle upper bound: the best true-metric value achievable by selecting
         # among the candidates the AGENT actually generated this run (per metric,
-        # independently). The gap to the validity-selected "Agentic Best" is what
+        # independently). The gap to the validity-selected "LLM-Guided Best" is what
         # the imperfect validity concordance leaves on the table — no new candidate
         # is generated, only perfect hindsight selection.
         oracle_metrics = None

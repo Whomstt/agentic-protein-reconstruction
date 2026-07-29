@@ -1,21 +1,19 @@
 \begin{table*}[!t]
   \centering
-  \caption{Paired per-sample comparisons on \textit{E. coli} at 100 replicas ($n=100$). Mean difference [95\% CI], with $p$ values Holm-corrected across the five metrics within each comparison.}
+  \caption{Paired per-sample comparisons on \textit{E. coli} at 100 replicas ($n=100$). Mean difference [95\% CI], with $p$ values Holm-corrected within each comparison.}
   \label{tab:paired_tests}
   \begin{tabular}{llrrrr}
     \toprule
-    Comparison & Metric & Mean $\Delta$ & 95\% CI & Pairs (+/-) & $p$ (Holm) \\
+    Comparison & Metric & Mean $\Delta$ & 95\% CI & Proteins (+/-) & Adjusted $p$ \\
     \midrule
-    Agentic $-$ Control & Exact Match & +0.060 & [+0.000, +0.110] & 8 (7/1) & 0.078 \\
-     & Adjacent Pair Accuracy & +0.016 & [+0.004, +0.031] & 28 (21/7) & 0.070 \\
+    LLM-Guided $-$ Random Search & Adjacent Pair Accuracy & +0.016 & [+0.004, +0.031] & 28 (21/7) & 0.070 \\
+     & Exact Match & +0.060 & [+0.000, +0.110] & 8 (7/1) & 0.078 \\
      & Longest Correct Run & +0.035 & [+0.012, +0.069] & 26 (18/8) & 0.078 \\
-     & Kendall Tau & +0.048 & [+0.018, +0.096] & 34 (24/10) & 0.078 \\
     \midrule
-    Agentic $-$ Deterministic & Exact Match & +0.140 & [+0.060, +0.210] & 16 (15/1) & $<$0.001 \\
-     & Adjacent Pair Accuracy & +0.095 & [+0.068, +0.129] & 51 (46/5) & $<$0.001 \\
+    LLM-Guided $-$ Fixed Settings & Adjacent Pair Accuracy & +0.095 & [+0.068, +0.129] & 51 (46/5) & $<$0.001 \\
+     & Exact Match & +0.140 & [+0.060, +0.210] & 16 (15/1) & $<$0.001 \\
      & Longest Correct Run & +0.089 & [+0.046, +0.137] & 46 (34/12) & $<$0.001 \\
-     & Kendall Tau & +0.122 & [+0.054, +0.193] & 56 (42/14) & $<$0.001 \\
     \bottomrule
   \end{tabular}
-  \par\smallskip\footnotesize{Pairs: discordant pairs (Agentic-only/baseline-only) for Exact Match, non-zero differences (positive/negative) otherwise.}
+  \par\smallskip\footnotesize{Proteins: discordant pairs (LLM-Guided-only/baseline-only) for Exact Match, non-zero differences (positive/negative) otherwise. The Holm adjustment covers the 5 metrics computed, not only the 3 shown.}
 \end{table*}

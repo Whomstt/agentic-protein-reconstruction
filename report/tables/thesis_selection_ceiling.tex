@@ -1,10 +1,10 @@
 \begin{table}[htbp]
   \centering
-  \caption{Selection ceiling. The Oracle takes, per metric, the best candidate the agent had already generated, using ground truth to choose. The gap is therefore quality the run reached and then discarded - recoverable by a better selection signal alone, with no additional search.}
+  \caption{Selection ceiling. The Best Candidate column takes, per metric, the best candidate the agent had already generated, using ground truth to choose. The gap is therefore quality the run reached and then discarded - recoverable by a better selection signal alone, with no additional search.}
   \label{tab:selection_ceiling}
   \begin{tabular}{lrrrr}
     \toprule
-    Metric & Agentic & Oracle & Gap & Samples with a gap \\
+    Metric & LLM-Guided & Best Candidate & Gap & Samples with a gap \\
     \midrule
     Exact Match & 0.460 & 0.640 & +0.180 & 18/100 \\
     Sequence Similarity & 0.765 & 0.852 & +0.087 & 37/100 \\

@@ -123,7 +123,11 @@ def _arm_label(run: Run, arm: str) -> str:
     if arm == "control":
         policy = (run.config.get("run", {}).get("control_baseline", {}) or {}).get("policy")
         policy = policy or run.summary.get("control_policy")
-        return f"Control ({policy}, no LLM)" if policy else ARM_LABELS[arm]
+        # The arm's name already says "random", so naming the shipped random
+        # policy again reads as a stutter; a non-default policy still gets named.
+        if policy and policy != "random":
+            return f"Random Search ({policy} policy, no LLM)"
+        return ARM_LABELS[arm]
     return ARM_LABELS[arm]
 
 
@@ -331,8 +335,8 @@ def paired_comparisons(run: Run, rows) -> dict:
     """
     out = {}
     for label, other in (
-        ("Agentic − Control", "control"),
-        ("Agentic − Deterministic", "deterministic"),
+        ("LLM-Guided − Random Search", "control"),
+        ("LLM-Guided − Fixed Settings", "deterministic"),
     ):
         if other not in run.arms or "agentic" not in run.arms:
             continue
@@ -355,7 +359,7 @@ def section_d_llm(run: Run, rows, comparisons, out_dir) -> tuple[str, list[Table
 
     if "control" not in run.arms:
         text += [
-            "n/a - this run has no Control arm (`run.control_baseline.enabled` was off), "
+            "n/a - this run has no Random Search arm (`run.control_baseline.enabled` was off), "
             "so the LLM's reasoning cannot be separated from the value of trying several "
             "candidates and keeping the best.",
             "",
@@ -363,7 +367,7 @@ def section_d_llm(run: Run, rows, comparisons, out_dir) -> tuple[str, list[Table
         return "\n".join(text), tables, figures
 
     text += [
-        "The Agentic and Control arms run on the **same proteins** with the same "
+        "The LLM-Guided and Random Search arms run on the **same proteins** with the same "
         "iteration budget, the same tool pipeline and the same best-validity selection; "
         "only the source of the five lever values differs (LLM vs. a non-LLM policy). "
         "They are therefore **paired**, and the comparison uses paired tests rather than "
@@ -466,7 +470,7 @@ def section_d_llm(run: Run, rows, comparisons, out_dir) -> tuple[str, list[Table
                 figures.append(
                     figs.paired_gain_distribution(
                         deltas,
-                        f"Δ {METRIC_NAMES[PRIMARY_METRIC]} (Agentic − Control)",
+                        f"Δ {METRIC_NAMES[PRIMARY_METRIC]} (LLM-Guided − Random Search)",
                         out_dir,
                         "fig_paired_gain_control",
                     )
@@ -548,7 +552,7 @@ def section_e_bottleneck(run: Run, rows) -> tuple[str, list[Table], list]:
         gaps = oracle_gap(rows)
         gap_table = Table(
             key="table_e_oracle_gap",
-            headers=["Metric", "Agentic", "Oracle", "Gap", "Samples with a gap"],
+            headers=["Metric", "LLM-Guided", "Best Candidate", "Gap", "Samples with a gap"],
             rows=[
                 [
                     METRIC_NAMES[m],
@@ -560,14 +564,14 @@ def section_e_bottleneck(run: Run, rows) -> tuple[str, list[Table], list]:
                 for m in METRIC_KEYS
             ],
             caption=(
-                "Selection ceiling. The Oracle picks the best candidate the run already "
+                "Selection ceiling. The Best Candidate column picks the best candidate the run already "
                 "generated, using ground truth. The gap is quality lost purely to "
                 "imperfect selection - reachable with a better signal and no new search."
             ),
             label=f"tab:oracle_{run.path.name}",
         )
         tables.append(gap_table)
-        text += ["### Selection ceiling (Oracle)", "", gap_table.to_markdown(), ""]
+        text += ["### Selection ceiling (Best Candidate)", "", gap_table.to_markdown(), ""]
         primary_gap = gaps[PRIMARY_METRIC]["mean_gap"]
         text += [
             f"On {METRIC_NAMES[PRIMARY_METRIC]} the run leaves **{fmt(primary_gap)}** on "
@@ -635,12 +639,12 @@ def section_f_stratification(run: Run, rows, out_dir) -> tuple[str, list[Table],
     strat_table = Table(
         key="table_f_fragment_stratification",
         headers=[
-            "Fragments", "n", "Shuffled", f"Agentic", "Lift (paired)",
+            "Fragments", "n", "Random Order", "LLM-Guided", "Lift (paired)",
         ],
         rows=strat_rows,
         caption=(
             f"{METRIC_NAMES[PRIMARY_METRIC]} by fragment count, with lift over the "
-            "shuffled floor. Lift is the mean per-sample difference (paired), not a "
+            "Random Order floor. Lift is the mean per-sample difference (paired), not a "
             "difference of independent means."
         ),
         label=f"tab:stratification_{run.path.name}",
@@ -651,7 +655,7 @@ def section_f_stratification(run: Run, rows, out_dir) -> tuple[str, list[Table],
         "",
         "Difficulty scales with how many pieces the protein was cut into: the number of "
         "possible orderings grows factorially, while the pLM's evidence per junction does "
-        "not improve. Lift over the shuffled floor is the honest read of whether the "
+        "not improve. Lift over the Random Order floor is the honest read of whether the "
         "method is doing anything at each difficulty.",
         "",
         strat_table.to_markdown(),
@@ -673,7 +677,7 @@ def section_f_stratification(run: Run, rows, out_dir) -> tuple[str, list[Table],
         key="table_f_all_metrics_by_bin",
         headers=["Metric"] + bin_labels(),
         rows=all_metric_rows,
-        caption="Agentic arm, every metric, stratified by fragment count.",
+        caption="LLM-Guided arm, every metric, stratified by fragment count.",
         label=f"tab:allmetrics_{run.path.name}",
     )
     tables.append(all_table)
@@ -845,7 +849,7 @@ def section_g_cost(run: Run, rows) -> tuple[str, list[Table], list]:
             ["Wall clock per sample (total)", f"{fmt(cost['seconds_per_sample'], 1)} s"],
             ["Wall clock per sample (agentic arm)", f"{fmt(agentic_seconds, 1)} s"],
             ["Wall clock per sample (control arm)", f"{fmt(control_seconds, 1)} s"],
-            ["Agentic / control time ratio", fmt(overhead, 2)],
+            ["LLM-Guided / Random Search time ratio", fmt(overhead, 2)],
             ["Completed samples", f"{cost['completed']}/{n}"],
             ["True order recovered", f"{cost['true_order_recovered']}/{n}"],
         ],
@@ -915,8 +919,8 @@ def _header(run: Run, rows, resamples) -> str:
             "undivided pool this evaluation draws from, so they are disclosed "
             "sensitivity choices, not validated constants. Iteration 1 being "
             "deterministic means the agentic arm can never score worse than the "
-            "Deterministic arm on validity, which is why section D's "
-            "`Agentic − Control` comparison is the defensible reasoning claim.",
+            "Fixed Settings arm on validity, which is why section D's "
+            "`LLM-Guided − Random Search` comparison is the defensible reasoning claim.",
             "",
         ]
     )
@@ -1249,8 +1253,8 @@ def generate_cross_run(artifacts: list[dict], out_dir: Path, quiet: bool = False
     matrix = Table(
         key="table_cross_run_matrix",
         headers=[
-            "Organism", "Replicas", "n", "Shuffled APA", "Agentic APA",
-            "Agentic tau", "Agentic EM",
+            "Organism", "Replicas", "n", "Random Order APA", "LLM-Guided APA",
+            "LLM-Guided tau", "LLM-Guided EM",
         ],
         rows=matrix_rows,
         caption="All runs: headline agentic performance by organism and replica count.",

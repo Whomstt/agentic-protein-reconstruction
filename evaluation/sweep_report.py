@@ -96,10 +96,10 @@ def write_sweep_report(manifest: list[dict], sweep_cfg: dict, total_duration: fl
     is_sequential = combo_config.get("run", {}).get("method") == "sequential"
     fp_label = first_pass_label(combo_config)
     best_label = selected_best_label(combo_config)
-    best_short = "Reconstructed" if is_sequential else "Agentic Best"
+    best_short = "Reconstructed" if is_sequential else "LLM-Guided Best"
     gain_headers = [
         "Metric",
-        "Shuffled Baseline",
+        "Random Order",
         fp_label,
         best_label,
         "Gain vs. 1st Pass",

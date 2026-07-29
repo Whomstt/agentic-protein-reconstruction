@@ -1,10 +1,10 @@
 \begin{table*}[!t]
   \centering
-  \caption{Adjacent Pair Accuracy by fragment count. Difficulty scales with how many pieces a protein was digested into: the number of possible orderings grows factorially while the evidence available at each junction does not. Lift is the mean paired per-sample difference between the Agentic arm and the shuffled floor within the bin, not a difference of two independent means.}
+  \caption{Adjacent Pair Accuracy by fragment count. Difficulty scales with how many pieces a protein was digested into: the number of possible orderings grows factorially while the evidence available at each junction does not. Lift is the mean paired per-sample difference between the LLM-Guided arm and the Random Order floor within the bin, not a difference of two independent means.}
   \label{tab:stratification}
   \begin{tabular}{lrrrrrr}
     \toprule
-    Fragments & n & Shuffled Baseline & Deterministic & Control (random, no LLM) & Agentic & Lift \\
+    Fragments & n & Random Order & Fixed Settings & Random Search (no LLM) & LLM-Guided & Lift \\
     \midrule
     2-4 & 3 & 0.000 & 1.000 & 1.000 & 1.000 & +1.000 \\
     5-9 & 20 & 0.131 & 0.894 & 0.923 & 0.917 & +0.786 \\

@@ -1,0 +1,15 @@
+\begin{table*}[!t]
+  \centering
+  \caption{Reconstruction quality on \textit{S. cerevisiae} at 100 digestion replicas ($n=100$ proteins). Mean [95\% CI].}
+  \label{tab:main_results_yeast}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Metric & Random Order & Fixed Settings & Random Search & LLM-Guided & Best Candidate \\
+    \midrule
+    Adjacent Pair Accuracy & 0.050 [0.038, 0.065] & 0.703 [0.667, 0.741] & 0.788 [0.756, 0.819] & 0.812 [0.783, 0.838] & 0.855 [0.827, 0.880] \\
+    Exact Match & 0.000 [0.000, 0.037] & 0.160 [0.101, 0.244] & 0.260 [0.184, 0.354] & 0.260 [0.184, 0.354] & 0.350 [0.264, 0.447] \\
+    Longest Correct Run & 0.094 [0.079, 0.116] & 0.448 [0.397, 0.510] & 0.513 [0.452, 0.579] & 0.530 [0.470, 0.594] & 0.623 [0.561, 0.685] \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{Adjacent Pair Accuracy is the primary ordering metric. All 5 metrics were computed; Sequence Similarity and Kendall Tau are reported in full in the supplementary analysis.}
+\end{table*}

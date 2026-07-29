@@ -317,9 +317,14 @@ In this approach, the aim is to investigate the potential advantages or disadvan
 of the reconstruction process to an LLM brain and see how it compares against a baseline sequential approach.
 
 \subsection{System Architecture}
-Two pipelines were built in parallel; one sequential, and one agentic, where the former relies
-on a rigid tool execution to reconstruct while the agentic implementation is given liberty over
-its chosen tool choice and execution path.
+The system is configured to have a shared pipeline across all variants. Each runs
+identically in terms of order; trypsin filter -> overlap graph -> junction scorer ->
+beam search -> validity scorer. What differs between runs is that we vary the number
+of attempts the variant gets (1 or 5), and also where the tool parameters get their values from (fixed, random, LLM).
+
+The tunable settings which the agent has control over is limited to 5 parameters; 
+junction masking window (sets the window size of the junction), search mode (beam / greedy), 
+beam width (width of the beam), edge mode (soft / hard), and confirmed-edge bonus.
 
 A LangGraph ReAct framework serves as the foundation for the agentic procedure. The input received
 by the LLM is the initial peptide fragments, where it must first reason to decide which tools it 
@@ -412,24 +417,21 @@ have a sizeable difference in the number of fragments within each sample.
 \subsection{Evaluation Metrics}
 A protein gets cut into n fragments when it is digested. The objective of the system
 is to reconstruct them so that they are back in the correct order as originally pre-digestion.
-Every approach (shuffled, deterministic, agentic) are all handling the same set of fragments / samples
+Every approach (Random Order, Fixed Settings, Random Search, LLM-Guided) are all handling the same set of fragments / samples
 as each other.
 
-5 key metrics were selected to remove redundancy while capturing what matters most.
-Adjacent Pair Accuracy considers the fraction of consecutive pairs in the reconstruction
-that are also present in the original; essentially the primary metric of interest for intents and purposes.
+Three key metrics were selected to remove redundancy while capturing what matters most.
+Adjacent Pair Accuracy serves as the core metric, considering the fraction of consecutive pairs in the reconstruction
+that are also present in the original.
 Exact Match is a ratio indicator of where a complete match has taken place i.e. the reconstruction is
 exactly the same as the original with all fragments ordered correctly.
-Kendall's Tau ranks the correlation between the reconstruction and the original, effectively capturing near-miss orderings.
-Longest Correct Run considers the longest correctly ordered subsequence of ordered fragments, normalised by n.
-Sequence Similarity is also included to find the ratio between the reconstruction vs original sequence, but it is not order-strict,
-so it is a partial score which is less preferable than Adjacent Pair Accuracy as a general success metric, but included nonetheless.
+The Longest Correct Run metric considers the longest correctly ordered subsequence of ordered fragments, normalised by n.
 
 \section{Results}
 The results go here.
 \subsection{Quantitative Results}
 \input{tables/thesis_main_results}
-\input{tables/thesis_paired_tests}
+\input{tables/thesis_main_results_yeast}
 \input{tables/thesis_cost}
 \subsection{Qualitative Analysis}
 Subsection text here.
