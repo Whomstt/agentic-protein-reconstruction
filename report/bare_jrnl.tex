@@ -323,12 +323,13 @@ beam search -> validity scorer. What differs between runs is that we vary the nu
 of attempts the variant gets (1 or 5), and also where the tool parameters get their values from (fixed, random, LLM).
 
 The tunable settings which the agent has control over is limited to 5 parameters; 
-junction masking window (sets the window size of the junction), search mode (beam / greedy), 
-beam width (width of the beam), edge mode (soft / hard), and confirmed-edge bonus.
+junction masking window (window size of the junction), search mode (beam / greedy), 
+beam width (width of the beam), edge mode (soft / hard), and confirmed-edge bonus (0-1).
 
-A LangGraph ReAct framework serves as the foundation for the agentic procedure. The input received
-by the LLM is the initial peptide fragments, where it must first reason to decide which tools it 
-should call next; receiving feedback, and then iterating until a satisfying reconstruction remains.
+A LangGraph ReAct framework served as the foundation for the agentic procedure. The input received
+by the LLM was the initial unordered peptide fragments, where it must first execute the deterministic run with fixed parameters.
+After the first run, the agent has control over tuning the five parameters beforementioned in an attempt to improve the score
+returned by the validity scorer.
 
 To preserve the components of the reconstruction, a shared memory state is accessible between tools
 so that each output returned acts as a signal for the proceeding one. GPT-5-mini is the model which has
@@ -430,13 +431,48 @@ The Longest Correct Run metric considers the longest correctly ordered subsequen
 \section{Results}
 The results go here.
 \subsection{Quantitative Results}
+Based on the results from experimentation, in its current implementation most gains
+in Adjacent Pair Accuracy (APA) come from the fact that we had a larger budget for iterations.
+The LLM's reasoning ability does however lead to a slightly higher APA than Random Search
+on both E. coli (+0.016) and yeast (+0.024) respectively.
+
+Across all variants of the system on all metrics the reconstruction of yeast was worse
+than that of E. coli. This is primarily corellated with the number of fragments and sequence length
+found in yeast in comparison being much greater; objectively creating a harder reconstruction problem.
+
+A selection ceiling was also considered for the best candidate generated during the 5 iterations. Due
+to the inherent weakness of the validity scorer's signal; we only picked the real best candidate ~64\% of the time,
+and throw away good candidates that were already generated for the other side of it.
+This ceiling shows us the potential of the system in its ability to reconstruct if we had
+higher quality validity signals such as folding models.
+
+It is evident from the clock time that the cost of the LLM-Guided setup is much more
+than that of the random search, with the intermediary LLM calls between iterations resulting
+in ~5x more time to compute for reconstructions than the random search approach.
+
 \input{tables/thesis_main_results}
 \input{tables/thesis_main_results_yeast}
 \input{tables/thesis_cost}
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=\textwidth]{./images/fragment_correlation.png}
+  \caption{Reconstruction quality versus fragment count at 100 digestion
+  replicas. All three metrics decline as fragment count rises.}
+  \label{fig:fragment_correlation}
+\end{figure*}
 \subsection{Qualitative Analysis}
-Subsection text here.
+In general the reconstruction is more likely to be not be perfect than to be perfect,
+however, we see that most reconstructions have a very strong APA score which means that
+the system can still be useful. One point especially worth considering with these results is
+that the system can help disambiguate fragments which are shared by multiple parent proteins.
 
-
+While the results heavily indicate towards most of the real value coming from testing
+more combinations i.e. increasing the search space, the LLM brain clearly has some merit to
+it. It consistently outperfrmed or matched the random search metrics when given the same
+iteration budget. This demonstrates that the LLM was able to intelligently interpret the feedback
+signals from the tools and select more appropriate parameters than just randomly guessing to
+produce better candidates. It should also be considered that more tools and further signals which
+are more noisy would likely see the LLM outshine any random search with the same number of iterations.
 \section{Discussion}
 The discussion goes here.
 \subsection{Interpretation of Results}

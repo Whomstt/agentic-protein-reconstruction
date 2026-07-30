@@ -27,6 +27,7 @@ from evaluation.stats import (  # noqa: E402
     holm_bonferroni,
     mcnemar_exact,
     percentile,
+    spearman,
     wilcoxon_signed_rank,
     wilson_interval,
 )
@@ -330,6 +331,83 @@ class TestWilcoxon(unittest.TestCase):
         b = [0.0, 0.0, 0.0, float("nan")]
         r = wilcoxon_signed_rank(a, b)
         self.assertEqual(r.detail["n_pairs"], 2)
+
+
+class TestSpearman(unittest.TestCase):
+    """rho against hand-computable cases; the p value against an exact permutation
+    null, which needs no distribution theory at all."""
+
+    @staticmethod
+    def _exact_permutation_p(xs, ys):
+        """Two-sided p by enumerating every permutation of y. Feasible to n = 8."""
+        from evaluation.stats import _pearson, _rank
+
+        rx, ry = _rank(list(xs)), _rank(list(ys))
+        observed = abs(_pearson(rx, ry))
+        total = hits = 0
+        for permuted in itertools.permutations(ry):
+            total += 1
+            if abs(_pearson(rx, list(permuted))) >= observed - 1e-12:
+                hits += 1
+        return hits / total
+
+    def test_perfect_monotone(self):
+        r = spearman([1, 2, 3, 4, 5], [10, 20, 30, 40, 50])
+        self.assertAlmostEqual(r.statistic, 1.0, places=12)
+        self.assertEqual(r.pvalue, 0.0)
+
+        r = spearman([1, 2, 3, 4, 5], [50, 40, 30, 20, 10])
+        self.assertAlmostEqual(r.statistic, -1.0, places=12)
+
+    def test_monotone_but_not_linear(self):
+        """Spearman sees the monotone relation Pearson would understate."""
+        xs = [1, 2, 3, 4, 5, 6]
+        ys = [1, 2, 4, 8, 16, 512]
+        self.assertAlmostEqual(spearman(xs, ys).statistic, 1.0, places=12)
+
+    def test_ties_averaged(self):
+        """Ranks 1, 2.5, 2.5, 4 against 1, 2, 3, 4 -> rho = 0.9486832980505138."""
+        r = spearman([1, 2, 2, 3], [1, 2, 3, 4])
+        self.assertAlmostEqual(r.statistic, 0.9486832980505138, places=12)
+
+    def test_pvalue_matches_exact_permutation_null(self):
+        cases = [
+            ([1, 2, 3, 4, 5, 6, 7], [2, 1, 4, 3, 6, 7, 5]),
+            ([1, 2, 3, 4, 5, 6, 7], [7, 5, 6, 2, 4, 1, 3]),
+            ([5, 3, 8, 1, 9, 2, 7], [4, 4, 9, 2, 8, 1, 6]),
+        ]
+        for xs, ys in cases:
+            with self.subTest(xs=xs):
+                approx = spearman(xs, ys).pvalue
+                exact = self._exact_permutation_p(xs, ys)
+                # The t approximation is asymptotic; at n = 7 it should still land
+                # in the same decade and on the same side of 0.05.
+                self.assertLess(abs(approx - exact), 0.06)
+                self.assertEqual(approx <= 0.05, exact <= 0.05)
+
+    def test_no_association_gives_large_p(self):
+        xs = list(range(20))
+        ys = [0, 1] * 10
+        r = spearman(xs, ys)
+        self.assertLess(abs(r.statistic), 0.2)
+        self.assertGreater(r.pvalue, 0.3)
+
+    def test_constant_input_is_not_a_correlation(self):
+        r = spearman([1, 1, 1, 1, 1], [1, 2, 3, 4, 5])
+        self.assertTrue(math.isnan(r.statistic))
+        self.assertEqual(r.detail["method"], "constant input")
+
+    def test_nan_pairs_dropped_and_n_reported(self):
+        xs = [1.0, 2.0, float("nan"), 4.0, 5.0]
+        ys = [1.0, 2.0, 3.0, float("nan"), 5.0]
+        r = spearman(xs, ys)
+        self.assertEqual(r.n, 3)
+        self.assertEqual(r.detail["n_pairs"], 3)
+
+    def test_too_few_pairs(self):
+        r = spearman([1, 2, 3], [1, 2, 3])
+        self.assertTrue(math.isnan(r.pvalue))
+        self.assertEqual(r.detail["method"], "n < 4")
 
 
 class TestHolm(unittest.TestCase):

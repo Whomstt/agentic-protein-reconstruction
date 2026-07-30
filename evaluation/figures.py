@@ -121,14 +121,20 @@ def _apply_metric_axis(ax, metric: str) -> None:
         ax.set_ylim(0.0, 1.0)
 
 
-def _save(fig, out_dir: Path, name: str) -> dict:
+def _save(fig, out_dir: Path, name: str, formats: tuple = ("pdf", "png")) -> dict:
+    """Write the figure once per requested format.
+
+    Both by default: the PDF is what LaTeX includes, the PNG only exists so the
+    markdown report has a preview. A caller that is including the PNG directly can
+    ask for that alone rather than leaving an unused PDF beside it."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    pdf = out_dir / f"{name}.pdf"
-    png = out_dir / f"{name}.png"
-    fig.savefig(pdf, format="pdf")
-    fig.savefig(png, format="png")
+    written = {}
+    for extension in formats:
+        path = out_dir / f"{name}.{extension}"
+        fig.savefig(path, format=extension)
+        written[extension] = path
     _pyplot().close(fig)
-    return {"pdf": pdf, "png": png}
+    return written
 
 
 # --------------------------------------------------------------------------
@@ -164,6 +170,65 @@ def fragment_stratification(
     _apply_metric_axis(ax, metric)
     ax.legend(loc="best", handlelength=2.6)
     return _save(fig, out_dir, name)
+
+
+def metrics_by_fragment_bin(
+    panels: list, out_dir: Path, name: str, formats: tuple = ("pdf", "png")
+) -> dict:
+    """Every reported metric against fragment count, one panel per organism.
+
+    Binned means rather than a raw scatter because the three metrics share one
+    axis here: Exact Match is binary, so its per-protein points would be two rows
+    of dots while the others formed clouds, and a bin mean reads as a rate for the
+    binary metric and as an average for the continuous ones without changing the
+    axis.
+
+    The x axis is a real numeric one, with each bin plotted at its midpoint and
+    ticks at the bin edges. Equal-width bins are what make that legal: with the
+    widening bins used elsewhere in the report, evenly spaced ticks would stand for
+    unequal ranges and the slope of the curve would partly be an artifact of the
+    binning.
+
+    ``panels`` is [(panel_title, centres, [(metric_label, values)])], where a None
+    value leaves a gap rather than interpolating over an empty bin. Bin sizes are
+    not drawn; whether a thinly populated interval needs a caveat is a question for
+    the caption, not something to hang off the axis."""
+    plt = _pyplot()
+    apply_style()
+
+    fig, axes = plt.subplots(
+        1, len(panels),
+        figsize=(SINGLE_COLUMN_WIDTH * len(panels), DEFAULT_HEIGHT + 0.35),
+        squeeze=False,
+        sharey=True,
+    )
+    axes = axes[0]
+
+    for ax, (title, centres, series) in zip(axes, panels):
+        for index, (metric_label, values) in enumerate(series):
+            xs = [c for c, v in zip(centres, values) if v is not None]
+            ys = [v for v in values if v is not None]
+            ax.plot(xs, ys, label=metric_label, **_series_style(index, len(series)))
+
+        width = (centres[1] - centres[0]) if len(centres) > 1 else 1.0
+        ax.set_xticks([c - width / 2 for c in centres] + [centres[-1] + width / 2])
+        ax.set_xlim(centres[0] - width, centres[-1] + width)
+        ax.set_xlabel("Fragments per protein")
+        ax.set_ylim(0.0, 1.05)
+        ax.set_title(title, pad=3)
+        ax.set_ylabel("Score (LLM-Guided arm)")
+        # Shared y limits, but every panel keeps its own numbers: these panels are
+        # read one at a time as much as against each other, and a reader should
+        # never have to track a value back across a gap to an unlabelled axis.
+        ax.tick_params(labelleft=True)
+
+    handles, labels_ = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles, labels_, loc="upper center", bbox_to_anchor=(0.5, 0.055),
+        ncol=len(labels_), handlelength=2.6, columnspacing=1.6,
+    )
+    fig.subplots_adjust(bottom=0.24, wspace=0.22)  # room for every panel's y labels
+    return _save(fig, out_dir, name, formats)
 
 
 def lift_by_bin(lift: dict, metric_label: str, out_dir: Path, name: str) -> dict:

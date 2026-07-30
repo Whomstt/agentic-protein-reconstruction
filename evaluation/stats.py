@@ -433,6 +433,125 @@ def wilcoxon_signed_rank(arm_a, arm_b, name: str = "wilcoxon") -> TestResult:
 
 
 # --------------------------------------------------------------------------
+# Association
+# --------------------------------------------------------------------------
+
+
+def _betacf(a: float, b: float, x: float, itmax: int = 300, eps: float = 3e-12) -> float:
+    """Continued fraction for the incomplete beta function (Lentz's method)."""
+    tiny = 1e-30
+    qab, qap, qam = a + b, a + 1.0, a - 1.0
+    c = 1.0
+    d = 1.0 - qab * x / qap
+    if abs(d) < tiny:
+        d = tiny
+    d = 1.0 / d
+    h = d
+    for m in range(1, itmax + 1):
+        m2 = 2 * m
+        for numerator in (
+            m * (b - m) * x / ((qam + m2) * (a + m2)),
+            -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2)),
+        ):
+            d = 1.0 + numerator * d
+            c = 1.0 + numerator / c
+            if abs(d) < tiny:
+                d = tiny
+            if abs(c) < tiny:
+                c = tiny
+            d = 1.0 / d
+            h *= d * c
+        if abs(d * c - 1.0) < eps:
+            break
+    return h
+
+
+def _betainc(a: float, b: float, x: float) -> float:
+    """Regularized incomplete beta I_x(a, b). Needed for the Student's t tail;
+    scipy is not available, so it is implemented here and checked in
+    tests/test_stats.py against a permutation test."""
+    if x <= 0.0:
+        return 0.0
+    if x >= 1.0:
+        return 1.0
+    log_beta = math.lgamma(a) + math.lgamma(b) - math.lgamma(a + b)
+    if x < (a + 1.0) / (a + b + 2.0):
+        front = math.exp(a * math.log(x) + b * math.log(1.0 - x) - log_beta) / a
+        return front * _betacf(a, b, x)
+    front = math.exp(b * math.log(1.0 - x) + a * math.log(x) - log_beta) / b
+    return 1.0 - front * _betacf(b, a, 1.0 - x)
+
+
+def _student_t_two_sided(t: float, df: float) -> float:
+    """Two-sided p for a t statistic. Expressed through the incomplete beta rather
+    than a normal approximation so small n is not silently over-confident."""
+    if df <= 0 or math.isnan(t):
+        return float("nan")
+    return _betainc(df / 2.0, 0.5, df / (df + t * t))
+
+
+def _rank(values: list[float]) -> list[float]:
+    """Fractional ranks, ties averaged. Exact-match is 0/1 and fragment counts
+    repeat, so tie handling is the common case here, not the edge case."""
+    order = sorted(range(len(values)), key=lambda i: values[i])
+    ranks = [0.0] * len(values)
+    i = 0
+    while i < len(order):
+        j = i
+        while j + 1 < len(order) and values[order[j + 1]] == values[order[i]]:
+            j += 1
+        average = (i + j) / 2.0 + 1.0
+        for k in range(i, j + 1):
+            ranks[order[k]] = average
+        i = j + 1
+    return ranks
+
+
+def _pearson(xs: list[float], ys: list[float]) -> float:
+    n = len(xs)
+    mx, my = sum(xs) / n, sum(ys) / n
+    covariance = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    sx = math.sqrt(sum((x - mx) ** 2 for x in xs))
+    sy = math.sqrt(sum((y - my) ** 2 for y in ys))
+    return covariance / (sx * sy) if sx > 0 and sy > 0 else float("nan")
+
+
+def spearman(xs, ys, name: str = "spearman") -> TestResult:
+    """Spearman rank correlation of xs against ys, with a two-sided p value.
+
+    Rank-based rather than Pearson because none of the pairings here are linear:
+    fragment count is heavily right-skewed, Exact Match is binary, and the ordering
+    metrics saturate at 1.0. Spearman asks only whether the two move together
+    monotonically, which is the claim a difficulty analysis actually makes.
+
+    Pairs where either side is missing or NaN are dropped, so an unrecovered
+    ordering metric shrinks n rather than poisoning the statistic. The p value is
+    the standard t approximation on n - 2 degrees of freedom; it is the same
+    approximation scipy uses and is checked against a permutation test in
+    tests/test_stats.py."""
+    a, b = clean_pairs(xs, ys)
+    n = len(a)
+    detail = {"n_pairs": n, "method": "t approximation on n-2 df"}
+    if n < 4:
+        return TestResult(name, float("nan"), float("nan"), n, {**detail, "method": "n < 4"})
+
+    rho = _pearson(_rank(a), _rank(b))
+    if math.isnan(rho):
+        # One side is constant: no ranking to correlate against.
+        return TestResult(name, float("nan"), float("nan"), n, {**detail, "method": "constant input"})
+    if abs(rho) >= 1.0 - 1e-12:
+        # A tolerance, not an equality test: a perfect monotone relation comes back
+        # as 0.9999999999999998, which would otherwise divide the t statistic by
+        # ~2e-16 and report a meaninglessly precise p.
+        return TestResult(
+            name, math.copysign(1.0, rho), 0.0, n, {**detail, "method": "perfect monotone"}
+        )
+
+    t = rho * math.sqrt((n - 2) / (1.0 - rho * rho))
+    return TestResult(name, rho, _student_t_two_sided(t, n - 2), n, detail)
+
+
+# --------------------------------------------------------------------------
 # Multiple-comparison correction
 # --------------------------------------------------------------------------
 

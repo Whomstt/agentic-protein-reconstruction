@@ -236,11 +236,9 @@ def table_main_results(run: Run, rows, resamples) -> Table:
             r"Mean [95\% CI]."
         ),
         label="tab:main_results",
-        notes=(
-            rf"{METRIC_NAMES[PRIMARY_METRIC]} is the primary ordering metric. All "
-            rf"{HOLM_FAMILY_SIZE} metrics were computed; Sequence Similarity and "
-            r"Kendall Tau are reported in full in the supplementary analysis."
-        ),
+        # The full metric family is disclosed by the paired-tests table's note,
+        # which is where the Holm correction it matters for is actually reported.
+        notes=rf"{METRIC_NAMES[PRIMARY_METRIC]} is the primary ordering metric.",
         environment="table*",
         placement="!t",
         raw_latex=True,
@@ -524,11 +522,15 @@ def table_cost(run: Run, rows) -> Table:
         headers=["Measurement", "LLM-Guided", "Random Search"],
         rows=table_rows,
         caption=(
-            "Cost per protein. The Random Search arm runs the same budget and pipeline "
-            "with lever values from a non-LLM policy."
+            rf"Cost per protein on \textit{{{_species(run)}}} at {run.replica_count} "
+            rf"digestion replicas ($n={run.n}$ proteins). The Random Search arm runs "
+            "the same budget and pipeline with lever values from a non-LLM policy."
         ),
         label="tab:cost",
-        notes=rf"LLM-Guided/Random Search time ratio: {fmt(ratio, 2)}$\times$.",
+        notes=(
+            rf"Time ratio {fmt(ratio, 2)}$\times$. Wall clock covers the full "
+            r"per-protein pipeline, including the PLM scoring both arms share."
+        ),
         placement="!t",
         raw_latex=True,
     )
@@ -580,6 +582,8 @@ def config_table_tex(runs: list[Run]) -> str:
         f"{body}\n"
         "\\hline\n"
         "\\end{tabular}\n"
+        "\\par\\smallskip\\footnotesize{Shared by every run reported; only the five "
+        "search levers vary.}\n"
         "\\end{table}\n"
     )
 
