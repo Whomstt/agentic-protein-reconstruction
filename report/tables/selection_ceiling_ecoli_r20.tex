@@ -1,0 +1,16 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Selection ceiling. The Best Candidate column takes, per metric, the best candidate the agent had already generated, using ground truth to choose. The gap is therefore quality the run reached and then discarded - recoverable by a better selection signal alone, with no additional search. Setup: \textit{E. coli}, 20 digestion replicas.}
+  \label{tab:selection_ceiling_ecoli_r20}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Metric & LLM-Guided & Best Candidate & Gap & Samples with a gap \\
+    \midrule
+    Exact Match & 0.290 & 0.370 & +0.080 & 8/100 \\
+    Sequence Similarity & 0.577 & 0.644 & +0.067 & 44/100 \\
+    Adjacent Pair Accuracy & 0.734 & 0.783 & +0.049 & 36/100 \\
+    Longest Correct Run & 0.524 & 0.582 & +0.058 & 31/100 \\
+    Kendall Tau & 0.624 & 0.724 & +0.100 & 54/100 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

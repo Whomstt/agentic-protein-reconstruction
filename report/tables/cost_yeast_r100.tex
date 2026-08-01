@@ -1,0 +1,15 @@
+\begin{table}[!t]
+  \centering
+  \caption{Cost per protein on \textit{S. cerevisiae} at 100 digestion replicas ($n=100$ proteins). The Random Search arm runs the same budget and pipeline with lever values from a non-LLM policy.}
+  \label{tab:cost_yeast_r100}
+  \begin{tabular}{lrr}
+    \toprule
+    Measurement & LLM-Guided & Random Search \\
+    \midrule
+    LLM calls & 4.00 & 0 \\
+    LLM tokens & 6031.3 & 0 \\
+    Wall clock (s) & 60.4 & 19.3 \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{Time ratio 3.12$\times$. Wall clock covers the full per-protein pipeline, including the PLM scoring both arms share.}
+\end{table}

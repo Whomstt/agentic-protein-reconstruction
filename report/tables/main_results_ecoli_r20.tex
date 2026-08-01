@@ -1,0 +1,15 @@
+\begin{table*}[!t]
+  \centering
+  \caption{Reconstruction quality on \textit{E. coli} at 20 digestion replicas ($n=100$ proteins). Mean per protein.}
+  \label{tab:main_results_ecoli_r20}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Metric & Random Order & Fixed Settings & Random Search & LLM-Guided & Best Candidate \\
+    \midrule
+    Adjacent Pair Accuracy & 0.120 & 0.586 & 0.710 & 0.734 & 0.783 \\
+    Exact Match & 0.030 & 0.170 & 0.270 & 0.290 & 0.370 \\
+    Longest Correct Run & 0.170 & 0.422 & 0.502 & 0.524 & 0.582 \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{Adjacent Pair Accuracy is the primary ordering metric.}
+\end{table*}

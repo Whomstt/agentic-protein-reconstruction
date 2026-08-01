@@ -168,7 +168,7 @@ def build_table(runs: list[Run], by_run: dict, adjusted: dict) -> Table:
         ]
 
     return Table(
-        key="thesis_fragment_correlation",
+        key="fragment_correlation_r100",
         headers=headers,
         rows=rows,
         column_spec="ll" + "rrr" * len(runs),

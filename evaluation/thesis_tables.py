@@ -1,6 +1,12 @@
 """Publication-format LaTeX tables for the report's Results section.
 
+    python -m evaluation.thesis_tables --all
     python -m evaluation.thesis_tables --run 130726_224804_agentic
+
+Each configuration writes its own set, named and labelled for the setup it came
+from (``main_results_ecoli_r100.tex`` -> ``tab:main_results_ecoli_r100``), so all
+six sit in ``report/tables`` together. Cells are point estimates: the confidence
+intervals and their bounds live in ``analysis_report.md``.
 
 Every number is computed from that run's ``samples.jsonl``; nothing is read out
 of a generated report or CSV, and nothing is transcribed by hand. Files are
@@ -46,7 +52,6 @@ from evaluation.exports import (
     MIDRULE,
     Table,
     fmt,
-    fmt_ci,
     fmt_p,
     latex_escape,
     stamp_tables,
@@ -99,6 +104,30 @@ HOLM_FAMILY_SIZE = len(METRIC_KEYS)
 
 # Species names for the configuration table; the configs carry short keys.
 SPECIES = {"ecoli": "E. coli", "yeast": "S. cerevisiae"}
+
+
+def _point(interval) -> str:
+    """The mean alone. Confidence intervals are computed and reported in
+    ``analysis_report.md``; the report's tables print point estimates only."""
+    if interval is None:
+        return "n/a"
+    data = interval if isinstance(interval, dict) else interval.as_dict()
+    return fmt(data.get("point"), PLACES)
+
+
+def run_suffix(run: Run) -> str:
+    """The per-setup filename/label suffix, e.g. ``_ecoli_r100``.
+
+    Every configuration in the grid writes its own tables, so a name has to say
+    which organism and replica count it came from.
+    """
+    organism = (run.config.get("data") or {}).get("organism") or "run"
+    return f"_{organism}_r{run.replica_count}"
+
+
+def _setup(run: Run) -> str:
+    """'\\textit{E. coli}, 100 replicas' - the caption's setup identifier."""
+    return rf"\textit{{{_species(run)}}}, {run.replica_count} digestion replicas"
 
 
 def _species(run: Run) -> str:
@@ -217,23 +246,23 @@ def iteration_behaviour(run: Run) -> dict:
 
 
 def table_main_results(run: Run, rows, resamples) -> Table:
-    """I - the headline table: every arm, every metric, with 95% CIs."""
+    """I - the headline table: every arm, every metric."""
     arms = run.arms
     table_rows = []
     for metric in REPORTED_METRICS:
         cells = [METRIC_NAMES[metric]]
         for arm in arms:
-            cells.append(fmt_ci(metric_interval(rows, arm, metric, resamples), PLACES))
+            cells.append(_point(metric_interval(rows, arm, metric, resamples)))
         table_rows.append(cells)
 
     return Table(
-        key="thesis_main_results",
+        key="main_results",
         headers=["Metric"] + [SHORT_ARM_LABELS[a] for a in arms],
         rows=table_rows,
         caption=(
             rf"Reconstruction quality on \textit{{{_species(run)}}} at "
             rf"{run.replica_count} digestion replicas ($n={len(rows)}$ proteins). "
-            r"Mean [95\% CI]."
+            r"Mean per protein."
         ),
         label="tab:main_results",
         # The full metric family is disclosed by the paired-tests table's note,
@@ -277,25 +306,23 @@ def table_paired_tests(run: Run, rows, comparisons) -> Table:
                     label if i == 0 else "",
                     METRIC_NAMES[metric],
                     fmt(ci["point"], PLACES, signed=True),
-                    f"[{fmt(ci['low'], PLACES, signed=True)}, "
-                    f"{fmt(ci['high'], PLACES, signed=True)}]",
                     pairs,
                     fmt_p(holm["p_adjusted"]),
                 ]
             )
 
     return Table(
-        key="thesis_paired_tests",
+        key="paired_tests",
         headers=[
-            r"Comparison", r"Metric", r"Mean $\Delta$", r"95\% CI",
+            r"Comparison", r"Metric", r"Mean $\Delta$",
             r"Proteins (+/-)", r"Adjusted $p$",
         ],
         rows=table_rows,
-        column_spec="llrrrr",
+        column_spec="llrrr",
         caption=(
-            rf"Paired per-sample comparisons on \textit{{{run.organism}}} at "
-            rf"{run.replica_count} replicas ($n={len(rows)}$). Mean difference "
-            r"[95\% CI], with $p$ values Holm-corrected within each comparison."
+            rf"Paired per-sample comparisons on \textit{{{_species(run)}}} at "
+            rf"{run.replica_count} replicas ($n={len(rows)}$). Mean difference, "
+            r"with $p$ values Holm-corrected within each comparison."
         ),
         label="tab:paired_tests",
         notes=(
@@ -330,7 +357,7 @@ def table_stratification(run: Run, rows) -> Table:
         table_rows.append(cells)
 
     return Table(
-        key="thesis_stratification",
+        key="stratification",
         headers=["Fragments", "n"] + [_arm_label(run, a) for a in arms] + ["Lift"],
         rows=table_rows,
         caption=(
@@ -339,7 +366,7 @@ def table_stratification(run: Run, rows) -> Table:
             "orderings grows factorially while the evidence available at each junction "
             "does not. Lift is the mean paired per-sample difference between the "
             "LLM-Guided arm and the Random Order floor within the bin, not a difference "
-            "of two independent means."
+            rf"of two independent means. Setup: {_setup(run)}."
         ),
         label="tab:stratification",
         notes=(
@@ -349,6 +376,7 @@ def table_stratification(run: Run, rows) -> Table:
         ),
         environment="table*",
         placement="!t",
+        raw_latex=True,
     )
 
 
@@ -366,7 +394,7 @@ def table_selection_ceiling(run: Run, rows) -> Table:
         for metric in METRIC_KEYS
     ]
     return Table(
-        key="thesis_selection_ceiling",
+        key="selection_ceiling",
         headers=["Metric", "LLM-Guided", "Best Candidate", "Gap", "Samples with a gap"],
         rows=table_rows,
         caption=(
@@ -374,9 +402,11 @@ def table_selection_ceiling(run: Run, rows) -> Table:
             "candidate the agent had already generated, using ground truth to choose. "
             "The gap is "
             "therefore quality the run reached and then discarded - recoverable by a "
-            "better selection signal alone, with no additional search."
+            "better selection signal alone, with no additional search. "
+            rf"Setup: {_setup(run)}."
         ),
         label="tab:selection_ceiling",
+        raw_latex=True,
         provenance={"n_rows": gaps[PRIMARY_METRIC]["n"], "row_unit": "samples with both arms defined"},
     )
 
@@ -398,7 +428,7 @@ def table_validity_concordance(run: Run, rows) -> Table:
         ["Validity confirmed penalty", fmt(search.get("validity_confirmed_penalty"), 2)],
     ]
     return Table(
-        key="thesis_validity_concordance",
+        key="validity_concordance",
         headers=["Measurement", "Value"],
         rows=table_rows,
         caption=(
@@ -407,8 +437,9 @@ def table_validity_concordance(run: Run, rows) -> Table:
             f"agrees with their true {METRIC_NAMES[PRIMARY_METRIC]} ordering, across the "
             "iterations that sample tried. 0.50 is a coin flip. Since the run keeps "
             "whichever candidate scores best on this signal, its concordance bounds what "
-            "the search can deliver."
+            rf"the search can deliver. Setup: {_setup(run)}."
         ),
+        raw_latex=True,
         label="tab:validity_concordance",
         provenance={
             "n_rows": concordance["n_samples"],
@@ -453,7 +484,7 @@ def table_agent_behaviour(run: Run, rows) -> Table:
         table_rows.append([f"{lever} values chosen", spread or "n/a"])
 
     return Table(
-        key="thesis_agent_behaviour",
+        key="agent_behaviour",
         headers=["Measurement", "Value"],
         rows=table_rows,
         caption=(
@@ -461,9 +492,10 @@ def table_agent_behaviour(run: Run, rows) -> Table:
             "records. Iteration 1 runs the fixed default levers with no LLM call, so "
             "lever-change rates are taken over the LLM-driven iterations only. 'Kept "
             "candidate came from iteration 1' is the share of proteins on which no later "
-            "attempt displaced that deterministic first pass."
+            rf"attempt displaced that deterministic first pass. Setup: {_setup(run)}."
         ),
         label="tab:agent_behaviour",
+        raw_latex=True,
         notes=(
             "A lever counts as changed when it differs from the previous iteration's "
             "value. Percentages of LLM iterations use the total across all proteins as "
@@ -483,16 +515,18 @@ def table_error_taxonomy(run: Run, rows) -> Table:
         if counts.get(key)
     ]
     return Table(
-        key="thesis_error_taxonomy",
+        key="error_taxonomy",
         headers=["Failure mode", "Proteins", "Share"],
         rows=table_rows,
         caption=(
             "Error taxonomy of the LLM-Guided arm's reconstructions. Each protein falls in "
             "exactly one class, checked most-specific first, and classified from the "
             "stored metric values (which were computed with the correct fragment-string "
-            "semantics rather than recounted from fragment indices)."
+            "semantics rather than recounted from fragment indices). "
+            rf"Setup: {_setup(run)}."
         ),
         label="tab:error_taxonomy",
+        raw_latex=True,
         notes=(
             "The cut points separating these classes are disclosed, untuned round "
             "numbers; they change only how a failure is labelled, never any headline "
@@ -518,7 +552,7 @@ def table_cost(run: Run, rows) -> Table:
         ["Wall clock (s)", fmt(agentic_seconds, 1), fmt(control_seconds, 1)],
     ]
     return Table(
-        key="thesis_cost",
+        key="cost",
         headers=["Measurement", "LLM-Guided", "Random Search"],
         rows=table_rows,
         caption=(
@@ -597,19 +631,19 @@ def _model_short(name) -> str:
 
 # The registry. Adding or removing a thesis table is one entry here.
 BUILDERS = (
-    ("thesis_main_results", lambda run, rows, ctx: table_main_results(run, rows, ctx["resamples"])),
-    ("thesis_paired_tests", lambda run, rows, ctx: table_paired_tests(run, rows, ctx["comparisons"])),
-    ("thesis_stratification", lambda run, rows, ctx: table_stratification(run, rows)),
-    ("thesis_selection_ceiling", lambda run, rows, ctx: table_selection_ceiling(run, rows)),
-    ("thesis_validity_concordance", lambda run, rows, ctx: table_validity_concordance(run, rows)),
-    ("thesis_agent_behaviour", lambda run, rows, ctx: table_agent_behaviour(run, rows)),
-    ("thesis_error_taxonomy", lambda run, rows, ctx: table_error_taxonomy(run, rows)),
-    ("thesis_cost", lambda run, rows, ctx: table_cost(run, rows)),
+    ("main_results", lambda run, rows, ctx: table_main_results(run, rows, ctx["resamples"])),
+    ("paired_tests", lambda run, rows, ctx: table_paired_tests(run, rows, ctx["comparisons"])),
+    ("stratification", lambda run, rows, ctx: table_stratification(run, rows)),
+    ("selection_ceiling", lambda run, rows, ctx: table_selection_ceiling(run, rows)),
+    ("validity_concordance", lambda run, rows, ctx: table_validity_concordance(run, rows)),
+    ("agent_behaviour", lambda run, rows, ctx: table_agent_behaviour(run, rows)),
+    ("error_taxonomy", lambda run, rows, ctx: table_error_taxonomy(run, rows)),
+    ("cost", lambda run, rows, ctx: table_cost(run, rows)),
 )
 
 # Tables that need an arm the run may not have produced.
 REQUIRES_ARM = {
-    "thesis_selection_ceiling": "oracle",
+    "selection_ceiling": "oracle",
 }
 
 
@@ -625,15 +659,18 @@ def _sibling_runs(run: Run, results_root: Path) -> list[Run]:
 
 def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
                  results_root: Path = RESULTS_ROOT, quiet: bool = False,
-                 only: tuple[str, ...] | None = None, suffix: str = "") -> list[Path]:
+                 only: tuple[str, ...] | None = None, suffix: str = "auto") -> list[Path]:
     """Compute and write thesis tables for one run.
 
     ``only`` restricts the build to those table keys; ``suffix`` is appended to
-    each table's filename and LaTeX label so a second run's tables (a different
-    organism, say) can sit in the same directory and be \\input into the same
-    document without colliding on either.
+    each table's filename and LaTeX label so every configuration's tables can sit
+    in the same directory and be \\input into the same document without colliding
+    on either. The default ``"auto"`` derives it from the run itself
+    (``_ecoli_r100``); pass ``""`` for unsuffixed names.
     """
     run = load_run(run_dir)
+    if suffix == "auto":
+        suffix = run_suffix(run)
     rows = sample_rows(run)
     comparisons = paired_comparisons(run, rows)
     ctx = {"resamples": resamples, "comparisons": comparisons}
@@ -652,7 +689,7 @@ def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
         if needed and needed not in run.arms:
             skipped.append(f"{key} (run has no {needed} arm)")
             continue
-        if key == "thesis_paired_tests" and not comparisons:
+        if key == "paired_tests" and not comparisons:
             skipped.append(f"{key} (run has no paired baseline arm)")
             continue
         table = builder(run, rows, ctx)
@@ -670,9 +707,9 @@ def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
         source_file=f"results/{run.path.name}/samples.jsonl",
     )
     # Camera-ready: no provenance comments in the files the report inputs. The
-    # index always merges, so neither a partial build nor a later full one drops
-    # tables built for another run (a second organism's suffixed variants).
-    partial = bool(only or suffix)
+    # index always merges, so building one configuration's tables never drops
+    # another configuration's from it.
+    partial = bool(only)
     paths = write_tables_tex(
         tables, out_dir, comments=False,
         extra_inputs=[] if partial else ["config_table"],
@@ -701,7 +738,11 @@ def main(argv=None) -> int:
             "run's samples.jsonl. No GPU, no model loading, no network."
         ),
     )
-    parser.add_argument("--run", required=True, help="run folder under results/ (or a path)")
+    parser.add_argument("--run", help="run folder under results/ (or a path)")
+    parser.add_argument(
+        "--all", action="store_true",
+        help="build tables for every run under results/, one suffixed set per configuration",
+    )
     parser.add_argument("--out", default=str(DEFAULT_OUT), help=f"output directory (default {DEFAULT_OUT})")
     parser.add_argument("--results-root", default=str(RESULTS_ROOT))
     parser.add_argument(
@@ -713,30 +754,42 @@ def main(argv=None) -> int:
         help="comma-separated table keys to build (default: all)",
     )
     parser.add_argument(
-        "--suffix", default="",
+        "--suffix", default="auto",
         help=(
-            "appended to each table's filename and LaTeX label, so a second run's "
-            "tables can coexist (e.g. --suffix _yeast -> tab:main_results_yeast)"
+            "appended to each table's filename and LaTeX label so configurations "
+            "coexist; 'auto' (default) derives it from the run, e.g. _ecoli_r100 -> "
+            "tab:main_results_ecoli_r100. Pass '' for unsuffixed names."
         ),
     )
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args(argv)
 
     root = Path(args.results_root)
-    run_dir = Path(args.run) if Path(args.run).exists() else root / args.run
-    if not (run_dir / "samples.jsonl").exists():
-        print(f"No samples.jsonl under {run_dir}")
-        return 1
+    if args.all:
+        run_dirs = [p for p in sorted(root.iterdir()) if (p / "samples.jsonl").exists()]
+        if not run_dirs:
+            print(f"No runs with samples.jsonl under {root}")
+            return 1
+    else:
+        if not args.run:
+            print("Pass --run <folder> or --all")
+            return 1
+        run_dir = Path(args.run) if Path(args.run).exists() else root / args.run
+        if not (run_dir / "samples.jsonl").exists():
+            print(f"No samples.jsonl under {run_dir}")
+            return 1
+        run_dirs = [run_dir]
 
-    build_tables(
-        run_dir,
-        Path(args.out),
-        resamples=args.resamples,
-        results_root=root,
-        quiet=args.quiet,
-        only=tuple(k.strip() for k in args.only.split(",") if k.strip()) or None,
-        suffix=args.suffix,
-    )
+    for run_dir in run_dirs:
+        build_tables(
+            run_dir,
+            Path(args.out),
+            resamples=args.resamples,
+            results_root=root,
+            quiet=args.quiet,
+            only=tuple(k.strip() for k in args.only.split(",") if k.strip()) or None,
+            suffix=args.suffix,
+        )
     return 0
 
 

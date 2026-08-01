@@ -1,7 +1,7 @@
 \begin{table*}[!t]
   \centering
-  \caption{Adjacent Pair Accuracy by fragment count. Difficulty scales with how many pieces a protein was digested into: the number of possible orderings grows factorially while the evidence available at each junction does not. Lift is the mean paired per-sample difference between the LLM-Guided arm and the Random Order floor within the bin, not a difference of two independent means.}
-  \label{tab:stratification}
+  \caption{Adjacent Pair Accuracy by fragment count. Difficulty scales with how many pieces a protein was digested into: the number of possible orderings grows factorially while the evidence available at each junction does not. Lift is the mean paired per-sample difference between the LLM-Guided arm and the Random Order floor within the bin, not a difference of two independent means. Setup: \textit{E. coli}, 100 digestion replicas.}
+  \label{tab:stratification_ecoli_r100}
   \begin{tabular}{lrrrrrr}
     \toprule
     Fragments & n & Random Order & Fixed Settings & Random Search (no LLM) & LLM-Guided & Lift \\

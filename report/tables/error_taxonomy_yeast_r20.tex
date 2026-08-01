@@ -1,0 +1,16 @@
+\begin{table}[htbp]
+  \centering
+  \caption{Error taxonomy of the LLM-Guided arm's reconstructions. Each protein falls in exactly one class, checked most-specific first, and classified from the stored metric values (which were computed with the correct fragment-string semantics rather than recounted from fragment indices). Setup: \textit{S. cerevisiae}, 20 digestion replicas.}
+  \label{tab:error_taxonomy_yeast_r20}
+  \begin{tabular}{lrr}
+    \toprule
+    Failure mode & Proteins & Share \\
+    \midrule
+    Exact reconstruction & 16 & 16.0\% \\
+    Local transposition & 1 & 1.0\% \\
+    Wrong start (structured, misanchored) & 9 & 9.0\% \\
+    Partial assembly (correct start) & 74 & 74.0\% \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{The cut points separating these classes are disclosed, untuned round numbers; they change only how a failure is labelled, never any headline metric.}
+\end{table}

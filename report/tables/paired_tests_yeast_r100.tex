@@ -1,0 +1,19 @@
+\begin{table*}[!t]
+  \centering
+  \caption{Paired per-sample comparisons on \textit{S. cerevisiae} at 100 replicas ($n=100$). Mean difference, with $p$ values Holm-corrected within each comparison.}
+  \label{tab:paired_tests_yeast_r100}
+  \begin{tabular}{llrrr}
+    \toprule
+    Comparison & Metric & Mean $\Delta$ & Proteins (+/-) & Adjusted $p$ \\
+    \midrule
+    LLM-Guided $-$ Random Search & Adjacent Pair Accuracy & +0.024 & 48 (33/15) & 0.007 \\
+     & Exact Match & +0.000 & 0 (0/0) & 1.000 \\
+     & Longest Correct Run & +0.017 & 34 (22/12) & 0.245 \\
+    \midrule
+    LLM-Guided $-$ Fixed Settings & Adjacent Pair Accuracy & +0.108 & 69 (63/6) & $<$0.001 \\
+     & Exact Match & +0.100 & 10 (10/0) & 0.004 \\
+     & Longest Correct Run & +0.082 & 57 (42/15) & $<$0.001 \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{Proteins: discordant pairs (LLM-Guided-only/baseline-only) for Exact Match, non-zero differences (positive/negative) otherwise. The Holm adjustment covers the 5 metrics computed, not only the 3 shown.}
+\end{table*}

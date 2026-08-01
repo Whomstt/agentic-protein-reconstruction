@@ -1,0 +1,15 @@
+\begin{table}[!t]
+  \centering
+  \caption{Cost per protein on \textit{E. coli} at 5 digestion replicas ($n=100$ proteins). The Random Search arm runs the same budget and pipeline with lever values from a non-LLM policy.}
+  \label{tab:cost_ecoli_r5}
+  \begin{tabular}{lrr}
+    \toprule
+    Measurement & LLM-Guided & Random Search \\
+    \midrule
+    LLM calls & 4.00 & 0 \\
+    LLM tokens & 5960.0 & 0 \\
+    Wall clock (s) & 37.8 & 5.8 \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{Time ratio 6.49$\times$. Wall clock covers the full per-protein pipeline, including the PLM scoring both arms share.}
+\end{table}

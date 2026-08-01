@@ -67,12 +67,12 @@ reconstruction process, and its respective decision-making process to produce a 
 \section{Literature Review}
 
 \subsection{Methodology for Paper Selection}
-Papers suitable for this research paper were obtained through searching keywords including
-"protein language models", "de novo protein reconstruction", "agentic AI proteomics", and similar on Google Scholar.
-Additionally some of my references include suggestions from my capstone supervisors Enda Howley and Florence Abram,
+Papers suitable for this research paper were obtained through searching keywords on Google Scholar including
+"protein language models", "de novo protein reconstruction", "agentic AI proteomics", and similar.
+Additionally, some of my references include suggestions from my capstone supervisors Enda Howley and Florence Abram,
 whom have previously worked heavily in this domain.
-Relevant papers were selected based on the value they added to the conversation and their diverse
-coverage of topics. Additionally, an aim for $\sim$10 papers to be included in this section was to abide by the provided capstone guidelines.
+Relevant papers for the literature review were selected based on the value they added to the conversation and their diverse
+coverage of topics to meet the target of $\sim$10 papers indicated by the capstone guidelines.
 
 \subsection{Proteins, Peptides and Proteomics}
 Proteins are made up of chains of amino acids, often formed from smaller peptides with the complete set
@@ -450,9 +450,13 @@ It is evident from the clock time that the cost of the LLM-Guided setup is much 
 than that of the random search, with the intermediary LLM calls between iterations resulting
 in ~5x more time to compute for reconstructions than the random search approach.
 
-\input{tables/thesis_main_results}
-\input{tables/thesis_main_results_yeast}
-\input{tables/thesis_cost}
+\input{tables/main_results_ecoli_r100}
+\input{tables/main_results_ecoli_r20}
+\input{tables/main_results_ecoli_r5}
+\input{tables/main_results_yeast_r100}
+\input{tables/main_results_yeast_r20}
+\input{tables/main_results_yeast_r5}
+\input{tables/cost_ecoli_r100}
 \begin{figure*}[!t]
   \centering
   \includegraphics[width=\textwidth]{./images/fragment_correlation.png}
@@ -475,6 +479,12 @@ produce better candidates. It should also be considered that more tools and furt
 are more noisy would likely see the LLM outshine any random search with the same number of iterations.
 \section{Discussion}
 The discussion goes here.
+future directions:
+- folding models as validity signal
+- more iterations
+- more tools and signals
+- try more PLMs
+- mixed sequences
 \subsection{Interpretation of Results}
 Subsection text here.
 \subsection{Challenges and Limitations}

@@ -21,6 +21,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 RUN = "130726_224804_agentic"
+# Each configuration writes its own suffixed set of tables; this run is the
+# E. coli, 100-replica one, so its files are <table>_ecoli_r100.tex.
+SUFFIX = "_ecoli_r100"
 SAMPLES = ROOT / "results" / RUN / "samples.jsonl"
 TABLES = ROOT / "report" / "tables"
 
@@ -39,7 +42,7 @@ def load():
 
 
 def tex(name: str) -> str:
-    return (TABLES / f"{name}.tex").read_text(encoding="utf-8")
+    return (TABLES / f"{name}{SUFFIX}.tex").read_text(encoding="utf-8")
 
 
 def parse_table(name: str):
@@ -69,7 +72,7 @@ def paired_blocks():
     """The paired table as one list of cell-lists per comparison, split on the
     rule between the two comparisons. Its rows cannot be keyed by their first
     cell: the comparison label is printed once per block."""
-    lines = tex("thesis_paired_tests").splitlines()
+    lines = tex("paired_tests").splitlines()
     start = lines.index(r"    \midrule")
     end = lines.index(r"    \bottomrule")
     blocks, current = [], []
@@ -162,68 +165,62 @@ class ThesisTableTest(unittest.TestCase):
             f"{actual!r}, independently computed {expected!r}",
         )
 
-    def assertCellStartsWith(self, table, row_label, column, expected, what):
-        """For a cell of the form 'point [low, high]' whose interval is a BCa
-        bootstrap: the point estimate is recomputed here, the interval bounds are
-        not (reimplementing BCa would not be an independent check of it)."""
-        _, rows = parse_table(table)
-        actual = rows[row_label][column]
-        self.assertTrue(
-            actual.startswith(expected + " ["),
-            f"{what}: {table}.tex row {row_label!r} column {column!r} prints "
-            f"{actual!r}, independently computed point estimate {expected!r}",
-        )
-
     # --- I. main results --------------------------------------------------
     def test_main_results(self):
         s = self.samples
-        self.assertCellStartsWith(
-            "thesis_main_results",
+        self.assertCell(
+            "main_results",
             "Adjacent Pair Accuracy",
             "LLM-Guided",
             f3(mean(values(s, "agentic", "adjacent_pair_acc"))),
             "LLM-Guided Adjacent Pair Accuracy",
         )
-        self.assertCellStartsWith(
-            "thesis_main_results",
+        self.assertCell(
+            "main_results",
             "Longest Correct Run",
             "Fixed Settings",
             f3(mean(values(s, "deterministic", "longest_correct_run"))),
             "Fixed Settings Longest Correct Run",
         )
-        self.assertCellStartsWith(
-            "thesis_main_results",
+        self.assertCell(
+            "main_results",
             "Adjacent Pair Accuracy",
             "Random Order",
             f3(mean(values(s, "shuffled", "adjacent_pair_acc"))),
             "Random Order Adjacent Pair Accuracy",
         )
-        self.assertCellStartsWith(
-            "thesis_main_results",
+        self.assertCell(
+            "main_results",
             "Longest Correct Run",
             "Random Search",
             f3(mean(values(s, "control", "longest_correct_run"))),
             "Random Search Longest Correct Run",
         )
-        # The Wilson interval for Exact Match, reimplemented from its closed form.
+        # Exact Match is a binomial rate: the share of proteins reconstructed
+        # exactly, counted here from the raw per-sample values.
         em = values(s, "agentic", "exact_match")
         successes, n = sum(1 for v in em if v >= 1.0), len(em)
-        z = 1.959963984540054  # two-sided 95%
-        p = successes / n
-        denom = 1 + z * z / n
-        center = (p + z * z / (2 * n)) / denom
-        margin = (z / denom) * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n))
         self.assertCell(
-            "thesis_main_results",
+            "main_results",
             "Exact Match",
             "LLM-Guided",
-            f"{f3(p)} [{f3(center - margin)}, {f3(center + margin)}]",
-            "LLM-Guided Exact Match, point and full Wilson interval",
+            f3(successes / n),
+            "LLM-Guided Exact Match",
         )
+
+        # No cell anywhere carries a confidence interval any more: the tables
+        # print point estimates only.
+        for name in ("main_results", "paired_tests"):
+            lines = tex(name).splitlines()
+            body = lines[lines.index(r"    \midrule") + 1 : lines.index(r"    \bottomrule")]
+            self.assertNotIn(
+                "[", "".join(body),
+                f"{name}.tex still prints an interval range",
+            )
 
         # The table prints only the three reported metrics, in this order, and
         # the two dropped ones must not reappear.
-        _, rows = parse_table("thesis_main_results")
+        _, rows = parse_table("main_results")
         self.assertEqual(
             list(rows),
             ["Adjacent Pair Accuracy", "Exact Match", "Longest Correct Run"],
@@ -235,7 +232,7 @@ class ThesisTableTest(unittest.TestCase):
         s = self.samples
         pairs = paired(s, "agentic", "control", "adjacent_pair_acc")
         self.assertInTex(
-            "thesis_paired_tests",
+            "paired_tests",
             f3s(mean([a - b for a, b in pairs])),
             "Mean delta, LLM-Guided - Random Search, Adjacent Pair Accuracy",
         )
@@ -245,7 +242,7 @@ class ThesisTableTest(unittest.TestCase):
         only_a = sum(1 for a, b in em if a >= 1.0 > b)
         only_b = sum(1 for a, b in em if b >= 1.0 > a)
         self.assertInTex(
-            "thesis_paired_tests",
+            "paired_tests",
             f"{only_a + only_b} ({only_a}/{only_b})",
             "McNemar discordant pairs, Exact Match, LLM-Guided - Random Search",
         )
@@ -262,7 +259,7 @@ class ThesisTableTest(unittest.TestCase):
         raw_p = min(1.0, 2 * tail)
         em_rows = [row for row in blocks[0] if row[1] == "Exact Match"]
         self.assertEqual(len(em_rows), 1, "one Exact Match row in the first block")
-        printed = float(em_rows[0][5])
+        printed = float(em_rows[0][4])
         self.assertGreaterEqual(round(printed, 3), round(raw_p, 3))
         self.assertLessEqual(printed, min(1.0, 5 * raw_p) + 1e-9)
 
@@ -280,7 +277,7 @@ class ThesisTableTest(unittest.TestCase):
         pos = sum(1 for d in deltas if d > 0)
         neg = sum(1 for d in deltas if d < 0)
         self.assertInTex(
-            "thesis_paired_tests",
+            "paired_tests",
             f"{len(deltas)} ({pos}/{neg})",
             "Wilcoxon non-zero pairs, Longest Correct Run, LLM-Guided - Fixed Settings",
         )
@@ -293,7 +290,7 @@ class ThesisTableTest(unittest.TestCase):
             by_bin.setdefault(frag_bin(nfrag(sample)), []).append(sample)
 
         self.assertCell(
-            "thesis_stratification", "10-19", "n", str(len(by_bin["10-19"])),
+            "stratification", "10-19", "n", str(len(by_bin["10-19"])),
             "Proteins in the 10-19 fragment bin",
         )
 
@@ -305,7 +302,7 @@ class ThesisTableTest(unittest.TestCase):
             return mean([v for v in vals if isinstance(v, (int, float)) and not math.isnan(v)])
 
         self.assertCell(
-            "thesis_stratification",
+            "stratification",
             "20-49",
             "LLM-Guided",
             f3(arm_mean("20-49", "agentic")),
@@ -319,7 +316,7 @@ class ThesisTableTest(unittest.TestCase):
             if all(isinstance(v, (int, float)) and not math.isnan(v) for v in (a, b)):
                 lifts.append(a - b)
         self.assertCell(
-            "thesis_stratification", "5-9", "Lift", f3s(mean(lifts)),
+            "stratification", "5-9", "Lift", f3s(mean(lifts)),
             "Paired lift over the Random Order floor in the 5-9 bin",
         )
 
@@ -327,7 +324,7 @@ class ThesisTableTest(unittest.TestCase):
     def test_selection_ceiling(self):
         s = self.samples
         self.assertCell(
-            "thesis_selection_ceiling",
+            "selection_ceiling",
             "Sequence Similarity",
             "Best Candidate",
             f3(mean(values(s, "oracle", "similarity"))),
@@ -335,7 +332,7 @@ class ThesisTableTest(unittest.TestCase):
         )
         tau = paired(s, "oracle", "agentic", "kendall_tau")
         self.assertCell(
-            "thesis_selection_ceiling",
+            "selection_ceiling",
             "Kendall Tau",
             "Gap",
             f3s(mean([o - a for o, a in tau])),
@@ -344,7 +341,7 @@ class ThesisTableTest(unittest.TestCase):
         apa = paired(s, "oracle", "agentic", "adjacent_pair_acc")
         with_gap = sum(1 for o, a in apa if o - a > 1e-12)
         self.assertCell(
-            "thesis_selection_ceiling",
+            "selection_ceiling",
             "Adjacent Pair Accuracy",
             "Samples with a gap",
             f"{with_gap}/{len(apa)}",
@@ -385,21 +382,21 @@ class ThesisTableTest(unittest.TestCase):
                 per_sample.append(good / comparable)
 
         self.assertCell(
-            "thesis_validity_concordance",
+            "validity_concordance",
             "Samples with comparable candidate pairs",
             "Value",
             str(len(per_sample)),
             "Number of samples with comparable candidates",
         )
         self.assertCell(
-            "thesis_validity_concordance",
+            "validity_concordance",
             "Comparable candidate pairs",
             "Value",
             str(total_pairs),
             "Total comparable candidate pairs",
         )
         self.assertCell(
-            "thesis_validity_concordance",
+            "validity_concordance",
             "Mean within-sample concordance",
             "Value",
             f3(mean(per_sample)),
@@ -407,7 +404,7 @@ class ThesisTableTest(unittest.TestCase):
         )
         above = sum(1 for c in per_sample if c > 0.5)
         self.assertCell(
-            "thesis_validity_concordance",
+            "validity_concordance",
             "Samples above chance ($>$ 0.50)",
             "Value",
             f"{above}/{len(per_sample)} ({100.0 * above / len(per_sample):.1f}\\%)",
@@ -424,7 +421,7 @@ class ThesisTableTest(unittest.TestCase):
             if r.get("llm_call")
         )
         self.assertCell(
-            "thesis_agent_behaviour",
+            "agent_behaviour",
             "LLM-driven iterations (total)",
             "Value",
             str(llm_iters),
@@ -434,7 +431,7 @@ class ThesisTableTest(unittest.TestCase):
         first = sum(1 for sample in s if sample.get("best_iteration") == 1)
         known = sum(1 for sample in s if isinstance(sample.get("best_iteration"), int))
         self.assertCell(
-            "thesis_agent_behaviour",
+            "agent_behaviour",
             "Kept candidate came from iteration 1",
             "Value",
             f"{first}/{known} ({100.0 * first / known:.1f}\\%)",
@@ -448,7 +445,7 @@ class ThesisTableTest(unittest.TestCase):
             if r.get("llm_call") and "junction_window" in (r.get("changed_levers") or {})
         )
         self.assertCell(
-            "thesis_agent_behaviour",
+            "agent_behaviour",
             "Changed junction\\_window (share of LLM iterations)",
             "Value",
             f"{100.0 * changed_window / llm_iters:.1f}\\%",
@@ -463,7 +460,7 @@ class ThesisTableTest(unittest.TestCase):
                     modes[value] = modes.get(value, 0) + 1
         total = sum(modes.values())
         self.assertCell(
-            "thesis_agent_behaviour",
+            "agent_behaviour",
             "search\\_mode values chosen",
             "Value",
             f"beam {100.0 * modes['beam'] / total:.1f}\\%, "
@@ -504,15 +501,15 @@ class ThesisTableTest(unittest.TestCase):
 
         total = sum(counts.values())
         self.assertCell(
-            "thesis_error_taxonomy", "Exact reconstruction", "Proteins",
+            "error_taxonomy", "Exact reconstruction", "Proteins",
             str(counts["exact"]), "Count of exact reconstructions",
         )
         self.assertCell(
-            "thesis_error_taxonomy", "Local transposition", "Proteins",
+            "error_taxonomy", "Local transposition", "Proteins",
             str(counts["local_transposition"]), "Count of local transpositions",
         )
         self.assertCell(
-            "thesis_error_taxonomy", "Exact reconstruction", "Share",
+            "error_taxonomy", "Exact reconstruction", "Share",
             f"{100.0 * counts['exact'] / total:.1f}\\%",
             "Share of exact reconstructions",
         )
@@ -524,25 +521,25 @@ class ThesisTableTest(unittest.TestCase):
         calls = sum(x.get("llm_calls") or 0 for x in s)
         tokens = sum(x.get("llm_tokens") or 0 for x in s)
         self.assertCell(
-            "thesis_cost", "LLM calls", "LLM-Guided", f"{calls / n:.2f}",
+            "cost", "LLM calls", "LLM-Guided", f"{calls / n:.2f}",
             "LLM calls per protein",
         )
         self.assertCell(
-            "thesis_cost", "LLM tokens", "LLM-Guided", f"{tokens / n:.1f}",
+            "cost", "LLM tokens", "LLM-Guided", f"{tokens / n:.1f}",
             "LLM tokens per protein",
         )
         agentic = sum(x.get("agentic_duration_seconds") or 0 for x in s) / n
         control = sum(x.get("control_duration_seconds") or 0 for x in s) / n
         self.assertCell(
-            "thesis_cost", "Wall clock (s)", "LLM-Guided", f"{agentic:.1f}",
+            "cost", "Wall clock (s)", "LLM-Guided", f"{agentic:.1f}",
             "LLM-Guided wall clock per protein",
         )
         self.assertCell(
-            "thesis_cost", "Wall clock (s)", "Random Search", f"{control:.1f}",
+            "cost", "Wall clock (s)", "Random Search", f"{control:.1f}",
             "Random Search wall clock per protein",
         )
         self.assertInTex(
-            "thesis_cost", f"{agentic / control:.2f}$\\times$",
+            "cost", f"{agentic / control:.2f}$\\times$",
             "LLM-Guided / Random Search wall-clock ratio",
         )
 

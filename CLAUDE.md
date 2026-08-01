@@ -257,7 +257,11 @@ finished run.
 - `evaluation/exports.py` / `figures.py` — CSV and booktabs LaTeX from shared row
   data, and the figure house style.
 - `evaluation/thesis_tables.py` — the report's Results tables
-  (`python -m evaluation.thesis_tables --run <folder>` → `report/tables/*.tex`).
+  (`python -m evaluation.thesis_tables --all` → `report/tables/*.tex`, one set per
+  run; `--run <folder>` for a single configuration). Filenames and LaTeX labels
+  carry an auto-derived per-setup suffix (`main_results_ecoli_r100.tex` →
+  `tab:main_results_ecoli_r100`), so all six configurations coexist. Cells are
+  point estimates only — confidence intervals stay in `analysis_report.md`.
   A composition layer: intervals and paired tests are imported from
   `evaluation/rebuild.py`, aggregations from `analysis.py`, rendering from
   `exports.py`, so these tables and `analysis_report.md` cannot disagree. Files
@@ -305,7 +309,7 @@ python -m evaluation.sequential       # deterministic baseline only
 python -m evaluation.agentic          # agentic evaluation only
 python -m evaluation.junction_ranking # search-independent junction-ranking check
 python -m evaluation.rebuild --all    # regenerate reports/CSVs/tables/figures
-python -m evaluation.thesis_tables --run <folder>   # report/tables/*.tex
+python -m evaluation.thesis_tables --all            # report/tables/*.tex, all setups
 
 python tests/test_stats.py            # stdlib unittest; pytest is not a dependency
 python tests/test_analysis.py
