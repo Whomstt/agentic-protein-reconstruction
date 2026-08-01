@@ -1,0 +1,113 @@
+{
+  "run_name": "Agentic Evaluation (Yeast, esm_small, r100)",
+  "config": {
+    "misc": {
+      "seed": 42,
+      "device": "cuda"
+    },
+    "run": {
+      "method": "agentic",
+      "calling_mode": "single_call",
+      "iteration1_deterministic": true
+    },
+    "mlm_model": {
+      "profile": "esm_small",
+      "type": "esm",
+      "name": "facebook/esm2_t6_8M_UR50D",
+      "batch_size": 64,
+      "max_length": 1024
+    },
+    "validity_model": {
+      "name": "facebook/esm2_t6_8M_UR50D",
+      "batch_size": 64,
+      "max_length": 1024
+    },
+    "llm_model": {
+      "name": "gpt-5-mini",
+      "sampling": {
+        "temperature": null,
+        "top_p": null,
+        "top_k": null,
+        "seed": 42,
+        "reasoning_effort": "low",
+        "verbosity": "low"
+      }
+    },
+    "search": {
+      "max_iterations": 5,
+      "early_stop_patience": 5,
+      "default_beam_width": 25,
+      "default_junction_window": 1
+    },
+    "data": {
+      "organism": "yeast",
+      "organism_display_name": "Yeast",
+      "test_samples": 100,
+      "replica_count": 100,
+      "missed_cleavage_ratio": 0.3,
+      "active_fragmented_split": "data/yeast/fragmented_yeast.jsonl"
+    }
+  },
+  "sample_count": 100,
+  "avg_pruned": 5.018607495599881,
+  "baseline_averages": {
+    "exact_match": 0.0,
+    "similarity": 0.21278215546998738,
+    "adjacent_pair_acc": 0.05020922676613463,
+    "longest_correct_run": 0.0937270257508393,
+    "kendall_tau": -0.030815661816220637
+  },
+  "first_pass_averages": {
+    "exact_match": 0.16,
+    "similarity": 0.5094978151119698,
+    "adjacent_pair_acc": 0.7034467146192706,
+    "longest_correct_run": 0.44792439127012534,
+    "kendall_tau": 0.5004590020674343
+  },
+  "recon_averages": {
+    "exact_match": 0.26,
+    "similarity": 0.5473613246363237,
+    "adjacent_pair_acc": 0.8117605096676427,
+    "longest_correct_run": 0.5296980258081047,
+    "kendall_tau": 0.6240747661707043
+  },
+  "control_averages": {
+    "exact_match": 0.26,
+    "similarity": 0.5484838863165337,
+    "adjacent_pair_acc": 0.7876304598599886,
+    "longest_correct_run": 0.5127859170391671,
+    "kendall_tau": 0.5983615184549641
+  },
+  "control_policy": "random",
+  "oracle_averages": {
+    "exact_match": 0.35,
+    "similarity": 0.6473767699025692,
+    "adjacent_pair_acc": 0.8545520061033226,
+    "longest_correct_run": 0.6226025780121252,
+    "kendall_tau": 0.7327997432155161
+  },
+  "delta": {
+    "exact_match": 0.26,
+    "similarity": 0.33457916916633634,
+    "adjacent_pair_acc": 0.7615512829015081,
+    "longest_correct_run": 0.43597100005726536,
+    "kendall_tau": 0.654890427986925
+  },
+  "cost_summary": {
+    "total_llm_calls": 400,
+    "total_llm_tokens": 603129,
+    "avg_llm_calls_per_sample": 4.0,
+    "avg_llm_tokens_per_sample": 6031.29,
+    "avg_seconds_per_sample": 80.00870076179504,
+    "avg_agentic_seconds_per_sample": 60.35542431354523,
+    "completed_samples": 100,
+    "llm_failures": 0,
+    "true_order_recovered": 99,
+    "control_enabled": true,
+    "control_policy": "random",
+    "control_llm_calls": 0,
+    "avg_control_seconds_per_sample": 19.340002052783966
+  },
+  "duration_seconds": 8000.870076179504,
+  "samples_note": "Per-sample records live in samples.jsonl.gz."
+}

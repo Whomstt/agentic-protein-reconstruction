@@ -1,0 +1,901 @@
+run_dir,run_name,organism,replica_count,n_samples,fragment_bin,arm,metric,metric_label,n_in_bin,n_usable,mean,lift_over_shuffled,shuffled_mean
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,shuffled,exact_match,Exact Match,3,3,0.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,shuffled,exact_match,Exact Match,20,20,0.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,shuffled,exact_match,Exact Match,39,39,0.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,shuffled,exact_match,Exact Match,28,28,0.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,shuffled,exact_match,Exact Match,9,9,0.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,deterministic,exact_match,Exact Match,3,3,1.0,1.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,deterministic,exact_match,Exact Match,20,20,0.7,0.7,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,deterministic,exact_match,Exact Match,39,39,0.23076923076923078,0.23076923076923078,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,deterministic,exact_match,Exact Match,28,28,0.17857142857142858,0.17857142857142858,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,deterministic,exact_match,Exact Match,9,9,0.0,0.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,control,exact_match,Exact Match,3,3,1.0,1.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,control,exact_match,Exact Match,20,20,0.75,0.75,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,control,exact_match,Exact Match,39,39,0.38461538461538464,0.38461538461538464,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,control,exact_match,Exact Match,28,28,0.21428571428571427,0.21428571428571427,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,control,exact_match,Exact Match,9,9,0.0,0.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,agentic,exact_match,Exact Match,3,3,1.0,1.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,agentic,exact_match,Exact Match,20,20,0.75,0.75,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,agentic,exact_match,Exact Match,39,39,0.4358974358974359,0.4358974358974359,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,agentic,exact_match,Exact Match,28,28,0.35714285714285715,0.35714285714285715,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,agentic,exact_match,Exact Match,9,9,0.0,0.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,oracle,exact_match,Exact Match,3,3,1.0,1.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,oracle,exact_match,Exact Match,20,20,0.9,0.9,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,oracle,exact_match,Exact Match,39,39,0.7435897435897436,0.7435897435897436,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,oracle,exact_match,Exact Match,28,28,0.4642857142857143,0.4642857142857143,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,oracle,exact_match,Exact Match,9,9,0.0,0.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,shuffled,similarity,Sequence Similarity,3,3,0.6904761904761906,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,shuffled,similarity,Sequence Similarity,20,20,0.6357713915686202,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,shuffled,similarity,Sequence Similarity,39,39,0.2593206565773678,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,shuffled,similarity,Sequence Similarity,28,28,0.09327896498130013,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,shuffled,similarity,Sequence Similarity,9,9,0.041032540100440267,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,deterministic,similarity,Sequence Similarity,3,3,1.0,0.3095238095238095,0.6904761904761906
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,deterministic,similarity,Sequence Similarity,20,20,0.9537766223297405,0.3180052307611203,0.6357713915686202
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,deterministic,similarity,Sequence Similarity,39,39,0.6985054472891571,0.43918479071178934,0.2593206565773678
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,deterministic,similarity,Sequence Similarity,28,28,0.4671839320158683,0.3739049670345681,0.09327896498130013
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,deterministic,similarity,Sequence Similarity,9,9,0.26345477987885846,0.22242223977841816,0.041032540100440267
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,control,similarity,Sequence Similarity,3,3,1.0,0.3095238095238095,0.6904761904761906
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,control,similarity,Sequence Similarity,20,20,0.9651734921532397,0.32940210058461944,0.6357713915686202
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,control,similarity,Sequence Similarity,39,39,0.7845686601471934,0.5252480035698256,0.2593206565773678
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,control,similarity,Sequence Similarity,28,28,0.5031281612806797,0.4098491962993796,0.09327896498130013
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,control,similarity,Sequence Similarity,9,9,0.3164785205657027,0.2754459804652624,0.041032540100440267
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,agentic,similarity,Sequence Similarity,3,3,1.0,0.3095238095238095,0.6904761904761906
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,agentic,similarity,Sequence Similarity,20,20,0.9651734921532397,0.32940210058461944,0.6357713915686202
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,agentic,similarity,Sequence Similarity,39,39,0.8365164080787496,0.5771957515013817,0.2593206565773678
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,agentic,similarity,Sequence Similarity,28,28,0.6040238735865279,0.5107449086052277,0.09327896498130013
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,agentic,similarity,Sequence Similarity,9,9,0.40762313591495053,0.3665905958145103,0.041032540100440267
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,oracle,similarity,Sequence Similarity,3,3,1.0,0.3095238095238095,0.6904761904761906
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,oracle,similarity,Sequence Similarity,20,20,0.9924788979136805,0.3567075063450603,0.6357713915686202
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,oracle,similarity,Sequence Similarity,39,39,0.908469244815304,0.6491485882379362,0.2593206565773678
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,oracle,similarity,Sequence Similarity,28,28,0.7883704732025578,0.6950915082212578,0.09327896498130013
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,oracle,similarity,Sequence Similarity,9,9,0.4232484855590981,0.3822159454586578,0.041032540100440267
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,shuffled,edit_similarity,Edit Similarity,3,0,,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,shuffled,edit_similarity,Edit Similarity,20,0,,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,shuffled,edit_similarity,Edit Similarity,39,0,,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,shuffled,edit_similarity,Edit Similarity,28,0,,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,shuffled,edit_similarity,Edit Similarity,9,0,,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,deterministic,edit_similarity,Edit Similarity,3,3,1.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,deterministic,edit_similarity,Edit Similarity,20,20,0.9169311248438128,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,deterministic,edit_similarity,Edit Similarity,39,39,0.7434021569467987,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,deterministic,edit_similarity,Edit Similarity,28,28,0.61162245721198,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,deterministic,edit_similarity,Edit Similarity,9,9,0.44995187356162497,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,control,edit_similarity,Edit Similarity,3,3,1.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,control,edit_similarity,Edit Similarity,20,20,0.9361534359193826,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,control,edit_similarity,Edit Similarity,39,39,0.80452166579011,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,control,edit_similarity,Edit Similarity,28,28,0.607293293003079,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,control,edit_similarity,Edit Similarity,9,9,0.4405780516844968,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,agentic,edit_similarity,Edit Similarity,3,3,1.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,agentic,edit_similarity,Edit Similarity,20,20,0.9361534359193826,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,agentic,edit_similarity,Edit Similarity,39,39,0.8456267726390411,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,agentic,edit_similarity,Edit Similarity,28,28,0.7002799847209772,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,agentic,edit_similarity,Edit Similarity,9,9,0.46994293108767987,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,oracle,edit_similarity,Edit Similarity,3,3,1.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,oracle,edit_similarity,Edit Similarity,20,20,0.984957795827361,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,oracle,edit_similarity,Edit Similarity,39,39,0.9424300679462275,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,oracle,edit_similarity,Edit Similarity,28,28,0.8399095598295615,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,oracle,edit_similarity,Edit Similarity,9,9,0.5152915276934434,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,3,3,0.0,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.13089285714285714,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,39,39,0.07065246635382383,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,28,28,0.041478568346342226,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.024826060512294777,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,3,3,1.0,1.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.894047619047619,0.7631547619047618,0.13089285714285714
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,39,39,0.7634377688676331,0.6927853025138093,0.07065246635382383
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,28,28,0.7647882421336228,0.7233096737872806,0.041478568346342226
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.7049035461614142,0.6800774856491194,0.024826060512294777
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,control,adjacent_pair_acc,Adjacent Pair Accuracy,3,3,1.0,1.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,control,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.9232142857142858,0.7923214285714286,0.13089285714285714
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,control,adjacent_pair_acc,Adjacent Pair Accuracy,39,39,0.889982110230979,0.8193296438771552,0.07065246635382383
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,control,adjacent_pair_acc,Adjacent Pair Accuracy,28,28,0.8264032365508024,0.7849246682044602,0.041478568346342226
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,control,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.7730561060500852,0.7482300455377904,0.024826060512294777
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,3,3,1.0,1.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.9169642857142858,0.7860714285714285,0.13089285714285714
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,39,39,0.8966725707675934,0.8260201044137696,0.07065246635382383
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,28,28,0.8721896848879519,0.8307111165416096,0.041478568346342226
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.7974802272698414,0.7726541667575466,0.024826060512294777
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,3,3,1.0,1.0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.975,0.8441071428571428,0.13089285714285714
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,39,39,0.9557149173099398,0.8850624509561162,0.07065246635382383
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,28,28,0.9078293991026355,0.8663508307562932,0.041478568346342226
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.8186731884066997,0.7938471278944048,0.024826060512294777
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,shuffled,longest_correct_run,Longest Correct Run,3,3,0.3611111111111111,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,shuffled,longest_correct_run,Longest Correct Run,20,20,0.2343849206349206,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,shuffled,longest_correct_run,Longest Correct Run,39,39,0.12048207552196598,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,shuffled,longest_correct_run,Longest Correct Run,28,28,0.06703975728223076,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,shuffled,longest_correct_run,Longest Correct Run,9,9,0.030317602445833362,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,deterministic,longest_correct_run,Longest Correct Run,3,3,1.0,0.638888888888889,0.3611111111111111
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,deterministic,longest_correct_run,Longest Correct Run,20,20,0.8771825396825397,0.642797619047619,0.2343849206349206
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,deterministic,longest_correct_run,Longest Correct Run,39,39,0.6133589595157826,0.49287688399381663,0.12048207552196598
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,deterministic,longest_correct_run,Longest Correct Run,28,28,0.5302660660763381,0.4632263087941073,0.06703975728223076
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,deterministic,longest_correct_run,Longest Correct Run,9,9,0.2798821571364037,0.24956455469057032,0.030317602445833362
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,control,longest_correct_run,Longest Correct Run,3,3,1.0,0.638888888888889,0.3611111111111111
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,control,longest_correct_run,Longest Correct Run,20,20,0.8930555555555555,0.6586706349206349,0.2343849206349206
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,control,longest_correct_run,Longest Correct Run,39,39,0.7253134567971434,0.6048313812751774,0.12048207552196598
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,control,longest_correct_run,Longest Correct Run,28,28,0.5446092081368088,0.4775694508545781,0.06703975728223076
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,control,longest_correct_run,Longest Correct Run,9,9,0.3106038485666988,0.28028624612086545,0.030317602445833362
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,agentic,longest_correct_run,Longest Correct Run,3,3,1.0,0.638888888888889,0.3611111111111111
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,agentic,longest_correct_run,Longest Correct Run,20,20,0.8930555555555555,0.6586706349206349,0.2343849206349206
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,agentic,longest_correct_run,Longest Correct Run,39,39,0.7508809692067611,0.6303988936847951,0.12048207552196598
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,agentic,longest_correct_run,Longest Correct Run,28,28,0.6215707617947911,0.5545310045125603,0.06703975728223076
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,agentic,longest_correct_run,Longest Correct Run,9,9,0.34896754736897667,0.3186499449231433,0.030317602445833362
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,oracle,longest_correct_run,Longest Correct Run,3,3,1.0,0.638888888888889,0.3611111111111111
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,oracle,longest_correct_run,Longest Correct Run,20,20,0.961111111111111,0.7267261904761905,0.2343849206349206
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,oracle,longest_correct_run,Longest Correct Run,39,39,0.8902934292163871,0.7698113536944211,0.12048207552196598
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,oracle,longest_correct_run,Longest Correct Run,28,28,0.7358732540821971,0.6688334967999664,0.06703975728223076
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,oracle,longest_correct_run,Longest Correct Run,9,9,0.3781253601469125,0.34780775770107913,0.030317602445833362
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,shuffled,kendall_tau,Kendall Tau,3,3,-0.3333333333333333,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,shuffled,kendall_tau,Kendall Tau,20,20,-0.030000000000000006,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,shuffled,kendall_tau,Kendall Tau,39,39,0.02080141110862711,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,shuffled,kendall_tau,Kendall Tau,28,28,0.006078999671535469,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,shuffled,kendall_tau,Kendall Tau,9,9,-0.0028041519194263323,,
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,deterministic,kendall_tau,Kendall Tau,3,3,1.0,1.3333333333333333,-0.3333333333333333
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,deterministic,kendall_tau,Kendall Tau,20,20,0.9051587301587303,0.9351587301587301,-0.030000000000000006
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,deterministic,kendall_tau,Kendall Tau,39,39,0.6354399351541529,0.6146385240455258,0.02080141110862711
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,deterministic,kendall_tau,Kendall Tau,28,28,0.5053626371077454,0.4992836374362099,0.006078999671535469
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,deterministic,kendall_tau,Kendall Tau,9,9,0.3458026810257327,0.34860683294515904,-0.0028041519194263323
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,control,kendall_tau,Kendall Tau,3,3,1.0,1.3333333333333333,-0.3333333333333333
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,control,kendall_tau,Kendall Tau,20,20,0.926984126984127,0.9569841269841269,-0.030000000000000006
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,control,kendall_tau,Kendall Tau,39,39,0.798856743796015,0.7780553326873879,0.02080141110862711
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,control,kendall_tau,Kendall Tau,28,28,0.5202154532210457,0.5141364535495102,0.006078999671535469
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,control,kendall_tau,Kendall Tau,9,9,0.3599580391228432,0.3627621910422696,-0.0028041519194263323
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,agentic,kendall_tau,Kendall Tau,3,3,1.0,1.3333333333333333,-0.3333333333333333
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,agentic,kendall_tau,Kendall Tau,20,20,0.9297619047619048,0.9597619047619048,-0.030000000000000006
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,agentic,kendall_tau,Kendall Tau,39,39,0.8470963082060964,0.8262948970974691,0.02080141110862711
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,agentic,kendall_tau,Kendall Tau,28,28,0.59761392507882,0.5915349254072846,0.006078999671535469
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,agentic,kendall_tau,Kendall Tau,9,9,0.43982127065899373,0.4426254225784201,-0.0028041519194263323
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,2-4,oracle,kendall_tau,Kendall Tau,3,3,1.0,1.3333333333333333,-0.3333333333333333
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,5-9,oracle,kendall_tau,Kendall Tau,20,20,0.9888888888888889,1.0188888888888887,-0.030000000000000006
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,10-19,oracle,kendall_tau,Kendall Tau,39,39,0.9560864567413745,0.9352850456327474,0.02080141110862711
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,20-49,oracle,kendall_tau,Kendall Tau,28,28,0.8451282082941552,0.8390492086226198,0.006078999671535469
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,50+,oracle,kendall_tau,Kendall Tau,9,9,0.46139531737189504,0.4641994692913214,-0.0028041519194263323
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,shuffled,exact_match,Exact Match,6,6,0.5,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,shuffled,exact_match,Exact Match,24,24,0.0,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,shuffled,exact_match,Exact Match,37,37,0.0,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,shuffled,exact_match,Exact Match,24,24,0.0,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,shuffled,exact_match,Exact Match,9,9,0.0,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,deterministic,exact_match,Exact Match,6,6,1.0,0.5,0.5
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,deterministic,exact_match,Exact Match,24,24,0.3333333333333333,0.3333333333333333,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,deterministic,exact_match,Exact Match,37,37,0.08108108108108109,0.08108108108108109,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,deterministic,exact_match,Exact Match,24,24,0.0,0.0,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,deterministic,exact_match,Exact Match,9,9,0.0,0.0,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,control,exact_match,Exact Match,6,6,1.0,0.5,0.5
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,control,exact_match,Exact Match,24,24,0.5,0.5,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,control,exact_match,Exact Match,37,37,0.21621621621621623,0.21621621621621623,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,control,exact_match,Exact Match,24,24,0.041666666666666664,0.041666666666666664,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,control,exact_match,Exact Match,9,9,0.0,0.0,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,agentic,exact_match,Exact Match,6,6,1.0,0.5,0.5
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,agentic,exact_match,Exact Match,24,24,0.5416666666666666,0.5416666666666666,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,agentic,exact_match,Exact Match,37,37,0.24324324324324326,0.24324324324324326,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,agentic,exact_match,Exact Match,24,24,0.041666666666666664,0.041666666666666664,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,agentic,exact_match,Exact Match,9,9,0.0,0.0,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,oracle,exact_match,Exact Match,6,6,1.0,0.5,0.5
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,oracle,exact_match,Exact Match,24,24,0.8333333333333334,0.8333333333333334,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,oracle,exact_match,Exact Match,37,37,0.2702702702702703,0.2702702702702703,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,oracle,exact_match,Exact Match,24,24,0.041666666666666664,0.041666666666666664,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,oracle,exact_match,Exact Match,9,9,0.0,0.0,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,shuffled,similarity,Sequence Similarity,6,6,0.8820319972176333,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,shuffled,similarity,Sequence Similarity,24,24,0.6228677198560543,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,shuffled,similarity,Sequence Similarity,37,37,0.2248770796987567,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,shuffled,similarity,Sequence Similarity,24,24,0.07829098631371396,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,shuffled,similarity,Sequence Similarity,9,9,0.09727315589666366,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,deterministic,similarity,Sequence Similarity,6,6,1.0,0.11796800278236674,0.8820319972176333
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,deterministic,similarity,Sequence Similarity,24,24,0.7972871131691242,0.1744193933130699,0.6228677198560543
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,deterministic,similarity,Sequence Similarity,37,37,0.4783554544336114,0.2534783747348547,0.2248770796987567
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,deterministic,similarity,Sequence Similarity,24,24,0.26439352647093123,0.18610254015721725,0.07829098631371396
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,deterministic,similarity,Sequence Similarity,9,9,0.14791522181963995,0.05064206592297631,0.09727315589666366
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,control,similarity,Sequence Similarity,6,6,1.0,0.11796800278236674,0.8820319972176333
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,control,similarity,Sequence Similarity,24,24,0.8934847196687269,0.2706169998126726,0.6228677198560543
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,control,similarity,Sequence Similarity,37,37,0.6137626080778111,0.3888855283790544,0.2248770796987567
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,control,similarity,Sequence Similarity,24,24,0.31092109945008206,0.23263011313636808,0.07829098631371396
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,control,similarity,Sequence Similarity,9,9,0.2012607489387477,0.10398759304208406,0.09727315589666366
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,agentic,similarity,Sequence Similarity,6,6,1.0,0.11796800278236674,0.8820319972176333
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,agentic,similarity,Sequence Similarity,24,24,0.8952243380750119,0.2723566182189577,0.6228677198560543
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,agentic,similarity,Sequence Similarity,37,37,0.5857640004423295,0.3608869207435727,0.2248770796987567
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,agentic,similarity,Sequence Similarity,24,24,0.30582575722360805,0.22753477090989413,0.07829098631371396
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,agentic,similarity,Sequence Similarity,9,9,0.13114325505981245,0.03387009916314878,0.09727315589666366
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,oracle,similarity,Sequence Similarity,6,6,1.0,0.11796800278236674,0.8820319972176333
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,oracle,similarity,Sequence Similarity,24,24,0.9572168212922754,0.33434910143622104,0.6228677198560543
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,oracle,similarity,Sequence Similarity,37,37,0.684682461529021,0.45980538183026426,0.2248770796987567
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,oracle,similarity,Sequence Similarity,24,24,0.34012432335608017,0.26183333704236617,0.07829098631371396
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,oracle,similarity,Sequence Similarity,9,9,0.21575310107727189,0.11847994518060823,0.09727315589666366
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,shuffled,edit_similarity,Edit Similarity,6,0,,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,shuffled,edit_similarity,Edit Similarity,24,0,,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,shuffled,edit_similarity,Edit Similarity,37,0,,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,shuffled,edit_similarity,Edit Similarity,24,0,,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,shuffled,edit_similarity,Edit Similarity,9,0,,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,deterministic,edit_similarity,Edit Similarity,6,6,1.0,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,deterministic,edit_similarity,Edit Similarity,24,24,0.6874683413978006,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,deterministic,edit_similarity,Edit Similarity,37,37,0.5454158096741992,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,deterministic,edit_similarity,Edit Similarity,24,24,0.4607524253640822,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,deterministic,edit_similarity,Edit Similarity,9,9,0.3545806759207474,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,control,edit_similarity,Edit Similarity,6,6,1.0,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,control,edit_similarity,Edit Similarity,24,24,0.7923083978051778,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,control,edit_similarity,Edit Similarity,37,37,0.6775206983244906,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,control,edit_similarity,Edit Similarity,24,24,0.4850383206703682,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,control,edit_similarity,Edit Similarity,9,9,0.34848109154541307,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,agentic,edit_similarity,Edit Similarity,6,6,1.0,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,agentic,edit_similarity,Edit Similarity,24,24,0.7982567704202169,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,agentic,edit_similarity,Edit Similarity,37,37,0.67248192999547,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,agentic,edit_similarity,Edit Similarity,24,24,0.5458724041024162,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,agentic,edit_similarity,Edit Similarity,9,9,0.34161862624873607,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,oracle,edit_similarity,Edit Similarity,6,6,1.0,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,oracle,edit_similarity,Edit Similarity,24,24,0.9213826258815732,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,oracle,edit_similarity,Edit Similarity,37,37,0.76108043874968,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,oracle,edit_similarity,Edit Similarity,24,24,0.6127872682760597,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,oracle,edit_similarity,Edit Similarity,9,9,0.40392326964199526,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,6,6,0.638888888888889,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.17797619047619048,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.06351977822566057,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.05311671369291121,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.029247463826326814,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,6,6,1.0,0.36111111111111116,0.638888888888889
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.6700892857142856,0.49211309523809527,0.17797619047619048
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.5581933611345375,0.49467358290887703,0.06351977822566057
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.4884976506992893,0.43538093700637814,0.05311671369291121
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.4552628768900812,0.42601541306375446,0.029247463826326814
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,control,adjacent_pair_acc,Adjacent Pair Accuracy,6,6,1.0,0.36111111111111116,0.638888888888889
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,control,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.7996031746031745,0.6216269841269841,0.17797619047619048
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,control,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.7132106808577396,0.6496909026320791,0.06351977822566057
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,control,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.603375563597681,0.5502588499047697,0.05311671369291121
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,control,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.5484447680772752,0.5191973042509483,0.029247463826326814
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,6,6,1.0,0.36111111111111116,0.638888888888889
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.8070436507936508,0.6290674603174603,0.17797619047619048
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.73703282232694,0.6735130441012794,0.06351977822566057
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.6486134108056776,0.5954966971127663,0.05311671369291121
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.5751973655845897,0.5459499017582627,0.029247463826326814
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,6,6,1.0,0.36111111111111116,0.638888888888889
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.9229166666666666,0.7449404761904762,0.17797619047619048
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.7729062604062604,0.7093864821805997,0.06351977822566057
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,24,24,0.675203859195325,0.6220871455024138,0.05311671369291121
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,9,9,0.5896610942393407,0.5604136304130138,0.029247463826326814
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,shuffled,longest_correct_run,Longest Correct Run,6,6,0.75,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,shuffled,longest_correct_run,Longest Correct Run,24,24,0.26281415343915343,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,shuffled,longest_correct_run,Longest Correct Run,37,37,0.11309933407456627,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,shuffled,longest_correct_run,Longest Correct Run,24,24,0.0720456532956533,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,shuffled,longest_correct_run,Longest Correct Run,9,9,0.0317101104004596,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,deterministic,longest_correct_run,Longest Correct Run,6,6,1.0,0.25,0.75
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,deterministic,longest_correct_run,Longest Correct Run,24,24,0.6453373015873015,0.38252314814814814,0.26281415343915343
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,deterministic,longest_correct_run,Longest Correct Run,37,37,0.38207655568336685,0.26897722160880055,0.11309933407456627
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,deterministic,longest_correct_run,Longest Correct Run,24,24,0.2316740368823702,0.1596283835867169,0.0720456532956533
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,deterministic,longest_correct_run,Longest Correct Run,9,9,0.11536620923690509,0.08365609883644548,0.0317101104004596
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,control,longest_correct_run,Longest Correct Run,6,6,1.0,0.25,0.75
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,control,longest_correct_run,Longest Correct Run,24,24,0.7389219576719577,0.47610780423280424,0.26281415343915343
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,control,longest_correct_run,Longest Correct Run,37,37,0.4989983785262423,0.38589904445167605,0.11309933407456627
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,control,longest_correct_run,Longest Correct Run,24,24,0.2817403671570338,0.20969471386138053,0.0720456532956533
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,control,longest_correct_run,Longest Correct Run,9,9,0.1385744168651933,0.1068643064647337,0.0317101104004596
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,agentic,longest_correct_run,Longest Correct Run,6,6,1.0,0.25,0.75
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,agentic,longest_correct_run,Longest Correct Run,24,24,0.7557043650793651,0.49289021164021163,0.26281415343915343
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,agentic,longest_correct_run,Longest Correct Run,37,37,0.533757905855429,0.4206585717808628,0.11309933407456627
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,agentic,longest_correct_run,Longest Correct Run,24,24,0.29730327646994315,0.22525762317428985,0.0720456532956533
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,agentic,longest_correct_run,Longest Correct Run,9,9,0.15283421528054275,0.12112410488008317,0.0317101104004596
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,oracle,longest_correct_run,Longest Correct Run,6,6,1.0,0.25,0.75
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,oracle,longest_correct_run,Longest Correct Run,24,24,0.896164021164021,0.6333498677248678,0.26281415343915343
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,oracle,longest_correct_run,Longest Correct Run,37,37,0.5825642598088419,0.4694649257342755,0.11309933407456627
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,oracle,longest_correct_run,Longest Correct Run,24,24,0.319643629018629,0.24759797572297573,0.0720456532956533
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,oracle,longest_correct_run,Longest Correct Run,9,9,0.16437810435112377,0.1326679939506642,0.0317101104004596
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,shuffled,kendall_tau,Kendall Tau,6,6,0.5555555555555556,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,shuffled,kendall_tau,Kendall Tau,24,24,-0.10257936507936509,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,shuffled,kendall_tau,Kendall Tau,37,37,-0.01645746986304262,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,shuffled,kendall_tau,Kendall Tau,24,24,-0.027643286428153478,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,shuffled,kendall_tau,Kendall Tau,9,9,0.04745630957971778,,
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,deterministic,kendall_tau,Kendall Tau,6,6,1.0,0.4444444444444445,0.5555555555555556
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,deterministic,kendall_tau,Kendall Tau,24,24,0.5752645502645503,0.6778439153439154,-0.10257936507936509
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,deterministic,kendall_tau,Kendall Tau,37,37,0.38574634580826533,0.4022038156713079,-0.01645746986304262
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,deterministic,kendall_tau,Kendall Tau,24,24,0.3427490543571701,0.3703923407853236,-0.027643286428153478
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,deterministic,kendall_tau,Kendall Tau,9,9,0.20409375514548012,0.15663744556576234,0.04745630957971778
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,control,kendall_tau,Kendall Tau,6,6,1.0,0.4444444444444445,0.5555555555555556
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,control,kendall_tau,Kendall Tau,24,24,0.7918650793650793,0.8944444444444444,-0.10257936507936509
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,control,kendall_tau,Kendall Tau,37,37,0.596918350478722,0.6133758203417645,-0.01645746986304262
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,control,kendall_tau,Kendall Tau,24,24,0.4003842169264247,0.4280275033545782,-0.027643286428153478
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,control,kendall_tau,Kendall Tau,9,9,0.244928086944341,0.1974717773646232,0.04745630957971778
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,agentic,kendall_tau,Kendall Tau,6,6,1.0,0.4444444444444445,0.5555555555555556
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,agentic,kendall_tau,Kendall Tau,24,24,0.784589947089947,0.8871693121693122,-0.10257936507936509
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,agentic,kendall_tau,Kendall Tau,37,37,0.6488895967224141,0.6653470665854566,-0.01645746986304262
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,agentic,kendall_tau,Kendall Tau,24,24,0.4710842103392217,0.4987274967673752,-0.027643286428153478
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,agentic,kendall_tau,Kendall Tau,9,9,0.2531605790124879,0.20570426943277012,0.04745630957971778
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,2-4,oracle,kendall_tau,Kendall Tau,6,6,1.0,0.4444444444444445,0.5555555555555556
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,5-9,oracle,kendall_tau,Kendall Tau,24,24,0.9392857142857144,1.0418650793650794,-0.10257936507936509
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,10-19,oracle,kendall_tau,Kendall Tau,37,37,0.7322656986743674,0.74872316853741,-0.01645746986304262
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,20-49,oracle,kendall_tau,Kendall Tau,24,24,0.5601495724694315,0.587792858897585,-0.027643286428153478
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,50+,oracle,kendall_tau,Kendall Tau,9,9,0.3683039280154218,0.32084761843570403,0.04745630957971778
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,shuffled,exact_match,Exact Match,5,5,0.4,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,shuffled,exact_match,Exact Match,14,14,0.0,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,shuffled,exact_match,Exact Match,49,49,0.0,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,shuffled,exact_match,Exact Match,30,30,0.0,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,shuffled,exact_match,Exact Match,2,2,0.0,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,deterministic,exact_match,Exact Match,5,5,1.0,0.6,0.4
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,deterministic,exact_match,Exact Match,14,14,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,deterministic,exact_match,Exact Match,49,49,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,deterministic,exact_match,Exact Match,30,30,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,deterministic,exact_match,Exact Match,2,2,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,control,exact_match,Exact Match,5,5,1.0,0.6,0.4
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,control,exact_match,Exact Match,14,14,0.2857142857142857,0.2857142857142857,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,control,exact_match,Exact Match,49,49,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,control,exact_match,Exact Match,30,30,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,control,exact_match,Exact Match,2,2,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,agentic,exact_match,Exact Match,5,5,1.0,0.6,0.4
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,agentic,exact_match,Exact Match,14,14,0.2857142857142857,0.2857142857142857,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,agentic,exact_match,Exact Match,49,49,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,agentic,exact_match,Exact Match,30,30,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,agentic,exact_match,Exact Match,2,2,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,oracle,exact_match,Exact Match,5,5,1.0,0.6,0.4
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,oracle,exact_match,Exact Match,14,14,0.42857142857142855,0.42857142857142855,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,oracle,exact_match,Exact Match,49,49,0.02040816326530612,0.02040816326530612,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,oracle,exact_match,Exact Match,30,30,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,oracle,exact_match,Exact Match,2,2,0.0,0.0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,shuffled,similarity,Sequence Similarity,5,5,0.8678210678210678,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,shuffled,similarity,Sequence Similarity,14,14,0.6356925724087504,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,shuffled,similarity,Sequence Similarity,49,49,0.28777051248328167,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,shuffled,similarity,Sequence Similarity,30,30,0.0848499440166169,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,shuffled,similarity,Sequence Similarity,2,2,0.03167154482943957,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,deterministic,similarity,Sequence Similarity,5,5,1.0,0.13217893217893217,0.8678210678210678
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,deterministic,similarity,Sequence Similarity,14,14,0.7616693052282014,0.12597673281945096,0.6356925724087504
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,deterministic,similarity,Sequence Similarity,49,49,0.3938488776576358,0.10607836517435416,0.28777051248328167
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,deterministic,similarity,Sequence Similarity,30,30,0.13211221520377237,0.047262271187155466,0.0848499440166169
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,deterministic,similarity,Sequence Similarity,2,2,0.0781959268801374,0.04652438205069784,0.03167154482943957
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,control,similarity,Sequence Similarity,5,5,1.0,0.13217893217893217,0.8678210678210678
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,control,similarity,Sequence Similarity,14,14,0.9039247950520296,0.2682322226432792,0.6356925724087504
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,control,similarity,Sequence Similarity,49,49,0.4617976102018889,0.17402709771860728,0.28777051248328167
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,control,similarity,Sequence Similarity,30,30,0.18209527110503224,0.09724532708841535,0.0848499440166169
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,control,similarity,Sequence Similarity,2,2,0.06936338515285884,0.03769184032341927,0.03167154482943957
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,agentic,similarity,Sequence Similarity,5,5,1.0,0.13217893217893217,0.8678210678210678
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,agentic,similarity,Sequence Similarity,14,14,0.9081678871145015,0.2724753147057509,0.6356925724087504
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,agentic,similarity,Sequence Similarity,49,49,0.4480788167480123,0.16030830426473064,0.28777051248328167
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,agentic,similarity,Sequence Similarity,30,30,0.1804873211367143,0.0956373771200974,0.0848499440166169
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,agentic,similarity,Sequence Similarity,2,2,0.1106189132504922,0.07894736842105263,0.03167154482943957
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,oracle,similarity,Sequence Similarity,5,5,1.0,0.13217893217893217,0.8678210678210678
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,oracle,similarity,Sequence Similarity,14,14,0.9444933177821541,0.30880074537340363,0.6356925724087504
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,oracle,similarity,Sequence Similarity,49,49,0.5399351959410099,0.2521646834577283,0.28777051248328167
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,oracle,similarity,Sequence Similarity,30,30,0.2157562931801114,0.13090634916349447,0.0848499440166169
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,oracle,similarity,Sequence Similarity,2,2,0.14039688381793644,0.10872533898849687,0.03167154482943957
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,shuffled,edit_similarity,Edit Similarity,5,0,,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,shuffled,edit_similarity,Edit Similarity,14,0,,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,shuffled,edit_similarity,Edit Similarity,49,0,,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,shuffled,edit_similarity,Edit Similarity,30,0,,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,shuffled,edit_similarity,Edit Similarity,2,0,,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,deterministic,edit_similarity,Edit Similarity,5,5,1.0,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,deterministic,edit_similarity,Edit Similarity,14,14,0.5756038973180837,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,deterministic,edit_similarity,Edit Similarity,49,49,0.4435019156528266,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,deterministic,edit_similarity,Edit Similarity,30,30,0.32087490178231115,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,deterministic,edit_similarity,Edit Similarity,2,2,0.2643306985412248,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,control,edit_similarity,Edit Similarity,5,5,1.0,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,control,edit_similarity,Edit Similarity,14,14,0.8136804938941468,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,control,edit_similarity,Edit Similarity,49,49,0.5298163493512648,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,control,edit_similarity,Edit Similarity,30,30,0.39770189006377404,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,control,edit_similarity,Edit Similarity,2,2,0.2744755244755245,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,agentic,edit_similarity,Edit Similarity,5,5,1.0,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,agentic,edit_similarity,Edit Similarity,14,14,0.8211948607207423,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,agentic,edit_similarity,Edit Similarity,49,49,0.5263320672452668,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,agentic,edit_similarity,Edit Similarity,30,30,0.36395937935126604,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,agentic,edit_similarity,Edit Similarity,2,2,0.2729916282547861,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,oracle,edit_similarity,Edit Similarity,5,5,1.0,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,oracle,edit_similarity,Edit Similarity,14,14,0.8944811410588137,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,oracle,edit_similarity,Edit Similarity,49,49,0.6140881841161931,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,oracle,edit_similarity,Edit Similarity,30,30,0.4250241808288236,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,oracle,edit_similarity,Edit Similarity,2,2,0.3014120382541435,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,5,5,0.5,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,14,14,0.22117346938775512,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,49,49,0.06944042352205618,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,30,30,0.0354547000856298,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,2,2,0.030612244897959183,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,5,5,1.0,0.5,0.5
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,14,14,0.3300170068027211,0.10884353741496598,0.22117346938775512
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,49,49,0.27591499803384556,0.2064745745117894,0.06944042352205618
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,30,30,0.19535438252507448,0.1598996824394447,0.0354547000856298
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,2,2,0.18265306122448982,0.1520408163265306,0.030612244897959183
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,control,adjacent_pair_acc,Adjacent Pair Accuracy,5,5,1.0,0.5,0.5
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,control,adjacent_pair_acc,Adjacent Pair Accuracy,14,14,0.5844387755102041,0.36326530612244895,0.22117346938775512
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,control,adjacent_pair_acc,Adjacent Pair Accuracy,49,49,0.426817941628866,0.35737751810680984,0.06944042352205618
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,control,adjacent_pair_acc,Adjacent Pair Accuracy,30,30,0.29906075328868087,0.2636060532030511,0.0354547000856298
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,control,adjacent_pair_acc,Adjacent Pair Accuracy,2,2,0.2526530612244898,0.2220408163265306,0.030612244897959183
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,5,5,1.0,0.5,0.5
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,14,14,0.5857142857142856,0.3645408163265306,0.22117346938775512
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,49,49,0.41179576392661627,0.3423553404045601,0.06944042352205618
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,30,30,0.3099030287321385,0.27444832864650864,0.0354547000856298
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,2,2,0.30326530612244895,0.2726530612244898,0.030612244897959183
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,5,5,1.0,0.5,0.5
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,14,14,0.6724489795918368,0.45127551020408163,0.22117346938775512
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,49,49,0.48870403972444787,0.4192636162023917,0.06944042352205618
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,30,30,0.3430094614505173,0.3075547613648875,0.0354547000856298
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,2,2,0.30326530612244895,0.2726530612244898,0.030612244897959183
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,shuffled,longest_correct_run,Longest Correct Run,5,5,0.7333333333333333,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,shuffled,longest_correct_run,Longest Correct Run,14,14,0.29730725623582765,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,shuffled,longest_correct_run,Longest Correct Run,49,49,0.12757886064498183,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,shuffled,longest_correct_run,Longest Correct Run,30,30,0.0589475538208306,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,shuffled,longest_correct_run,Longest Correct Run,2,2,0.02980392156862745,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,deterministic,longest_correct_run,Longest Correct Run,5,5,1.0,0.2666666666666667,0.7333333333333333
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,deterministic,longest_correct_run,Longest Correct Run,14,14,0.3239795918367347,0.026672335600907038,0.29730725623582765
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,deterministic,longest_correct_run,Longest Correct Run,49,49,0.2070327812145592,0.07945392056957735,0.12757886064498183
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,deterministic,longest_correct_run,Longest Correct Run,30,30,0.1052944833271804,0.0463469295063498,0.0589475538208306
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,deterministic,longest_correct_run,Longest Correct Run,2,2,0.0496078431372549,0.01980392156862745,0.02980392156862745
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,control,longest_correct_run,Longest Correct Run,5,5,1.0,0.2666666666666667,0.7333333333333333
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,control,longest_correct_run,Longest Correct Run,14,14,0.5212018140589569,0.22389455782312928,0.29730725623582765
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,control,longest_correct_run,Longest Correct Run,49,49,0.27116028273306975,0.1435814220880879,0.12757886064498183
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,control,longest_correct_run,Longest Correct Run,30,30,0.13212971254293276,0.07318215872210217,0.0589475538208306
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,control,longest_correct_run,Longest Correct Run,2,2,0.05941176470588235,0.0296078431372549,0.02980392156862745
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,agentic,longest_correct_run,Longest Correct Run,5,5,1.0,0.2666666666666667,0.7333333333333333
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,agentic,longest_correct_run,Longest Correct Run,14,14,0.5212018140589569,0.22389455782312928,0.29730725623582765
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,agentic,longest_correct_run,Longest Correct Run,49,49,0.255649578828324,0.12807071818334217,0.12757886064498183
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,agentic,longest_correct_run,Longest Correct Run,30,30,0.1307804737189679,0.0718329198981373,0.0589475538208306
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,agentic,longest_correct_run,Longest Correct Run,2,2,0.06941176470588235,0.039607843137254906,0.02980392156862745
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,oracle,longest_correct_run,Longest Correct Run,5,5,1.0,0.2666666666666667,0.7333333333333333
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,oracle,longest_correct_run,Longest Correct Run,14,14,0.640249433106576,0.3429421768707483,0.29730725623582765
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,oracle,longest_correct_run,Longest Correct Run,49,49,0.3215255628339283,0.19394670218894644,0.12757886064498183
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,oracle,longest_correct_run,Longest Correct Run,30,30,0.14622775543454228,0.0872802016137117,0.0589475538208306
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,oracle,longest_correct_run,Longest Correct Run,2,2,0.06941176470588235,0.039607843137254906,0.02980392156862745
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,shuffled,kendall_tau,Kendall Tau,5,5,-0.06666666666666667,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,shuffled,kendall_tau,Kendall Tau,14,14,-0.03662131519274376,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,shuffled,kendall_tau,Kendall Tau,49,49,-0.01319592912440578,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,shuffled,kendall_tau,Kendall Tau,30,30,0.011798175168487692,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,shuffled,kendall_tau,Kendall Tau,2,2,-0.03619047619047619,,
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,deterministic,kendall_tau,Kendall Tau,5,5,1.0,1.0666666666666667,-0.06666666666666667
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,deterministic,kendall_tau,Kendall Tau,14,14,0.4316326530612245,0.46825396825396826,-0.03662131519274376
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,deterministic,kendall_tau,Kendall Tau,49,49,0.214288126523547,0.22748405564795277,-0.01319592912440578
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,deterministic,kendall_tau,Kendall Tau,30,30,0.10607686546694736,0.09427869029845967,0.011798175168487692
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,deterministic,kendall_tau,Kendall Tau,2,2,0.05278911564625851,0.0889795918367347,-0.03619047619047619
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,control,kendall_tau,Kendall Tau,5,5,1.0,1.0666666666666667,-0.06666666666666667
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,control,kendall_tau,Kendall Tau,14,14,0.7497732426303855,0.7863945578231293,-0.03662131519274376
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,control,kendall_tau,Kendall Tau,49,49,0.37730324862124953,0.39049917774565523,-0.01319592912440578
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,control,kendall_tau,Kendall Tau,30,30,0.20424232010944648,0.1924441449409588,0.011798175168487692
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,control,kendall_tau,Kendall Tau,2,2,0.009267707082833133,0.04545818327330933,-0.03619047619047619
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,agentic,kendall_tau,Kendall Tau,5,5,1.0,1.0666666666666667,-0.06666666666666667
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,agentic,kendall_tau,Kendall Tau,14,14,0.7837868480725624,0.8204081632653061,-0.03662131519274376
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,agentic,kendall_tau,Kendall Tau,49,49,0.381344698350448,0.3945406274748538,-0.01319592912440578
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,agentic,kendall_tau,Kendall Tau,30,30,0.19006989078375824,0.17827171561527055,0.011798175168487692
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,agentic,kendall_tau,Kendall Tau,2,2,0.033485394157663065,0.06967587034813925,-0.03619047619047619
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,2-4,oracle,kendall_tau,Kendall Tau,5,5,1.0,1.0666666666666667,-0.06666666666666667
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,5-9,oracle,kendall_tau,Kendall Tau,14,14,0.8249433106575964,0.8615646258503401,-0.03662131519274376
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,10-19,oracle,kendall_tau,Kendall Tau,49,49,0.49490651791150936,0.5081024470359152,-0.01319592912440578
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,20-49,oracle,kendall_tau,Kendall Tau,30,30,0.2556876159999673,0.24388944083147962,0.011798175168487692
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,50+,oracle,kendall_tau,Kendall Tau,2,2,0.12299319727891156,0.15918367346938778,-0.03619047619047619
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,shuffled,exact_match,Exact Match,4,4,0.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,shuffled,exact_match,Exact Match,8,8,0.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,shuffled,exact_match,Exact Match,22,22,0.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,shuffled,exact_match,Exact Match,47,47,0.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,shuffled,exact_match,Exact Match,19,19,0.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,deterministic,exact_match,Exact Match,4,4,0.75,0.75,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,deterministic,exact_match,Exact Match,8,8,0.5,0.5,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,deterministic,exact_match,Exact Match,22,22,0.36363636363636365,0.36363636363636365,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,deterministic,exact_match,Exact Match,47,47,0.02127659574468085,0.02127659574468085,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,deterministic,exact_match,Exact Match,19,19,0.0,0.0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,control,exact_match,Exact Match,4,4,1.0,1.0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,control,exact_match,Exact Match,8,8,0.875,0.875,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,control,exact_match,Exact Match,22,22,0.5,0.5,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,control,exact_match,Exact Match,47,47,0.0851063829787234,0.0851063829787234,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,control,exact_match,Exact Match,19,19,0.0,0.0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,agentic,exact_match,Exact Match,4,4,1.0,1.0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,agentic,exact_match,Exact Match,8,8,0.875,0.875,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,agentic,exact_match,Exact Match,22,22,0.5,0.5,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,agentic,exact_match,Exact Match,47,47,0.0851063829787234,0.0851063829787234,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,agentic,exact_match,Exact Match,19,19,0.0,0.0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,oracle,exact_match,Exact Match,4,4,1.0,1.0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,oracle,exact_match,Exact Match,8,8,1.0,1.0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,oracle,exact_match,Exact Match,22,22,0.5454545454545454,0.5454545454545454,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,oracle,exact_match,Exact Match,47,47,0.23404255319148937,0.23404255319148937,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,oracle,exact_match,Exact Match,19,19,0.0,0.0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,shuffled,similarity,Sequence Similarity,4,4,0.8260906240414436,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,shuffled,similarity,Sequence Similarity,8,8,0.5412009345869482,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,shuffled,similarity,Sequence Similarity,22,22,0.3911608850155337,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,shuffled,similarity,Sequence Similarity,47,47,0.09545781804236497,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,shuffled,similarity,Sequence Similarity,19,19,0.029062560831814927,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,deterministic,similarity,Sequence Similarity,4,4,0.9708333333333333,0.14474270929188965,0.8260906240414436
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,deterministic,similarity,Sequence Similarity,8,8,0.888128430323647,0.3469274957366988,0.5412009345869482
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,deterministic,similarity,Sequence Similarity,22,22,0.7421752459379342,0.35101436092240046,0.3911608850155337
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,deterministic,similarity,Sequence Similarity,47,47,0.420501402683591,0.325043584641226,0.09545781804236497
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,deterministic,similarity,Sequence Similarity,19,19,0.20368417886900772,0.17462161803719278,0.029062560831814927
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,control,similarity,Sequence Similarity,4,4,1.0,0.17390937595855632,0.8260906240414436
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,control,similarity,Sequence Similarity,8,8,0.9447674418604651,0.4035665072735169,0.5412009345869482
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,control,similarity,Sequence Similarity,22,22,0.8360497380418576,0.4448888530263239,0.3911608850155337
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,control,similarity,Sequence Similarity,47,47,0.4586366323479619,0.3631788143055969,0.09545781804236497
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,control,similarity,Sequence Similarity,19,19,0.17585437576287213,0.1467918149310572,0.029062560831814927
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,agentic,similarity,Sequence Similarity,4,4,1.0,0.17390937595855632,0.8260906240414436
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,agentic,similarity,Sequence Similarity,8,8,0.9447674418604651,0.4035665072735169,0.5412009345869482
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,agentic,similarity,Sequence Similarity,22,22,0.7898765373878397,0.3987156523723059,0.3911608850155337
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,agentic,similarity,Sequence Similarity,47,47,0.4595688207556793,0.3641110027133143,0.09545781804236497
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,agentic,similarity,Sequence Similarity,19,19,0.22110392266838155,0.19204136183656662,0.029062560831814927
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,oracle,similarity,Sequence Similarity,4,4,1.0,0.17390937595855632,0.8260906240414436
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,oracle,similarity,Sequence Similarity,8,8,1.0,0.4587990654130518,0.5412009345869482
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,oracle,similarity,Sequence Similarity,22,22,0.8763518580690562,0.4851909730535226,0.3911608850155337
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,oracle,similarity,Sequence Similarity,47,47,0.6012480036632988,0.5057901856209338,0.09545781804236497
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,oracle,similarity,Sequence Similarity,19,19,0.2736463126611915,0.24458375182937656,0.029062560831814927
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,shuffled,edit_similarity,Edit Similarity,4,0,,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,shuffled,edit_similarity,Edit Similarity,8,0,,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,shuffled,edit_similarity,Edit Similarity,22,0,,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,shuffled,edit_similarity,Edit Similarity,47,0,,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,shuffled,edit_similarity,Edit Similarity,19,0,,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,deterministic,edit_similarity,Edit Similarity,4,4,0.9416666666666667,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,deterministic,edit_similarity,Edit Similarity,8,8,0.8517629006667704,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,deterministic,edit_similarity,Edit Similarity,22,22,0.7109222067042974,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,deterministic,edit_similarity,Edit Similarity,47,47,0.5224982685410574,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,deterministic,edit_similarity,Edit Similarity,19,19,0.388891686548009,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,control,edit_similarity,Edit Similarity,4,4,1.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,control,edit_similarity,Edit Similarity,8,8,0.9413759689922481,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,control,edit_similarity,Edit Similarity,22,22,0.8041869152019728,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,control,edit_similarity,Edit Similarity,47,47,0.56881109306864,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,control,edit_similarity,Edit Similarity,19,19,0.3883017841093035,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,agentic,edit_similarity,Edit Similarity,4,4,1.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,agentic,edit_similarity,Edit Similarity,8,8,0.9525193798449613,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,agentic,edit_similarity,Edit Similarity,22,22,0.7771326107839389,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,agentic,edit_similarity,Edit Similarity,47,47,0.5815769090566744,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,agentic,edit_similarity,Edit Similarity,19,19,0.42429649275713716,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,oracle,edit_similarity,Edit Similarity,4,4,1.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,oracle,edit_similarity,Edit Similarity,8,8,1.0,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,oracle,edit_similarity,Edit Similarity,22,22,0.8645975923289437,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,oracle,edit_similarity,Edit Similarity,47,47,0.74539954570671,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,oracle,edit_similarity,Edit Similarity,19,19,0.4754538186722876,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,0.16666666666666666,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,8,8,0.03869047619047619,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,22,22,0.07205006446316607,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,47,47,0.04057258275440191,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,19,18,0.02791723144501717,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,0.8333333333333334,0.6666666666666667,0.16666666666666666
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,8,8,0.753125,0.7144345238095238,0.03869047619047619
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,22,22,0.7667401671412367,0.6946901026780705,0.07205006446316607
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,47,47,0.6921894176641832,0.6516168349097813,0.04057258275440191
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,19,18,0.6045391725917022,0.5766219411466851,0.02791723144501717
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,control,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,1.0,0.8333333333333334,0.16666666666666666
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,control,adjacent_pair_acc,Adjacent Pair Accuracy,8,8,0.9107142857142857,0.8720238095238095,0.03869047619047619
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,control,adjacent_pair_acc,Adjacent Pair Accuracy,22,22,0.8661905533563288,0.7941404888931628,0.07205006446316607
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,control,adjacent_pair_acc,Adjacent Pair Accuracy,47,47,0.7670714111236986,0.7264988283692966,0.04057258275440191
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,control,adjacent_pair_acc,Adjacent Pair Accuracy,19,18,0.6433973746539732,0.615480143208956,0.02791723144501717
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,1.0,0.8333333333333334,0.16666666666666666
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,8,8,0.9464285714285714,0.9077380952380952,0.03869047619047619
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,22,22,0.8753260257270953,0.8032759612639292,0.07205006446316607
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,47,47,0.778910416194523,0.7383378334401209,0.04057258275440191
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,19,18,0.7181610976960767,0.6902438662510595,0.02791723144501717
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,1.0,0.8333333333333334,0.16666666666666666
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,8,8,1.0,0.9613095238095238,0.03869047619047619
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,22,22,0.8942468516332153,0.8221967871700492,0.07205006446316607
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,47,47,0.8380129678103286,0.7974403850559267,0.04057258275440191
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,19,18,0.7522560211784862,0.724338789733469,0.02791723144501717
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,shuffled,longest_correct_run,Longest Correct Run,4,4,0.4375,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,shuffled,longest_correct_run,Longest Correct Run,8,8,0.17981150793650794,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,shuffled,longest_correct_run,Longest Correct Run,22,22,0.1286638698262678,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,shuffled,longest_correct_run,Longest Correct Run,47,47,0.05952971450997749,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,shuffled,longest_correct_run,Longest Correct Run,19,18,0.025665653760788543,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,deterministic,longest_correct_run,Longest Correct Run,4,4,0.875,0.4375,0.4375
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,deterministic,longest_correct_run,Longest Correct Run,8,8,0.7552083333333334,0.5753968253968255,0.17981150793650794
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,deterministic,longest_correct_run,Longest Correct Run,22,22,0.6463889145848053,0.5177250447585376,0.1286638698262678
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,deterministic,longest_correct_run,Longest Correct Run,47,47,0.3769762392862811,0.3174465247763036,0.05952971450997749
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,deterministic,longest_correct_run,Longest Correct Run,19,18,0.15913381676415628,0.13346816300336772,0.025665653760788543
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,control,longest_correct_run,Longest Correct Run,4,4,1.0,0.5625,0.4375
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,control,longest_correct_run,Longest Correct Run,8,8,0.90625,0.7264384920634921,0.17981150793650794
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,control,longest_correct_run,Longest Correct Run,22,22,0.7607020430549842,0.6320381732287165,0.1286638698262678
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,control,longest_correct_run,Longest Correct Run,47,47,0.42014651631837,0.3606168018083925,0.05952971450997749
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,control,longest_correct_run,Longest Correct Run,19,18,0.1685263651502501,0.14286071138946158,0.025665653760788543
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,agentic,longest_correct_run,Longest Correct Run,4,4,1.0,0.5625,0.4375
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,agentic,longest_correct_run,Longest Correct Run,8,8,0.953125,0.7733134920634921,0.17981150793650794
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,agentic,longest_correct_run,Longest Correct Run,22,22,0.7644594311776974,0.6357955613514297,0.1286638698262678
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,agentic,longest_correct_run,Longest Correct Run,47,47,0.436993552185307,0.37746383767532954,0.05952971450997749
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,agentic,longest_correct_run,Longest Correct Run,19,18,0.19212778424353233,0.16646213048274378,0.025665653760788543
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,oracle,longest_correct_run,Longest Correct Run,4,4,1.0,0.5625,0.4375
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,oracle,longest_correct_run,Longest Correct Run,8,8,1.0,0.8201884920634921,0.17981150793650794
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,oracle,longest_correct_run,Longest Correct Run,22,22,0.81012506585262,0.6814611960263522,0.1286638698262678
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,oracle,longest_correct_run,Longest Correct Run,47,47,0.5883866823606201,0.5288569678506426,0.05952971450997749
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,oracle,longest_correct_run,Longest Correct Run,19,18,0.23115165019408895,0.2054859964333004,0.025665653760788543
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,shuffled,kendall_tau,Kendall Tau,4,4,-0.5,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,shuffled,kendall_tau,Kendall Tau,8,8,-0.34444444444444444,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,shuffled,kendall_tau,Kendall Tau,22,22,-0.002385032486355314,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,shuffled,kendall_tau,Kendall Tau,47,47,0.02384367140233103,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,shuffled,kendall_tau,Kendall Tau,19,18,0.03536795525222061,,
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,deterministic,kendall_tau,Kendall Tau,4,4,0.8333333333333334,1.3333333333333333,-0.5
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,deterministic,kendall_tau,Kendall Tau,8,8,0.6680555555555555,1.0125,-0.34444444444444444
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,deterministic,kendall_tau,Kendall Tau,22,22,0.6778638028638029,0.6802488353501581,-0.002385032486355314
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,deterministic,kendall_tau,Kendall Tau,47,47,0.44224396881250333,0.41840029741017226,0.02384367140233103
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,deterministic,kendall_tau,Kendall Tau,19,18,0.28717740165038375,0.25180944639816316,0.03536795525222061
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,control,kendall_tau,Kendall Tau,4,4,1.0,1.5,-0.5
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,control,kendall_tau,Kendall Tau,8,8,0.875,1.2194444444444446,-0.34444444444444444
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,control,kendall_tau,Kendall Tau,22,22,0.781567568529291,0.7839526010156462,-0.002385032486355314
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,control,kendall_tau,Kendall Tau,47,47,0.5568888343310701,0.533045162928739,0.02384367140233103
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,control,kendall_tau,Kendall Tau,19,18,0.2705293669909303,0.23516141173870964,0.03536795525222061
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,agentic,kendall_tau,Kendall Tau,4,4,1.0,1.5,-0.5
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,agentic,kendall_tau,Kendall Tau,8,8,0.9910714285714286,1.335515873015873,-0.34444444444444444
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,agentic,kendall_tau,Kendall Tau,22,22,0.7753693635694762,0.7777543960558315,-0.002385032486355314
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,agentic,kendall_tau,Kendall Tau,47,47,0.5849672362505877,0.5611235648482567,0.02384367140233103
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,agentic,kendall_tau,Kendall Tau,19,18,0.29462468444567813,0.25925672919345755,0.03536795525222061
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,2-4,oracle,kendall_tau,Kendall Tau,4,4,1.0,1.5,-0.5
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,5-9,oracle,kendall_tau,Kendall Tau,8,8,1.0,1.3444444444444446,-0.34444444444444444
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,10-19,oracle,kendall_tau,Kendall Tau,22,22,0.8665894352075045,0.8689744676938598,-0.002385032486355314
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,20-49,oracle,kendall_tau,Kendall Tau,47,47,0.7369280754069274,0.7130844040045964,0.02384367140233103
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,50+,oracle,kendall_tau,Kendall Tau,19,18,0.38036596998030076,0.34499801472808017,0.03536795525222061
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,shuffled,exact_match,Exact Match,1,1,0.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,shuffled,exact_match,Exact Match,17,17,0.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,shuffled,exact_match,Exact Match,19,19,0.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,shuffled,exact_match,Exact Match,43,43,0.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,shuffled,exact_match,Exact Match,19,19,0.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,deterministic,exact_match,Exact Match,1,1,1.0,1.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,deterministic,exact_match,Exact Match,17,17,0.4117647058823529,0.4117647058823529,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,deterministic,exact_match,Exact Match,19,19,0.05263157894736842,0.05263157894736842,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,deterministic,exact_match,Exact Match,43,43,0.0,0.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,deterministic,exact_match,Exact Match,19,19,0.0,0.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,control,exact_match,Exact Match,1,1,1.0,1.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,control,exact_match,Exact Match,17,17,0.6470588235294118,0.6470588235294118,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,control,exact_match,Exact Match,19,19,0.10526315789473684,0.10526315789473684,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,control,exact_match,Exact Match,43,43,0.0,0.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,control,exact_match,Exact Match,19,19,0.0,0.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,agentic,exact_match,Exact Match,1,1,1.0,1.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,agentic,exact_match,Exact Match,17,17,0.7058823529411765,0.7058823529411765,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,agentic,exact_match,Exact Match,19,19,0.10526315789473684,0.10526315789473684,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,agentic,exact_match,Exact Match,43,43,0.0,0.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,agentic,exact_match,Exact Match,19,19,0.0,0.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,oracle,exact_match,Exact Match,1,1,1.0,1.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,oracle,exact_match,Exact Match,17,17,0.8823529411764706,0.8823529411764706,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,oracle,exact_match,Exact Match,19,19,0.3157894736842105,0.3157894736842105,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,oracle,exact_match,Exact Match,43,43,0.0,0.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,oracle,exact_match,Exact Match,19,19,0.0,0.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,shuffled,similarity,Sequence Similarity,1,1,0.7666666666666667,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,shuffled,similarity,Sequence Similarity,17,17,0.5765968366239054,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,shuffled,similarity,Sequence Similarity,19,19,0.35884003546212834,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,shuffled,similarity,Sequence Similarity,43,43,0.06489696888121534,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,shuffled,similarity,Sequence Similarity,19,19,0.03183897297089385,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,deterministic,similarity,Sequence Similarity,1,1,1.0,0.23333333333333328,0.7666666666666667
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,deterministic,similarity,Sequence Similarity,17,17,0.8723141538634418,0.29571731723953654,0.5765968366239054
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,deterministic,similarity,Sequence Similarity,19,19,0.561737478206695,0.2028974427445666,0.35884003546212834
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,deterministic,similarity,Sequence Similarity,43,43,0.1795631993975031,0.11466623051628776,0.06489696888121534
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,deterministic,similarity,Sequence Similarity,19,19,0.08423119490595182,0.05239222193505797,0.03183897297089385
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,control,similarity,Sequence Similarity,1,1,1.0,0.23333333333333328,0.7666666666666667
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,control,similarity,Sequence Similarity,17,17,0.9229381847740695,0.3463413481501642,0.5765968366239054
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,control,similarity,Sequence Similarity,19,19,0.6179566901029869,0.25911665464085865,0.35884003546212834
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,control,similarity,Sequence Similarity,43,43,0.2126143185230188,0.14771734964180347,0.06489696888121534
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,control,similarity,Sequence Similarity,19,19,0.07759146385035844,0.04575249087946459,0.03183897297089385
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,agentic,similarity,Sequence Similarity,1,1,1.0,0.23333333333333328,0.7666666666666667
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,agentic,similarity,Sequence Similarity,17,17,0.9351268440215523,0.358530007397647,0.5765968366239054
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,agentic,similarity,Sequence Similarity,19,19,0.6381247695071681,0.2792847340450398,0.35884003546212834
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,agentic,similarity,Sequence Similarity,43,43,0.22688878061021958,0.16199181172900426,0.06489696888121534
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,agentic,similarity,Sequence Similarity,19,19,0.06715053082288551,0.035311557851991665,0.03183897297089385
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,oracle,similarity,Sequence Similarity,1,1,1.0,0.23333333333333328,0.7666666666666667
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,oracle,similarity,Sequence Similarity,17,17,0.9830788388674174,0.40648200224351205,0.5765968366239054
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,oracle,similarity,Sequence Similarity,19,19,0.7466004673188511,0.38776043185672276,0.35884003546212834
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,oracle,similarity,Sequence Similarity,43,43,0.2722805975954461,0.20738362871423074,0.06489696888121534
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,oracle,similarity,Sequence Similarity,19,19,0.1108388876829458,0.07899991471205196,0.03183897297089385
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,shuffled,edit_similarity,Edit Similarity,1,0,,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,shuffled,edit_similarity,Edit Similarity,17,0,,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,shuffled,edit_similarity,Edit Similarity,19,0,,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,shuffled,edit_similarity,Edit Similarity,43,0,,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,shuffled,edit_similarity,Edit Similarity,19,0,,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,deterministic,edit_similarity,Edit Similarity,1,1,1.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,deterministic,edit_similarity,Edit Similarity,17,17,0.7678978958681089,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,deterministic,edit_similarity,Edit Similarity,19,19,0.5161178366097383,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,deterministic,edit_similarity,Edit Similarity,43,43,0.3675717386261557,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,deterministic,edit_similarity,Edit Similarity,19,19,0.29503676213773167,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,control,edit_similarity,Edit Similarity,1,1,1.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,control,edit_similarity,Edit Similarity,17,17,0.852284885524958,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,control,edit_similarity,Edit Similarity,19,19,0.5914319029726577,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,control,edit_similarity,Edit Similarity,43,43,0.40901653136186145,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,control,edit_similarity,Edit Similarity,19,19,0.2785417137004363,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,agentic,edit_similarity,Edit Similarity,1,1,1.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,agentic,edit_similarity,Edit Similarity,17,17,0.8766622040199235,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,agentic,edit_similarity,Edit Similarity,19,19,0.625382472642672,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,agentic,edit_similarity,Edit Similarity,43,43,0.4130238725113733,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,agentic,edit_similarity,Edit Similarity,19,19,0.2782229806976327,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,oracle,edit_similarity,Edit Similarity,1,1,1.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,oracle,edit_similarity,Edit Similarity,17,17,0.9661576777348349,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,oracle,edit_similarity,Edit Similarity,19,19,0.7822627204664979,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,oracle,edit_similarity,Edit Similarity,43,43,0.47212170030936157,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,oracle,edit_similarity,Edit Similarity,19,19,0.3352878749367905,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,1,1,0.0,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,17,17,0.1003501400560224,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.12217469493011289,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,43,43,0.04623768037238507,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.02003490257195478,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,1,1,1.0,1.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,17,17,0.7348739495798319,0.6345238095238095,0.1003501400560224
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.5405094045960919,0.418334709665979,0.12217469493011289
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,43,43,0.4395724528130706,0.39333477244068554,0.04623768037238507
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.3819216102132682,0.3618867076413134,0.02003490257195478
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,control,adjacent_pair_acc,Adjacent Pair Accuracy,1,1,1.0,1.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,control,adjacent_pair_acc,Adjacent Pair Accuracy,17,17,0.8441176470588235,0.7437675070028011,0.1003501400560224
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,control,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.6732611729515754,0.5510864780214625,0.12217469493011289
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,control,adjacent_pair_acc,Adjacent Pair Accuracy,43,43,0.5633059361128783,0.5170682557404932,0.04623768037238507
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,control,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.48644445990171864,0.46640955732976397,0.02003490257195478
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,1,1,1.0,1.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,17,17,0.8609243697478992,0.7605742296918768,0.1003501400560224
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.6964670004917682,0.5742923055616554,0.12217469493011289
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,43,43,0.5929282706192621,0.546690590246877,0.04623768037238507
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.5159402384097254,0.49590533583777063,0.02003490257195478
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,1,1,1.0,1.0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,17,17,0.9453781512605043,0.8450280112044818,0.1003501400560224
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.805670851336486,0.6834961564063731,0.12217469493011289
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,43,43,0.6259493035119754,0.5797116231395903,0.04623768037238507
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,19,19,0.523090227501858,0.5030553249299031,0.02003490257195478
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,shuffled,longest_correct_run,Longest Correct Run,1,1,0.25,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,shuffled,longest_correct_run,Longest Correct Run,17,17,0.2203314659197012,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,shuffled,longest_correct_run,Longest Correct Run,19,19,0.14827391368250095,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,shuffled,longest_correct_run,Longest Correct Run,43,43,0.05756554028796775,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,shuffled,longest_correct_run,Longest Correct Run,19,19,0.024782023348919192,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,deterministic,longest_correct_run,Longest Correct Run,1,1,1.0,0.75,0.25
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,deterministic,longest_correct_run,Longest Correct Run,17,17,0.676937441643324,0.4566059757236228,0.2203314659197012
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,deterministic,longest_correct_run,Longest Correct Run,19,19,0.3764917869142246,0.22821787323172363,0.14827391368250095
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,deterministic,longest_correct_run,Longest Correct Run,43,43,0.1708005557753113,0.11323501548734356,0.05756554028796775
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,deterministic,longest_correct_run,Longest Correct Run,19,19,0.10657873210954602,0.08179670876062682,0.024782023348919192
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,control,longest_correct_run,Longest Correct Run,1,1,1.0,0.75,0.25
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,control,longest_correct_run,Longest Correct Run,17,17,0.7948179271708684,0.5744864612511671,0.2203314659197012
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,control,longest_correct_run,Longest Correct Run,19,19,0.45265158433440983,0.3043776706519089,0.14827391368250095
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,control,longest_correct_run,Longest Correct Run,43,43,0.22814235340724218,0.17057681311927445,0.05756554028796775
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,control,longest_correct_run,Longest Correct Run,19,19,0.11618014156714451,0.09139811821822531,0.024782023348919192
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,agentic,longest_correct_run,Longest Correct Run,1,1,1.0,0.75,0.25
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,agentic,longest_correct_run,Longest Correct Run,17,17,0.8242296918767508,0.6038982259570495,0.2203314659197012
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,agentic,longest_correct_run,Longest Correct Run,19,19,0.47314635195521626,0.3248724382727153,0.14827391368250095
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,agentic,longest_correct_run,Longest Correct Run,43,43,0.2428769395434391,0.18531139925547135,0.05756554028796775
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,agentic,longest_correct_run,Longest Correct Run,19,19,0.11995836703512067,0.09517634368620147,0.024782023348919192
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,oracle,longest_correct_run,Longest Correct Run,1,1,1.0,0.75,0.25
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,oracle,longest_correct_run,Longest Correct Run,17,17,0.9443277310924368,0.7239962651727359,0.2203314659197012
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,oracle,longest_correct_run,Longest Correct Run,19,19,0.632717913050323,0.48444399936782206,0.14827391368250095
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,oracle,longest_correct_run,Longest Correct Run,43,43,0.2704852375063141,0.21291969721834636,0.05756554028796775
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,oracle,longest_correct_run,Longest Correct Run,19,19,0.1336398038286856,0.10885778047976641,0.024782023348919192
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,shuffled,kendall_tau,Kendall Tau,1,1,0.3333333333333333,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,shuffled,kendall_tau,Kendall Tau,17,17,0.03333333333333333,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,shuffled,kendall_tau,Kendall Tau,19,19,0.06792883487522564,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,shuffled,kendall_tau,Kendall Tau,43,43,0.04641689213059837,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,shuffled,kendall_tau,Kendall Tau,19,19,0.013208808252021092,,
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,deterministic,kendall_tau,Kendall Tau,1,1,1.0,0.6666666666666667,0.3333333333333333
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,deterministic,kendall_tau,Kendall Tau,17,17,0.7426704014939309,0.7093370681605976,0.03333333333333333
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,deterministic,kendall_tau,Kendall Tau,19,19,0.4270598872277217,0.35913105235249604,0.06792883487522564
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,deterministic,kendall_tau,Kendall Tau,43,43,0.1530771538929356,0.10666026176233723,0.04641689213059837
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,deterministic,kendall_tau,Kendall Tau,19,19,0.21474493159563224,0.20153612334361112,0.013208808252021092
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,control,kendall_tau,Kendall Tau,1,1,1.0,0.6666666666666667,0.3333333333333333
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,control,kendall_tau,Kendall Tau,17,17,0.8831932773109243,0.849859943977591,0.03333333333333333
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,control,kendall_tau,Kendall Tau,19,19,0.5215567596454023,0.45362792477017666,0.06792883487522564
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,control,kendall_tau,Kendall Tau,43,43,0.3084373744924369,0.2620204823618385,0.04641689213059837
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,control,kendall_tau,Kendall Tau,19,19,0.19268562883853207,0.179476820586511,0.013208808252021092
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,agentic,kendall_tau,Kendall Tau,1,1,1.0,0.6666666666666667,0.3333333333333333
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,agentic,kendall_tau,Kendall Tau,17,17,0.9,0.8666666666666666,0.03333333333333333
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,agentic,kendall_tau,Kendall Tau,19,19,0.6038268947752409,0.5358980599000153,0.06792883487522564
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,agentic,kendall_tau,Kendall Tau,43,43,0.31262905929429624,0.26621216716369783,0.04641689213059837
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,agentic,kendall_tau,Kendall Tau,19,19,0.19903879361237445,0.18582998536035336,0.013208808252021092
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,2-4,oracle,kendall_tau,Kendall Tau,1,1,1.0,0.6666666666666667,0.3333333333333333
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,5-9,oracle,kendall_tau,Kendall Tau,17,17,0.9621848739495799,0.9288515406162465,0.03333333333333333
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,10-19,oracle,kendall_tau,Kendall Tau,19,19,0.7307061558650283,0.6627773209898027,0.06792883487522564
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,20-49,oracle,kendall_tau,Kendall Tau,43,43,0.4152624249361447,0.36884553280554633,0.04641689213059837
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,50+,oracle,kendall_tau,Kendall Tau,19,19,0.29365047583569087,0.2804416675836698,0.013208808252021092
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,shuffled,exact_match,Exact Match,4,4,0.5,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,shuffled,exact_match,Exact Match,18,18,0.0,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,shuffled,exact_match,Exact Match,21,21,0.0,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,shuffled,exact_match,Exact Match,37,37,0.0,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,shuffled,exact_match,Exact Match,20,20,0.0,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,deterministic,exact_match,Exact Match,4,4,0.5,0.0,0.5
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,deterministic,exact_match,Exact Match,18,18,0.16666666666666666,0.16666666666666666,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,deterministic,exact_match,Exact Match,21,21,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,deterministic,exact_match,Exact Match,37,37,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,deterministic,exact_match,Exact Match,20,20,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,control,exact_match,Exact Match,4,4,1.0,0.5,0.5
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,control,exact_match,Exact Match,18,18,0.3333333333333333,0.3333333333333333,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,control,exact_match,Exact Match,21,21,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,control,exact_match,Exact Match,37,37,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,control,exact_match,Exact Match,20,20,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,agentic,exact_match,Exact Match,4,4,1.0,0.5,0.5
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,agentic,exact_match,Exact Match,18,18,0.3333333333333333,0.3333333333333333,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,agentic,exact_match,Exact Match,21,21,0.047619047619047616,0.047619047619047616,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,agentic,exact_match,Exact Match,37,37,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,agentic,exact_match,Exact Match,20,20,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,oracle,exact_match,Exact Match,4,4,1.0,0.5,0.5
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,oracle,exact_match,Exact Match,18,18,0.5,0.5,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,oracle,exact_match,Exact Match,21,21,0.047619047619047616,0.047619047619047616,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,oracle,exact_match,Exact Match,37,37,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,oracle,exact_match,Exact Match,20,20,0.0,0.0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,shuffled,similarity,Sequence Similarity,4,4,0.9123168498168498,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,shuffled,similarity,Sequence Similarity,18,18,0.5956487950116045,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,shuffled,similarity,Sequence Similarity,21,21,0.4336327394989149,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,shuffled,similarity,Sequence Similarity,37,37,0.08266158989094248,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,shuffled,similarity,Sequence Similarity,20,20,0.041872992806106415,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,deterministic,similarity,Sequence Similarity,4,4,0.9831959706959708,0.07087912087912088,0.9123168498168498
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,deterministic,similarity,Sequence Similarity,18,18,0.7322331901918603,0.13658439518025575,0.5956487950116045
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,deterministic,similarity,Sequence Similarity,21,21,0.5849614658404687,0.15132872634155378,0.4336327394989149
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,deterministic,similarity,Sequence Similarity,37,37,0.10900386859909764,0.026342278708155146,0.08266158989094248
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,deterministic,similarity,Sequence Similarity,20,20,0.04705016616751437,0.005177173361407953,0.041872992806106415
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,control,similarity,Sequence Similarity,4,4,1.0,0.08768315018315018,0.9123168498168498
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,control,similarity,Sequence Similarity,18,18,0.7956742093825344,0.20002541437092983,0.5956487950116045
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,control,similarity,Sequence Similarity,21,21,0.5776305269600062,0.14399778746109124,0.4336327394989149
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,control,similarity,Sequence Similarity,37,37,0.11758741375144229,0.034925823860499805,0.08266158989094248
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,control,similarity,Sequence Similarity,20,20,0.03471144577389335,-0.0071615470322130646,0.041872992806106415
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,agentic,similarity,Sequence Similarity,4,4,1.0,0.08768315018315018,0.9123168498168498
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,agentic,similarity,Sequence Similarity,18,18,0.8074231211540549,0.21177432614245037,0.5956487950116045
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,agentic,similarity,Sequence Similarity,21,21,0.6064315437152081,0.1727988042162933,0.4336327394989149
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,agentic,similarity,Sequence Similarity,37,37,0.12240837674674646,0.039746786855803976,0.08266158989094248
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,agentic,similarity,Sequence Similarity,20,20,0.03556567882599494,-0.006307313980111477,0.041872992806106415
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,oracle,similarity,Sequence Similarity,4,4,1.0,0.08768315018315018,0.9123168498168498
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,oracle,similarity,Sequence Similarity,18,18,0.9242264590146212,0.3285776640030167,0.5956487950116045
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,oracle,similarity,Sequence Similarity,21,21,0.6860659070225277,0.2524331675236127,0.4336327394989149
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,oracle,similarity,Sequence Similarity,37,37,0.1678027437991088,0.08514115390816633,0.08266158989094248
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,oracle,similarity,Sequence Similarity,20,20,0.06126844180969639,0.019395449003589974,0.041872992806106415
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,shuffled,edit_similarity,Edit Similarity,4,0,,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,shuffled,edit_similarity,Edit Similarity,18,0,,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,shuffled,edit_similarity,Edit Similarity,21,0,,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,shuffled,edit_similarity,Edit Similarity,37,0,,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,shuffled,edit_similarity,Edit Similarity,20,0,,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,deterministic,edit_similarity,Edit Similarity,4,4,0.9663919413919414,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,deterministic,edit_similarity,Edit Similarity,18,18,0.6113864077485917,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,deterministic,edit_similarity,Edit Similarity,21,21,0.47146556262996114,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,deterministic,edit_similarity,Edit Similarity,37,37,0.327293037321772,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,deterministic,edit_similarity,Edit Similarity,20,20,0.22517808360140612,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,control,edit_similarity,Edit Similarity,4,4,1.0,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,control,edit_similarity,Edit Similarity,18,18,0.7019216646950973,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,control,edit_similarity,Edit Similarity,21,21,0.5268579251851904,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,control,edit_similarity,Edit Similarity,37,37,0.3250882694600896,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,control,edit_similarity,Edit Similarity,20,20,0.24578166430173076,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,agentic,edit_similarity,Edit Similarity,4,4,1.0,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,agentic,edit_similarity,Edit Similarity,18,18,0.7193374659207046,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,agentic,edit_similarity,Edit Similarity,21,21,0.5472688799892342,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,agentic,edit_similarity,Edit Similarity,37,37,0.32462978686657706,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,agentic,edit_similarity,Edit Similarity,20,20,0.26112101620300693,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,oracle,edit_similarity,Edit Similarity,4,4,1.0,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,oracle,edit_similarity,Edit Similarity,18,18,0.8545427495979003,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,oracle,edit_similarity,Edit Similarity,21,21,0.6421483862931735,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,oracle,edit_similarity,Edit Similarity,37,37,0.4135108118124203,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,oracle,edit_similarity,Edit Similarity,20,20,0.2888393453826529,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,0.5,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,18,18,0.07645502645502646,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,21,21,0.09203538447235926,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.036515085704428525,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,shuffled,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.023140732618331876,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,0.6666666666666666,0.16666666666666666,0.5
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,18,18,0.446031746031746,0.3695767195767196,0.07645502645502646
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,21,21,0.31134533067306175,0.2193099462007025,0.09203538447235926
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.18454413753803056,0.14802905183360204,0.036515085704428525
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,deterministic,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.14697715679415907,0.12383642417582719,0.023140732618331876
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,control,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,1.0,0.5,0.5
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,control,adjacent_pair_acc,Adjacent Pair Accuracy,18,18,0.5761243386243386,0.49966931216931215,0.07645502645502646
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,control,adjacent_pair_acc,Adjacent Pair Accuracy,21,21,0.40856115561997913,0.31652577114761987,0.09203538447235926
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,control,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.29518037988394313,0.25866529417951456,0.036515085704428525
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,control,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.22654936540087536,0.20340863278254345,0.023140732618331876
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,1.0,0.5,0.5
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,18,18,0.5681878306878307,0.49173280423280424,0.07645502645502646
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,21,21,0.4313558212717877,0.33932043679942836,0.09203538447235926
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.31002890085408075,0.27351381514965223,0.036515085704428525
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,agentic,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.24810017918986982,0.22495944657153796,0.023140732618331876
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,4,4,1.0,0.5,0.5
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,18,18,0.7328042328042328,0.6563492063492063,0.07645502645502646
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,21,21,0.4858666077153472,0.3938312232429879,0.09203538447235926
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,37,37,0.3325733637509131,0.2960582780464846,0.036515085704428525
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,oracle,adjacent_pair_acc,Adjacent Pair Accuracy,20,20,0.261549220394378,0.23840848777604612,0.023140732618331876
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,shuffled,longest_correct_run,Longest Correct Run,4,4,0.625,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,shuffled,longest_correct_run,Longest Correct Run,18,18,0.22462522045855382,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,shuffled,longest_correct_run,Longest Correct Run,21,21,0.13623461612183418,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,shuffled,longest_correct_run,Longest Correct Run,37,37,0.05557317736242875,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,shuffled,longest_correct_run,Longest Correct Run,20,20,0.025920714545269553,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,deterministic,longest_correct_run,Longest Correct Run,4,4,0.75,0.125,0.625
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,deterministic,longest_correct_run,Longest Correct Run,18,18,0.4878306878306879,0.26320546737213407,0.22462522045855382
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,deterministic,longest_correct_run,Longest Correct Run,21,21,0.2199406344143186,0.08370601829248445,0.13623461612183418
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,deterministic,longest_correct_run,Longest Correct Run,37,37,0.08590920524780683,0.030336027885378092,0.05557317736242875
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,deterministic,longest_correct_run,Longest Correct Run,20,20,0.04446154821725764,0.018540833671988086,0.025920714545269553
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,control,longest_correct_run,Longest Correct Run,4,4,1.0,0.375,0.625
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,control,longest_correct_run,Longest Correct Run,18,18,0.5611111111111111,0.33648589065255735,0.22462522045855382
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,control,longest_correct_run,Longest Correct Run,21,21,0.26280894335405613,0.12657432723222198,0.13623461612183418
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,control,longest_correct_run,Longest Correct Run,37,37,0.12284480867691747,0.06727163131448873,0.05557317736242875
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,control,longest_correct_run,Longest Correct Run,20,20,0.05286657423907433,0.02694585969380477,0.025920714545269553
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,agentic,longest_correct_run,Longest Correct Run,4,4,1.0,0.375,0.625
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,agentic,longest_correct_run,Longest Correct Run,18,18,0.5765432098765433,0.3519179894179894,0.22462522045855382
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,agentic,longest_correct_run,Longest Correct Run,21,21,0.30285481018563726,0.1666201940638031,0.13623461612183418
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,agentic,longest_correct_run,Longest Correct Run,37,37,0.12307340004196367,0.06750022267953493,0.05557317736242875
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,agentic,longest_correct_run,Longest Correct Run,20,20,0.063302329608702,0.03738161506343245,0.025920714545269553
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,oracle,longest_correct_run,Longest Correct Run,4,4,1.0,0.375,0.625
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,oracle,longest_correct_run,Longest Correct Run,18,18,0.72173721340388,0.49711199294532626,0.22462522045855382
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,oracle,longest_correct_run,Longest Correct Run,21,21,0.3480456643050628,0.21181104818322863,0.13623461612183418
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,oracle,longest_correct_run,Longest Correct Run,37,37,0.1375082899163947,0.08193511255396596,0.05557317736242875
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,oracle,longest_correct_run,Longest Correct Run,20,20,0.06575921587706368,0.039838501331794125,0.025920714545269553
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,shuffled,kendall_tau,Kendall Tau,4,4,0.4166666666666667,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,shuffled,kendall_tau,Kendall Tau,18,18,-0.08024691358024691,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,shuffled,kendall_tau,Kendall Tau,21,21,-0.03858645327022151,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,shuffled,kendall_tau,Kendall Tau,37,37,0.01878400454785712,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,shuffled,kendall_tau,Kendall Tau,20,20,0.03978155327525653,,
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,deterministic,kendall_tau,Kendall Tau,4,4,0.75,0.3333333333333333,0.4166666666666667
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,deterministic,kendall_tau,Kendall Tau,18,18,0.42724867724867727,0.5074955908289241,-0.08024691358024691
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,deterministic,kendall_tau,Kendall Tau,21,21,0.218325821311226,0.2569122745814475,-0.03858645327022151
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,deterministic,kendall_tau,Kendall Tau,37,37,0.09585891003481525,0.07707490548695814,0.01878400454785712
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,deterministic,kendall_tau,Kendall Tau,20,20,0.026858173686523757,-0.012923379588732778,0.03978155327525653
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,control,kendall_tau,Kendall Tau,4,4,1.0,0.5833333333333333,0.4166666666666667
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,control,kendall_tau,Kendall Tau,18,18,0.6288359788359789,0.7090828924162257,-0.08024691358024691
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,control,kendall_tau,Kendall Tau,21,21,0.34443815803833494,0.3830246113085565,-0.03858645327022151
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,control,kendall_tau,Kendall Tau,37,37,0.20146482845874353,0.18268082391088641,0.01878400454785712
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,control,kendall_tau,Kendall Tau,20,20,0.0498474567987826,0.010065903523526072,0.03978155327525653
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,agentic,kendall_tau,Kendall Tau,4,4,1.0,0.5833333333333333,0.4166666666666667
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,agentic,kendall_tau,Kendall Tau,18,18,0.645326278659612,0.7255731922398589,-0.08024691358024691
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,agentic,kendall_tau,Kendall Tau,21,21,0.4029531601623596,0.44153961343258114,-0.03858645327022151
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,agentic,kendall_tau,Kendall Tau,37,37,0.1865733869831327,0.16778938243527558,0.01878400454785712
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,agentic,kendall_tau,Kendall Tau,20,20,0.07265892420362224,0.03287737092836572,0.03978155327525653
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,2-4,oracle,kendall_tau,Kendall Tau,4,4,1.0,0.5833333333333333,0.4166666666666667
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,5-9,oracle,kendall_tau,Kendall Tau,18,18,0.8622574955908289,0.9425044091710758,-0.08024691358024691
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,10-19,oracle,kendall_tau,Kendall Tau,21,21,0.5400854645215547,0.5786719177917762,-0.03858645327022151
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,20-49,oracle,kendall_tau,Kendall Tau,37,37,0.2726818838504884,0.2538978793026313,0.01878400454785712
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,50+,oracle,kendall_tau,Kendall Tau,20,20,0.13400180560189096,0.09422025232663445,0.03978155327525653

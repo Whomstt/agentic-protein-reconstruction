@@ -462,6 +462,7 @@ class TestCompareArms(unittest.TestCase):
         agentic = {
             "exact_match": [1, 0, 0, 1, 0, 1, 0, 0, 1, 0],
             "similarity": [0.5, 0.4, 0.6, 0.55, 0.48, 0.62, 0.51, 0.44, 0.59, 0.47],
+            "edit_similarity": [0.52, 0.42, 0.63, 0.57, 0.5, 0.65, 0.53, 0.46, 0.61, 0.49],
             "adjacent_pair_acc": [0.4, 0.35, 0.5, 0.45, 0.38, 0.52, 0.41, 0.34, 0.49, 0.37],
             "longest_correct_run": [0.3, 0.25, 0.4, 0.35, 0.28, 0.42, 0.31, 0.24, 0.39, 0.27],
             "kendall_tau": [0.3, 0.2, 0.4, 0.35, 0.25, 0.45, 0.32, 0.22, 0.38, 0.28],
@@ -472,11 +473,11 @@ class TestCompareArms(unittest.TestCase):
         }
         return agentic, control
 
-    def test_returns_all_five_metrics_with_tests_and_cis(self):
+    def test_returns_all_six_metrics_with_tests_and_cis(self):
         agentic, control = self._arms()
         out = compare_arms(agentic, control)
         self.assertEqual(set(out["metrics"]), set(agentic))
-        self.assertEqual(out["family_size"], 5)
+        self.assertEqual(out["family_size"], 6)
         for metric, entry in out["metrics"].items():
             self.assertIn("test", entry)
             self.assertIn("delta_ci", entry)
@@ -488,7 +489,7 @@ class TestCompareArms(unittest.TestCase):
         out = compare_arms(agentic, control)
         self.assertIn("mcnemar", out["metrics"]["exact_match"]["test"]["name"])
         self.assertIn("discordant", out["metrics"]["exact_match"]["test"]["detail"])
-        for metric in ("similarity", "adjacent_pair_acc", "longest_correct_run", "kendall_tau"):
+        for metric in ("similarity", "edit_similarity", "adjacent_pair_acc", "longest_correct_run", "kendall_tau"):
             self.assertIn("wilcoxon", out["metrics"][metric]["test"]["name"])
             self.assertIn("n_nonzero", out["metrics"][metric]["test"]["detail"])
 
@@ -500,7 +501,7 @@ class TestCompareArms(unittest.TestCase):
         agentic, control = self._arms()
         out = compare_arms(agentic, control)
         # every continuous metric is +0.02 on every sample -> should reject
-        for metric in ("similarity", "adjacent_pair_acc", "longest_correct_run", "kendall_tau"):
+        for metric in ("similarity", "edit_similarity", "adjacent_pair_acc", "longest_correct_run", "kendall_tau"):
             self.assertTrue(out["metrics"][metric]["holm"]["reject"], metric)
 
 

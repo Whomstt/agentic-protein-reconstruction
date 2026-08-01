@@ -100,6 +100,26 @@ def mean(xs):
     return sum(xs) / len(xs)
 
 
+def edit_sim(a, b):
+    """1 - normalised Levenshtein, from a plain two-row DP.
+
+    Deliberately the naive textbook recurrence: the metric module reaches for a
+    vectorised prefix-min formulation on inputs this size, and that rewrite is
+    only trustworthy if something independent agrees with it."""
+    if a == b:
+        return 1.0
+    denom = max(len(a), len(b))
+    if not denom:
+        return 1.0
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        curr = [i]
+        for j, cb in enumerate(b, 1):
+            curr.append(min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = curr
+    return 1.0 - prev[-1] / denom
+
+
 def paired(samples, arm_a, arm_b, metric):
     out = []
     for s in samples:
@@ -196,6 +216,36 @@ class ThesisTableTest(unittest.TestCase):
             f3(mean(values(s, "control", "longest_correct_run"))),
             "Random Search Longest Correct Run",
         )
+        # Edit Similarity is not stored in samples.jsonl for these runs — it is
+        # derived from the stored reconstruction strings. Recompute it here with
+        # a local textbook edit distance, which also cross-checks the numpy
+        # vectorisation the metric module uses.
+        self.assertCell(
+            "main_results",
+            "Edit Similarity",
+            "LLM-Guided",
+            f3(mean([edit_sim(x["target"], x["reconstruction"]) for x in s])),
+            "LLM-Guided Edit Similarity",
+        )
+        self.assertCell(
+            "main_results",
+            "Edit Similarity",
+            "Fixed Settings",
+            f3(mean([
+                edit_sim(x["target"], x["iteration_history"][0]["reconstruction"])
+                for x in s
+            ])),
+            "Fixed Settings Edit Similarity",
+        )
+        # The shuffled arm stores an index permutation, not a sequence, so this
+        # cell must stay explicitly empty rather than silently printing a number.
+        self.assertCell(
+            "main_results",
+            "Edit Similarity",
+            "Random Order",
+            "n/a",
+            "Random Order Edit Similarity is unavailable",
+        )
         # Exact Match is a binomial rate: the share of proteins reconstructed
         # exactly, counted here from the raw per-sample values.
         em = values(s, "agentic", "exact_match")
@@ -218,13 +268,13 @@ class ThesisTableTest(unittest.TestCase):
                 f"{name}.tex still prints an interval range",
             )
 
-        # The table prints only the three reported metrics, in this order, and
+        # The table prints only the four reported metrics, in this order, and
         # the two dropped ones must not reappear.
         _, rows = parse_table("main_results")
         self.assertEqual(
             list(rows),
-            ["Adjacent Pair Accuracy", "Exact Match", "Longest Correct Run"],
-            "main results prints the three reported metrics in order",
+            ["Adjacent Pair Accuracy", "Exact Match", "Longest Correct Run", "Edit Similarity"],
+            "main results prints the four reported metrics in order",
         )
 
     # --- II. paired tests -------------------------------------------------
@@ -263,12 +313,12 @@ class ThesisTableTest(unittest.TestCase):
         self.assertGreaterEqual(round(printed, 3), round(raw_p, 3))
         self.assertLessEqual(printed, min(1.0, 5 * raw_p) + 1e-9)
 
-        # Only the three reported metrics are printed, in order, in every block.
+        # Only the four reported metrics are printed, in order, in every block.
         for block in blocks:
             self.assertEqual(
                 [row[1] for row in block],
-                ["Adjacent Pair Accuracy", "Exact Match", "Longest Correct Run"],
-                "paired tests prints the three reported metrics in order",
+                ["Adjacent Pair Accuracy", "Exact Match", "Longest Correct Run", "Edit Similarity"],
+                "paired tests prints the four reported metrics in order",
             )
 
         # Wilcoxon non-zero pairs, Longest Correct Run, LLM-Guided vs Fixed Settings.

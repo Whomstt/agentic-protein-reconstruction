@@ -1,0 +1,31 @@
+run_dir,run_name,organism,replica_count,arm,arm_label,metric,metric_label,point,ci_low,ci_high,ci_method,n,confidence
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,shuffled,Random Order,exact_match,Exact Match,0.02,0.00550196755016235,0.07001179072854388,wilson,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,deterministic,Fixed Settings,exact_match,Exact Match,0.05,0.02154367915436798,0.11175046923191911,wilson,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,control,Random Search (no LLM),exact_match,Exact Match,0.1,0.0552291370606751,0.17436566150491345,wilson,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,agentic,LLM-Guided,exact_match,Exact Match,0.11,0.0625419635706457,0.1863129650308031,wilson,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,oracle,Best Candidate (ceiling),exact_match,Exact Match,0.14,0.08526343659939134,0.22137188210963832,wilson,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,shuffled,Random Order,similarity,Sequence Similarity,0.27373171921040496,0.2196606952470947,0.33426345752235054,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,deterministic,Fixed Settings,similarity,Sequence Similarity,0.3437131855040411,0.28106168467163894,0.4115491268045066,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,control,Random Search (no LLM),similarity,Sequence Similarity,0.3549734005932698,0.2884215925488306,0.4288236644882673,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,agentic,LLM-Guided,similarity,Sequence Similarity,0.36509102114941877,0.2981921354923991,0.43951280782606894,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,oracle,Best Candidate (ceiling),similarity,Sequence Similarity,0.42477530666497215,0.3540047290381221,0.5000641605420368,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,shuffled,Random Order,edit_similarity,Edit Similarity,,,,bca (insufficient n),0,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,deterministic,Fixed Settings,edit_similarity,Edit Similarity,0.41384703973205283,0.37519658182065285,0.4606343839000901,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,control,Random Search (no LLM),edit_similarity,Edit Similarity,0.44642505649458675,0.4005485023529699,0.4987861088720644,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,agentic,LLM-Guided,edit_similarity,Edit Similarity,0.45674443304470086,0.40992372692062773,0.5099401145735685,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,oracle,Best Candidate (ceiling),edit_similarity,Edit Similarity,0.5394357254963146,0.4933515100504348,0.5904480570133177,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,shuffled,Random Order,adjacent_pair_acc,Adjacent Pair Accuracy,0.07122806373540513,0.04999208363641017,0.1138402535515008,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,deterministic,Fixed Settings,adjacent_pair_acc,Adjacent Pair Accuracy,0.27001166264162707,0.23354921130104345,0.3182310212492542,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,control,Random Search (no LLM),adjacent_pair_acc,Adjacent Pair Accuracy,0.3840268372698106,0.33912173009319774,0.4362850002424784,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,agentic,LLM-Guided,adjacent_pair_acc,Adjacent Pair Accuracy,0.39718926114486874,0.3522914303448146,0.44984211957281733,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,oracle,Best Candidate (ceiling),adjacent_pair_acc,Adjacent Pair Accuracy,0.4492987381916983,0.4029793505433048,0.5025626097664192,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,shuffled,Random Order,longest_correct_run,Longest Correct Run,0.11978802760127741,0.09649188963410545,0.15922868650965608,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,deterministic,Fixed Settings,longest_correct_run,Longest Correct Run,0.2046757726216708,0.16595039659209845,0.2553554287082376,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,control,Random Search (no LLM),longest_correct_run,Longest Correct Run,0.25221577216262614,0.2055180205025874,0.3120422917381262,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,agentic,LLM-Guided,longest_correct_run,Longest Correct Run,0.26557491185402854,0.2167698818032559,0.327650465313162,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,oracle,Best Candidate (ceiling),longest_correct_run,Longest Correct Run,0.3070321983612404,0.25207427809374494,0.37094758910248576,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,shuffled,Random Order,kendall_tau,Kendall Tau,0.009025459373234146,-0.03078805853499752,0.057994512405340086,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,deterministic,Fixed Settings,kendall_tau,Kendall Tau,0.19359261583030576,0.14551849704138237,0.2514261290568144,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,control,Random Search (no LLM),kendall_tau,Kendall Tau,0.31003396726801813,0.2504517567134371,0.3757626762855804,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,agentic,LLM-Guided,kendall_tau,Kendall Tau,0.3243428318173093,0.2609298568322768,0.39328688953352886,bca,100,0.95
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,oracle,Best Candidate (ceiling),kendall_tau,Kendall Tau,0.43631695490093464,0.3771182795122548,0.49997661050740827,bca,100,0.95

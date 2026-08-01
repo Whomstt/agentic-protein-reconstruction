@@ -1,0 +1,113 @@
+{
+  "run_name": "Agentic Evaluation (E. coli, esm_small, r100)",
+  "config": {
+    "misc": {
+      "seed": 42,
+      "device": "cuda"
+    },
+    "run": {
+      "method": "agentic",
+      "calling_mode": "single_call",
+      "iteration1_deterministic": true
+    },
+    "mlm_model": {
+      "profile": "esm_small",
+      "type": "esm",
+      "name": "facebook/esm2_t6_8M_UR50D",
+      "batch_size": 64,
+      "max_length": 1024
+    },
+    "validity_model": {
+      "name": "facebook/esm2_t6_8M_UR50D",
+      "batch_size": 64,
+      "max_length": 1024
+    },
+    "llm_model": {
+      "name": "gpt-5-mini",
+      "sampling": {
+        "temperature": null,
+        "top_p": null,
+        "top_k": null,
+        "seed": 42,
+        "reasoning_effort": "low",
+        "verbosity": "low"
+      }
+    },
+    "search": {
+      "max_iterations": 5,
+      "early_stop_patience": 5,
+      "default_beam_width": 25,
+      "default_junction_window": 1
+    },
+    "data": {
+      "organism": "ecoli",
+      "organism_display_name": "E. coli",
+      "test_samples": 100,
+      "replica_count": 100,
+      "missed_cleavage_ratio": 0.3,
+      "active_fragmented_split": "data/ecoli/fragmented_ecoli.jsonl"
+    }
+  },
+  "sample_count": 100,
+  "avg_pruned": 6.575170049942001,
+  "baseline_averages": {
+    "exact_match": 0.01,
+    "similarity": 0.2888146588969869,
+    "adjacent_pair_acc": 0.06758137788964508,
+    "longest_correct_run": 0.1361980431730338,
+    "kendall_tau": -0.006437703432353867
+  },
+  "first_pass_averages": {
+    "exact_match": 0.32,
+    "similarity": 0.6576948800622597,
+    "adjacent_pair_acc": 0.7841322806198424,
+    "longest_correct_run": 0.6283103947913141,
+    "kendall_tau": 0.6314771004243503
+  },
+  "recon_averages": {
+    "exact_match": 0.46,
+    "similarity": 0.7650888644179336,
+    "adjacent_pair_acc": 0.8790814919651307,
+    "longest_correct_run": 0.7169015816674973,
+    "kendall_tau": 0.7532357545341375
+  },
+  "control_averages": {
+    "exact_match": 0.4,
+    "similarity": 0.7083754278975569,
+    "adjacent_pair_acc": 0.8627038359116713,
+    "longest_correct_run": 0.6819282839113064,
+    "kendall_tau": 0.70500750590022
+  },
+  "control_policy": "random",
+  "oracle_averages": {
+    "exact_match": 0.64,
+    "similarity": 0.8516348812577397,
+    "adjacent_pair_acc": 0.9256016364562174,
+    "longest_correct_run": 0.8195124531728506,
+    "kendall_tau": 0.878812972792748
+  },
+  "delta": {
+    "exact_match": 0.45,
+    "similarity": 0.4762742055209467,
+    "adjacent_pair_acc": 0.8115001140754856,
+    "longest_correct_run": 0.5807035384944634,
+    "kendall_tau": 0.7596734579664913
+  },
+  "cost_summary": {
+    "total_llm_calls": 400,
+    "total_llm_tokens": 613053,
+    "avg_llm_calls_per_sample": 4.0,
+    "avg_llm_tokens_per_sample": 6130.53,
+    "avg_seconds_per_sample": 43.16813158273697,
+    "avg_agentic_seconds_per_sample": 35.82295726537704,
+    "completed_samples": 100,
+    "llm_failures": 0,
+    "true_order_recovered": 100,
+    "control_enabled": true,
+    "control_policy": "random",
+    "control_llm_calls": 0,
+    "avg_control_seconds_per_sample": 7.04342592716217
+  },
+  "duration_seconds": 4316.813158273697,
+  "samples_note": "Per-sample records live in samples.jsonl.gz."
+}

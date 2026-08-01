@@ -21,10 +21,11 @@ from statistics import NormalDist
 _NORM = NormalDist()
 
 # Metrics are reported together, so a report that claims significance on any of
-# them is running five tests; Holm correction is applied across this family.
+# them is running six tests; Holm correction is applied across this family.
 METRIC_FAMILY = (
     "exact_match",
     "similarity",
+    "edit_similarity",
     "adjacent_pair_acc",
     "longest_correct_run",
     "kendall_tau",

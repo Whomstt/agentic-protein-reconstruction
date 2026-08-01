@@ -1,10 +1,10 @@
 .env
 .venv
 *.egg-info
-results
 data
 mlm_bert
 __pycache__
+results
 .claude
 *.aux
 *.log

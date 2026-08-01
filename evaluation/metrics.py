@@ -14,6 +14,74 @@ def exact_match(target, reconstruction):
     return 1.0 if target == reconstruction else 0.0
 
 
+def _levenshtein_py(a, b):
+    """Two-row DP. Correct for any input; O(len(a)*len(b)) in pure Python."""
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        curr = [i]
+        for j, cb in enumerate(b, 1):
+            curr.append(min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        prev = curr
+    return prev[-1]
+
+
+def _levenshtein_np(a, b, np):
+    """Same recurrence, one numpy row per character of `a`.
+
+    The insertion term ``curr[j-1] + 1`` is a left-to-right dependency, so it
+    cannot be written as a single vector op. Substituting ``d[j] = curr[j] - j``
+    turns it into ``d[j] = min(d[j], d[j-1])`` — a prefix minimum — which
+    ``np.minimum.accumulate`` computes exactly. Protein sequences run to a few
+    thousand residues, where the pure-Python loop costs seconds per call.
+    """
+    row = np.frombuffer(b.encode("latin-1"), dtype=np.uint8).astype(np.int32)
+    idx = np.arange(len(b) + 1, dtype=np.int32)
+    prev = idx.copy()
+    curr = np.empty(len(b) + 1, dtype=np.int32)
+    for i, ca in enumerate(a, 1):
+        curr[0] = i
+        np.minimum(prev[1:] + 1, prev[:-1] + (row != ord(ca)), out=curr[1:])
+        curr -= idx
+        np.minimum.accumulate(curr, out=curr)
+        curr += idx
+        prev, curr = curr, prev
+    return int(prev[-1])
+
+
+def levenshtein(a, b):
+    """Unit-cost edit distance (insert/delete/substitute)."""
+    if a == b:
+        return 0
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    if len(a) * len(b) > 4096:
+        try:
+            import numpy as np
+        except ImportError:
+            pass
+        else:
+            return _levenshtein_np(a, b, np)
+    return _levenshtein_py(a, b)
+
+
+def edit_similarity(target, reconstruction):
+    """1 - (Levenshtein distance / length), i.e. the fraction of residues that do
+    not need editing (0-1, higher is better). Reported this way rather than as a
+    raw distance so it shares the direction of every other metric.
+
+    Unlike `sequence_similarity`, which uses difflib's recursive
+    longest-matching-block heuristic, this is the standard edit distance, so it
+    is well defined rather than an artifact of one implementation. Candidates are
+    permutations of the same residue multiset, so both strings have equal length
+    and the normaliser is just the protein length."""
+    denom = max(len(target), len(reconstruction))
+    if not denom:
+        return 1.0
+    return 1.0 - levenshtein(target, reconstruction) / denom
+
+
 def recover_true_order(target, fragments):
     """Greedy left-to-right tiling of the target, longest fragment first so a
     fragment that prefixes another does not derail it. Returns the permutation of
@@ -218,6 +286,7 @@ ORDERING_METRICS = {"adjacent_pair_acc", "longest_correct_run", "kendall_tau"}
 METRIC_NAMES = {
     "exact_match": "Exact Match",
     "similarity": "Sequence Similarity",
+    "edit_similarity": "Edit Similarity",
     "adjacent_pair_acc": "Adjacent Pair Accuracy",
     "longest_correct_run": "Longest Correct Run",
     "kendall_tau": "Kendall Tau",
@@ -247,6 +316,7 @@ def compute_all(target, reconstruction, fragments=None, order=None):
     return {
         "exact_match": exact_match(target, reconstruction),
         "similarity": sequence_similarity(target, reconstruction),
+        "edit_similarity": edit_similarity(target, reconstruction),
         "adjacent_pair_acc": adjacent,
         "longest_correct_run": longest,
         "kendall_tau": tau,

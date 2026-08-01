@@ -1,0 +1,31 @@
+run_dir,run_name,organism,replica_count,arm,arm_label,metric,metric_label,point,ci_low,ci_high,ci_method,n,confidence
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,shuffled,Random Order,exact_match,Exact Match,0.02,0.00550196755016235,0.07001179072854388,wilson,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,deterministic,Fixed Settings,exact_match,Exact Match,0.05,0.02154367915436798,0.11175046923191911,wilson,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,control,Random Search (no LLM),exact_match,Exact Match,0.09,0.04807254000256516,0.16226212852716307,wilson,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,agentic,LLM-Guided,exact_match,Exact Match,0.09,0.04807254000256516,0.16226212852716307,wilson,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,oracle,Best Candidate (ceiling),exact_match,Exact Match,0.12,0.06999406437019488,0.19812099426711416,wilson,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,shuffled,Random Order,similarity,Sequence Similarity,0.29948397874666033,0.24809168433871376,0.3579841925922836,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,deterministic,Fixed Settings,similarity,Sequence Similarity,0.3908172358829242,0.3304136670228143,0.45484784261649547,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,control,Random Search (no LLM),similarity,Sequence Similarity,0.4588461493407766,0.39066337208767643,0.5272302807596563,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,agentic,LLM-Guided,similarity,Sequence Similarity,0.45306069900858037,0.3845350286717317,0.5235949645885716,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,oracle,Best Candidate (ceiling),similarity,Sequence Similarity,0.5143321361309886,0.4456097969034607,0.5815448933436136,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,shuffled,Random Order,edit_similarity,Edit Similarity,,,,bca (insufficient n),0,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,deterministic,Fixed Settings,edit_similarity,Edit Similarity,0.44944956879993453,0.41119027437339717,0.49417451059662465,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,control,Random Search (no LLM),edit_similarity,Edit Similarity,0.548325357835943,0.5041626414402143,0.5968814953745816,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,agentic,LLM-Guided,edit_similarity,Edit Similarity,0.5375176398215602,0.4925718675640707,0.588282930553574,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,oracle,Best Candidate (ceiling),edit_similarity,Edit Similarity,0.6096660649788985,0.5653333280803952,0.6545778970372698,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,shuffled,Random Order,adjacent_pair_acc,Adjacent Pair Accuracy,0.10123874816374137,0.07342726122112947,0.14458277683385867,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,deterministic,Fixed Settings,adjacent_pair_acc,Adjacent Pair Accuracy,0.2936601059709774,0.2538154051495045,0.34201880974561644,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,control,Random Search (no LLM),adjacent_pair_acc,Adjacent Pair Accuracy,0.435733507180667,0.39427000565953246,0.4844836457297428,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,agentic,LLM-Guided,adjacent_pair_acc,Adjacent Pair Accuracy,0.4328161390661325,0.391610607675298,0.48040606306626893,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,oracle,Best Candidate (ceiling),adjacent_pair_acc,Adjacent Pair Accuracy,0.4925759811654408,0.4494417685869261,0.5399866665442581,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,shuffled,Random Order,longest_correct_run,Longest Correct Run,0.15908366883334538,0.1313154485504804,0.2016417781153833,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,deterministic,Fixed Settings,longest_correct_run,Longest Correct Run,0.22938370751317605,0.19486725795446672,0.27847715707841136,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,control,Random Search (no LLM),longest_correct_run,Longest Correct Run,0.29666394156445564,0.253827051951665,0.35239759362883244,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,agentic,LLM-Guided,longest_correct_run,Longest Correct Run,0.2888589250039407,0.24599912242241817,0.34484529834400435,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,oracle,Best Candidate (ceiling),longest_correct_run,Longest Correct Run,0.3424390083480258,0.29307400774713915,0.40095388701593176,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,shuffled,Random Order,kendall_tau,Kendall Tau,-0.01211067970453951,-0.06857737878318601,0.04532824971102082,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,deterministic,Fixed Settings,kendall_tau,Kendall Tau,0.24830859537811883,0.19409734934240222,0.3091287415713526,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,control,Random Search (no LLM),kendall_tau,Kendall Tau,0.40130489596715685,0.3401668043437119,0.46448733775311346,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,agentic,LLM-Guided,kendall_tau,Kendall Tau,0.404279736040159,0.34171258252442954,0.46701951462594304,bca,100,0.95
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,oracle,Best Candidate (ceiling),kendall_tau,Kendall Tau,0.4871624060142715,0.43076869296737597,0.5442789282686977,bca,100,0.95

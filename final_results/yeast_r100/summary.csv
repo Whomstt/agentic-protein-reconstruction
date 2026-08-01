@@ -1,0 +1,31 @@
+run_dir,run_name,organism,replica_count,arm,arm_label,metric,metric_label,point,ci_low,ci_high,ci_method,n,confidence
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,shuffled,Random Order,exact_match,Exact Match,0.0,0.0,0.03699349820698566,wilson,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,deterministic,Fixed Settings,exact_match,Exact Match,0.16,0.10095288488804781,0.24420269389270238,wilson,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,control,Random Search (no LLM),exact_match,Exact Match,0.26,0.18404698464748134,0.35370989449187173,wilson,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,agentic,LLM-Guided,exact_match,Exact Match,0.26,0.18404698464748134,0.35370989449187173,wilson,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,oracle,Best Candidate (ceiling),exact_match,Exact Match,0.35,0.26364248243097527,0.44745556703112027,wilson,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,shuffled,Random Order,similarity,Sequence Similarity,0.21278215546998738,0.16451818904196866,0.2710159472752386,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,deterministic,Fixed Settings,similarity,Sequence Similarity,0.5094978151119698,0.4448196194448266,0.5749677329565589,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,control,Random Search (no LLM),similarity,Sequence Similarity,0.5484838863165337,0.47578388047252723,0.6203176193652158,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,agentic,LLM-Guided,similarity,Sequence Similarity,0.5473613246363237,0.47708693389316287,0.6180606091850582,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,oracle,Best Candidate (ceiling),similarity,Sequence Similarity,0.6473767699025692,0.5743203161566479,0.7166277832679279,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,shuffled,Random Order,edit_similarity,Edit Similarity,,,,bca (insufficient n),0,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,deterministic,Fixed Settings,edit_similarity,Edit Similarity,0.5816741908533725,0.5364367043970983,0.6325136139921823,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,control,Random Search (no LLM),edit_similarity,Edit Similarity,0.6333497515868423,0.5820194735801594,0.686121941279852,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,agentic,LLM-Guided,edit_similarity,Edit Similarity,0.6411282056405565,0.5894797209847162,0.6947291960424903,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,oracle,Best Candidate (ceiling),edit_similarity,Edit Similarity,0.7508854823422558,0.7021706303070326,0.7968427495959635,bca,100,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,shuffled,Random Order,adjacent_pair_acc,Adjacent Pair Accuracy,0.05020922676613463,0.03819376254264322,0.06546385910431626,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,deterministic,Fixed Settings,adjacent_pair_acc,Adjacent Pair Accuracy,0.7034467146192706,0.6673101611765466,0.7405732823448243,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,control,Random Search (no LLM),adjacent_pair_acc,Adjacent Pair Accuracy,0.7876304598599886,0.7564079460274697,0.8187548653026095,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,agentic,LLM-Guided,adjacent_pair_acc,Adjacent Pair Accuracy,0.8117605096676427,0.7832326615173351,0.8383967486336297,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,oracle,Best Candidate (ceiling),adjacent_pair_acc,Adjacent Pair Accuracy,0.8545520061033226,0.8265401922863377,0.8797815062477734,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,shuffled,Random Order,longest_correct_run,Longest Correct Run,0.0937270257508393,0.07858113004098523,0.11648051246997065,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,deterministic,Fixed Settings,longest_correct_run,Longest Correct Run,0.44792439127012534,0.39651148315938506,0.51042099706428,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,control,Random Search (no LLM),longest_correct_run,Longest Correct Run,0.5127859170391671,0.4524779500987481,0.5793162561039311,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,agentic,LLM-Guided,longest_correct_run,Longest Correct Run,0.5296980258081047,0.4696017682701088,0.5943223562076747,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,oracle,Best Candidate (ceiling),longest_correct_run,Longest Correct Run,0.6226025780121252,0.5610107312436632,0.6849212267006879,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,shuffled,Random Order,kendall_tau,Kendall Tau,-0.030815661816220637,-0.08659926350050837,0.014530196500095696,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,deterministic,Fixed Settings,kendall_tau,Kendall Tau,0.5004590020674343,0.4343451055027714,0.5688842816473523,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,control,Random Search (no LLM),kendall_tau,Kendall Tau,0.5983615184549641,0.5301854715723167,0.6639591938523363,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,agentic,LLM-Guided,kendall_tau,Kendall Tau,0.6240747661707043,0.5599497342778822,0.6863403976648249,bca,99,0.95
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,oracle,Best Candidate (ceiling),kendall_tau,Kendall Tau,0.7327997432155161,0.6738543732691308,0.78662952714428,bca,99,0.95

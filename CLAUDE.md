@@ -154,6 +154,13 @@ and only ordering varies.
 
 - **exact_match** — `target == reconstruction`.
 - **similarity** — `difflib.SequenceMatcher` ratio, the one soft string metric.
+- **edit_similarity** — `1 - levenshtein/L`, the fraction of residues needing no
+  edit. Standard edit distance rather than difflib's matching-block heuristic,
+  and the residue-level counterpart to the ordering metrics. Reported as a
+  similarity so it shares the direction of every other metric. Runs finished
+  before it existed get it backfilled from their stored reconstruction strings by
+  `analysis._backfill_edit_similarity`; the shuffled arm stores only an index
+  permutation and no fragment list, so its cell is NaN and prints `n/a`.
 - **adjacent_pair_acc** — fraction of true adjacent pairs preserved. Directed and
   string-multiset based. Primary ordering metric.
 - **longest_correct_run** — longest contiguous correct block / n.
@@ -271,6 +278,15 @@ finished run.
   experimental-configuration table, derived from every run's config snapshot.
   `tests/test_thesis_tables.py` re-derives values from `samples.jsonl` with no
   `evaluation/` imports and asserts them against the emitted cells.
+
+`results/` is gitignored. The six reported runs (ecoli/yeast × r5/r20/r100, 100
+samples each) are committed under `final_results/<organism>_r<replicas>/`, which
+is a valid results root: `rebuild.py` and `thesis_tables.py` both take
+`--results-root final_results`. Two size changes and nothing else — the `samples`
+key is stripped from `summary.json` (it was a byte-identical duplicate of
+`samples.jsonl`) and `samples.jsonl` is stored gzipped, so the whole set is ~8 MB.
+Figure PDFs are omitted since `*.pdf` is gitignored; the PNG twins are there. Keep
+`final_results/README.md` in step if a run is added or replaced.
 
 Tables written by `rebuild.py` under `results/*/tables/` do carry a provenance
 comment (source run, command, row count, timestamp) via `exports.stamp_tables`.

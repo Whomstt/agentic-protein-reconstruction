@@ -8,12 +8,14 @@
     \midrule
     LLM-Guided $-$ Random Search & Adjacent Pair Accuracy & -0.003 & 49 (25/24) & 1.000 \\
      & Exact Match & +0.000 & 0 (0/0) & 1.000 \\
-     & Longest Correct Run & -0.008 & 23 (8/15) & 0.267 \\
+     & Longest Correct Run & -0.008 & 23 (8/15) & 0.320 \\
+     & Edit Similarity & -0.011 & 64 (26/38) & 0.649 \\
     \midrule
     LLM-Guided $-$ Fixed Settings & Adjacent Pair Accuracy & +0.139 & 78 (72/6) & $<$0.001 \\
      & Exact Match & +0.040 & 4 (4/0) & 0.125 \\
      & Longest Correct Run & +0.059 & 56 (47/9) & $<$0.001 \\
+     & Edit Similarity & +0.088 & 92 (62/30) & $<$0.001 \\
     \bottomrule
   \end{tabular}
-  \par\smallskip\footnotesize{Proteins: discordant pairs (LLM-Guided-only/baseline-only) for Exact Match, non-zero differences (positive/negative) otherwise. The Holm adjustment covers the 5 metrics computed, not only the 3 shown.}
+  \par\smallskip\footnotesize{Proteins: discordant pairs (LLM-Guided-only/baseline-only) for Exact Match, non-zero differences (positive/negative) otherwise. The Holm adjustment covers the 6 metrics computed, not only the 4 shown.}
 \end{table*}

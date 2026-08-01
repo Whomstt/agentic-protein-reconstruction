@@ -86,6 +86,13 @@ python -m evaluation.rebuild --all                  # reports, CSVs, tables, fig
 python -m evaluation.thesis_tables --run <folder>   # the paper's tables -> report/tables/
 ```
 
+`results/` is gitignored, so the six reported runs are published under
+[final_results/](final_results/) instead — two organisms × three replica counts,
+600 samples, ~8 MB. Each folder keeps its full raw per-sample record
+(`samples.jsonl.gz`) alongside the reports, CSVs, tables and figures, so every
+reported number can be recomputed with `--results-root final_results`. See
+[final_results/README.md](final_results/README.md).
+
 Metrics account for the fact that a reconstruction is a permutation of a fixed
 fragment set: **Exact Match**, **Sequence Similarity**, **Adjacent Pair
 Accuracy**, **Longest Correct Run** and **Kendall Tau**. See
@@ -118,5 +125,6 @@ preprocessing/     FASTA filtering and trypsin digestion into fragmented dataset
 tests/             stdlib unittest suites (no pytest dependency)
 
 experiments/       Exploratory notebooks (not part of the pipeline)
+final_results/     The six reported runs, committed (results/ itself is gitignored)
 report/            LaTeX write-up, generated tables and figures
 ```

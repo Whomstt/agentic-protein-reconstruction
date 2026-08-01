@@ -1,0 +1,43 @@
+run_dir,run_name,organism,replica_count,n_samples,error_class,error_label,count,share
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,exact,Exact reconstruction,46,0.46
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,local_transposition,Local transposition,9,0.09
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,wrong_start,"Wrong start (structured, misanchored)",2,0.02
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,partial_assembly,Partial assembly (correct start),43,0.43
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,block_reversal,Block reversal,0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,full_scramble,Full scramble,0,0.0
+130726_224804_agentic,"Agentic Evaluation (E. coli, esm_small, r100)",E. coli,100,100,unknown,Unclassified (no ground-truth order),0,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,exact,Exact reconstruction,29,0.29
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,local_transposition,Local transposition,5,0.05
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,wrong_start,"Wrong start (structured, misanchored)",6,0.06
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,partial_assembly,Partial assembly (correct start),60,0.6
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,block_reversal,Block reversal,0,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,full_scramble,Full scramble,0,0.0
+140726_132208_agentic,"Agentic Evaluation (E. coli, esm_small, r20)",E. coli,20,100,unknown,Unclassified (no ground-truth order),0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,exact,Exact reconstruction,9,0.09
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,local_transposition,Local transposition,0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,wrong_start,"Wrong start (structured, misanchored)",14,0.14
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,partial_assembly,Partial assembly (correct start),77,0.77
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,block_reversal,Block reversal,0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,full_scramble,Full scramble,0,0.0
+140726_144552_agentic,"Agentic Evaluation (E. coli, esm_small, r5)",E. coli,5,100,unknown,Unclassified (no ground-truth order),0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,exact,Exact reconstruction,26,0.26
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,local_transposition,Local transposition,3,0.03
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,wrong_start,"Wrong start (structured, misanchored)",7,0.07
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,partial_assembly,Partial assembly (correct start),63,0.63
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,block_reversal,Block reversal,0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,full_scramble,Full scramble,0,0.0
+140726_171539_agentic,"Agentic Evaluation (Yeast, esm_small, r100)",Yeast,100,100,unknown,Unclassified (no ground-truth order),1,0.01
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,exact,Exact reconstruction,16,0.16
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,local_transposition,Local transposition,1,0.01
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,wrong_start,"Wrong start (structured, misanchored)",9,0.09
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,partial_assembly,Partial assembly (correct start),74,0.74
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,block_reversal,Block reversal,0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,full_scramble,Full scramble,0,0.0
+140726_194805_agentic,"Agentic Evaluation (Yeast, esm_small, r20)",Yeast,20,100,unknown,Unclassified (no ground-truth order),0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,exact,Exact reconstruction,11,0.11
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,local_transposition,Local transposition,1,0.01
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,wrong_start,"Wrong start (structured, misanchored)",19,0.19
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,partial_assembly,Partial assembly (correct start),69,0.69
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,block_reversal,Block reversal,0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,full_scramble,Full scramble,0,0.0
+140726_215821_agentic,"Agentic Evaluation (Yeast, esm_small, r5)",Yeast,5,100,unknown,Unclassified (no ground-truth order),0,0.0

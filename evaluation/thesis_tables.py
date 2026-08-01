@@ -95,7 +95,17 @@ SHORT_ARM_LABELS = {
 # largely by fragment composition, which every arm shares; Kendall Tau moves
 # with Adjacent Pair Accuracy and adds no independent evidence at this width.
 # Both remain in analysis_report.md and in the selection-ceiling table.
-REPORTED_METRICS = ("adjacent_pair_acc", "exact_match", "longest_correct_run")
+#
+# Edit Similarity is printed alongside them as the residue-level view: how much
+# of the protein sits in the right place, on a standard edit distance rather than
+# difflib's matching-block heuristic. Its Random Order cell is empty by
+# construction — see analysis._backfill_edit_similarity.
+REPORTED_METRICS = (
+    "adjacent_pair_acc",
+    "exact_match",
+    "longest_correct_run",
+    "edit_similarity",
+)
 
 # The Holm family is the full set of metrics tested, NOT the subset printed:
 # narrowing the printed rows must never relax the correction the shown p values
@@ -267,7 +277,11 @@ def table_main_results(run: Run, rows, resamples) -> Table:
         label="tab:main_results",
         # The full metric family is disclosed by the paired-tests table's note,
         # which is where the Holm correction it matters for is actually reported.
-        notes=rf"{METRIC_NAMES[PRIMARY_METRIC]} is the primary ordering metric.",
+        notes=(
+            rf"{METRIC_NAMES[PRIMARY_METRIC]} is the primary metric. Edit "
+            r"Similarity was added post these runs and is n/a for Random Order, "
+            r"whose sequences were not stored."
+        ),
         environment="table*",
         placement="!t",
         raw_latex=True,

@@ -26,7 +26,12 @@ import math
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from evaluation.metrics import METRIC_NAMES, nanmean, rank_concordance
+from evaluation.metrics import (
+    METRIC_NAMES,
+    edit_similarity,
+    nanmean,
+    rank_concordance,
+)
 
 RESULTS_ROOT = Path(__file__).resolve().parent.parent / "results"
 
@@ -139,6 +144,75 @@ class Run:
         return f"{self.organism} r{rc}" if rc is not None else self.organism
 
 
+def _backfill_edit_similarity(sample: dict) -> None:
+    """Derive ``edit_similarity`` for runs finished before the metric existed.
+
+    Those runs stored every arm's reconstruction *string*, so the metric is a
+    direct recomputation rather than an estimate — no re-running, and a run that
+    already stores the key is left untouched.
+
+    The shuffled arm is the one exception: it stores ``baseline_order`` (an index
+    permutation) but not the string or the fragment list it indexes, and the
+    fragment lists for the r20/r100 runs no longer exist. It stays NaN, which
+    ``nanmean`` drops, rather than being reconstructed approximately.
+    """
+    target = sample.get("target")
+    if not isinstance(target, str) or not target:
+        return
+
+    def put(metrics, reconstruction):
+        if not isinstance(metrics, dict) or "edit_similarity" in metrics:
+            return
+        metrics["edit_similarity"] = (
+            edit_similarity(target, reconstruction)
+            if isinstance(reconstruction, str) and reconstruction
+            else float("nan")
+        )
+
+    for key in ("iteration_history", "control_iteration_history"):
+        for record in sample.get(key) or []:
+            if isinstance(record, dict):
+                put(record.get("metrics"), record.get("reconstruction"))
+
+    history = sample.get("iteration_history") or []
+    control_history = sample.get("control_iteration_history") or []
+
+    put(sample.get("recon_metrics"), sample.get("reconstruction"))
+    put(sample.get("first_pass_metrics"), (history[0] or {}).get("reconstruction") if history else None)
+
+    best = sample.get("control_best_iteration")
+    control_best = None
+    if isinstance(best, int) and 1 <= best <= len(control_history):
+        control_best = (control_history[best - 1] or {}).get("reconstruction")
+    put(sample.get("control_metrics"), control_best)
+
+    # Shuffled floor: runner.py keeps its index permutation but discards the
+    # string it built them from, so the sequence has to come back from the
+    # fragment list. sample_diagnostics stores that list, but only for runs made
+    # after it was added — older ones stay NaN, since the digestion RNG is
+    # unseeded and the fragment set cannot be regenerated.
+    fragments = sample.get("fragments")
+    baseline_order = sample.get("baseline_order")
+    baseline_recon = None
+    if fragments and baseline_order and len(baseline_order) == len(fragments):
+        if sorted(baseline_order) == list(range(len(fragments))):
+            baseline_recon = "".join(fragments[i] for i in baseline_order)
+    put(sample.get("baseline_metrics"), baseline_recon)
+
+    # Oracle mirrors runner.py: the best value over the candidates the agent
+    # actually generated, so it is a max over the same per-iteration records.
+    oracle = sample.get("oracle_metrics")
+    if isinstance(oracle, dict) and "edit_similarity" not in oracle:
+        finite = [
+            r["metrics"]["edit_similarity"]
+            for r in history
+            if isinstance(r, dict)
+            and isinstance(r.get("metrics", {}).get("edit_similarity"), (int, float))
+            and not math.isnan(r["metrics"]["edit_similarity"])
+        ]
+        oracle["edit_similarity"] = max(finite) if finite else float("nan")
+
+
 def load_run(run_dir) -> Run:
     """Read one results folder. ``samples.jsonl`` is the source of truth for
     per-sample data; ``summary.json`` is read only for the config snapshot and
@@ -152,7 +226,9 @@ def load_run(run_dir) -> Run:
     with samples_path.open(encoding="utf-8") as handle:
         for line in handle:
             if line.strip():
-                samples.append(json.loads(line))
+                sample = json.loads(line)
+                _backfill_edit_similarity(sample)
+                samples.append(sample)
 
     config: dict = {}
     name = path.name

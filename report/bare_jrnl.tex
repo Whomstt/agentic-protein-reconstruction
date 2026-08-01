@@ -2,6 +2,7 @@
 
 \usepackage{float}
 \usepackage{booktabs}
+\usepackage{url}
 
 \ifCLASSINFOpdf
   \usepackage[pdftex]{graphicx}
@@ -68,40 +69,41 @@ reconstruction process, and its respective decision-making process to produce a 
 
 \subsection{Methodology for Paper Selection}
 Papers suitable for this research paper were obtained through searching keywords on Google Scholar including
-"protein language models", "de novo protein reconstruction", "agentic AI proteomics", and similar.
+"protein language models", "de novo protein reconstruction", "agentic AI proteomics", microbial communities, and similar.
 Additionally, some of my references include suggestions from my capstone supervisors Enda Howley and Florence Abram,
-whom have previously worked heavily in this domain.
-Relevant papers for the literature review were selected based on the value they added to the conversation and their diverse
+whom have previously worked in this domain.
+Selection of papers for the literature review was based on the value they added to the conversation and their diverse
 coverage of topics to meet the target of $\sim$10 papers indicated by the capstone guidelines.
 
 \subsection{Proteins, Peptides and Proteomics}
-Proteins are made up of chains of amino acids, often formed from smaller peptides with the complete set
+Proteins are made up of chains of amino acids (peptides), with the complete set of proteins
 expressed by an organism considered as its proteome \cite{https://doi.org/10.1002/imt2.70031}. The sequence
 in which amino acids occur in a protein captures enough information to determine its structure and biological function
 \cite{Dinh2026}. Proteins are often seen as the "language of life", capable of 
 carrying out instructions that are found within our DNA, serving as enzymes for biochemical
 reactions and providing the necessary support for cellular life structures \cite{https://doi.org/10.1002/imt2.70031}.
-All of this complexity and diversity in functionality is captured within an alphabet consisting of 20 standard amino acids, motivating
+All of this complexity and diversity in functionality is captured in what could be considered as a biological alphabet consisting of 20 standard amino acids, motivating
 the development of sequence models inspired by Natural Language Processing (NLP) approaches \cite{Dinh2026}.
 
 In proteomics, the analysis of proteins is typically not completed on their full form, but rather through a bottom-up
-approach involving an enzymatic digestion causing a decomposition of proteins into framgented peptides \cite{https://doi.org/10.1002/imt2.70031}.
+approach involving an enzymatic digestion causing a decomposition of proteins into fragmented peptides \cite{https://doi.org/10.1002/imt2.70031}.
 The trypsin enzyme is often used for this process due its specificity in terms of splitting (cleaving)
 proteins at terminal sites of lysine (K) and arginine (R) amino acids (residues) respectively \cite{https://doi.org/10.1002/imt2.70031}.
-As the proteins under analysis can only be observed from a second-hand point of view through its
+As the proteins under analysis can only be observed through its
 cleaved peptide fragments, bioinformatics software must be used to infer a mapping to the most likely
 parent candidates \cite{https://doi.org/10.1002/imt2.70031}.
 
 Enzymatic digestions are not perfect and often result in "missed cleavages"; when the protein
-is not cut at the site it should have been; leaving longer sequences which can make
-matching more difficult \cite{MCDONNELL20232732}. A significant portion of peptides observed in
+is not cut at the site it should have been. Tandem mass spectrometry (MS) is the method used to detect peptides,
+and these unexpected sequences formed through digestion can make
+it more difficult to infer the sequence from the mass spectra \cite{MCDONNELL20232732}. A significant portion of peptides observed in
 a sample remain unidentified, in fact on average as little as 25\% of spectra obtained through
 experimentation can be identified, while the rest is discarded. \cite{MCDONNELL20232732}. It is
 common in proteomics for there to be an ambiguous mapping between peptides and proteins as they
 are not unique, making it considerably difficult to classify which parent protein the candidate peptide
 belongs to \cite{MCDONNELL20232732}. This further motivates a need for more advanced reconstruction
 algorithms, capable of mapping fragments from noisy signals to their original form, especially when
-considering under-documented or undiscovered proteomes that often occurs during pure culture experimentation.
+considering under-documented or undiscovered proteomes that are often found within mixed microbial communities.
 
 \subsection{Protein Language Models}
 Advances in NLP through Large Language Models (LLMs) have enabled a 
@@ -119,8 +121,8 @@ knowledge from cheaply learned internal representations before making expensive 
 Recurrent Neural Networks (RNNs) have been almost entirely replaced by the transformer architecture
 in the field of protein-sequence modeling since ProtBert \cite{9477085} highlighted the benefits 
 of self-attention in capturing long range dependencies of proteins on a large-scale. Our structural understanding
-of proteins has been enabled through models like ESMFold \cite{lin2023esmfold} which allows for
-prediction of 3d structures directly from single sequences.
+of proteins has been improved through models like ESMFold \cite{lin2023esmfold} which allow for
+prediction of 3D structures directly from single protein sequences.
 
 Despite these major advances, pLMs remain limited in their functionality. While folding models like ESMFold are
 exceptionally more efficient at structural predictions than their alignment-based counterparts; performing up
@@ -130,12 +132,9 @@ current pLMs are fundamentally restricted by our limited viewpoint from data on 
 which have already been produced by nature, inhibiting us from potentially uncovering proteins which differ
 from these captured patterns.
 
-\subsection{De Novo Protein Identification}
-Identifying proteins is a non-trivial task, typically a bottom-up strategy is performed where 
-peptides are matched using a database with an average 75\% of spectra obtained
-through experimentation remaining unidentified \cite{MCDONNELL20232732}. During an enzymatic
-digestion such as a trypsin digestion, proteins are decomposed into peptide fragments which
-break at certain points called cleavage sites. Peptides do not always fragment as expected, 
+\subsection{De Novo Peptide Identification}
+Identifying peptides is a non-trivial task, with an average of 75\% of spectra obtained
+through experimentation remaining unidentified \cite{MCDONNELL20232732}. Peptides do not always fragment as expected, 
 or aren't fully cleaved during enzymatic digestion. This poses the greatest challenge in 
 peptide identification when fragments are incomplete or ambiguous \cite{MCDONNELL20232732}.
 
@@ -143,21 +142,24 @@ Machine learning has been successful in recovering structural information from i
 on several accounts in proteomics. Traditional CNNs such as DeepNovo only look at local neighbours
 within a spectrum, where hybrid CNN-GNN models allow for long-range interconnections \cite{MCDONNELL20232732};
 demonstrating that new architectures which combine existing ideas in new ways
-are always being introduced and improving results.
+are constantly being introduced and often result in improved results.
 
 Uncertainties in protein identification do not only appear on the spectrum level but also often on the sequence level.
 In real world experimentation, only partial views of proteins and their respective peptide chains
 are visible due to noise or errors occuring. Masked language modeling helps to simulate and train
 a network to complete peptides with noise through randomly masking residues or single amino acids
 and inferring their proper values through the surrounding context \cite{kharkar2024llmproteins}.
-Fine-tuning transformer models like BERT and RoBERTa that were originally trained purely on natural language are capable
+
+Well-documented species such as E. coli have abudant training data, and as such pLMs will perform
+better on these species and similar ones, as they have trained on them more extensively, with the model's parameters
+tuned more effectively from this luxury. Fine-tuning transformer models like BERT and RoBERTa that were originally trained purely on natural language are capable
 of adapting to the task of predicting missing amino acids, while pLMs including ProteinBERT
 which have already been trained on millions of protein sequences can be fine-tuned further
-to improve their performance on identifying specific species \cite{kharkar2024llmproteins}.
+to improve their performance on identifying species which only had minimal training data originally \cite{kharkar2024llmproteins}.
 
 \subsection{De Novo Protein Design}
 De novo protein design involves creating proteins from scratch rather than making changes to existing ones
-that occur naturally. While creating untargeted de novo proteins is an interesting and useful exercise,
+that occur naturally. While creating de novo proteins that are not targeting a specific functionality is an interesting exercise,
 the design of de novo proteins that match desirable structural makeups or 
 useful properties can be considered as a much more challenging, but rewarding task \cite{doi:10.1126/sciadv.adl4000}.
 Proteins that occur naturally represent only a fraction of the theoretical potential number of possible
@@ -175,9 +177,10 @@ sequences in the database of known proteins \cite{doi:10.1126/sciadv.adl4000}.
 
 A newer alternative to diffusion-based generative models is that of flow matching models. Flow matching
 is supposed to bridge the gap between stochastic diffusion and domains which require more deterministic
-outcomes \cite{xia2025apexgensimultaneousdesignpeptide}. ApexGen makes use a receptor-conditioned,
+outcomes \cite{xia2025apexgensimultaneousdesignpeptide}. ApexGen uses a receptor-conditioned,
 manifold-aware conditional flow matching framework capable of ensuring that the 3D structures of
-generated de novo sequences will properly map to target binding sites \cite{xia2025apexgensimultaneousdesignpeptide}.
+generated de novo sequences will properly map to target binding sites; the specific region on a protein's surface
+where a suitable peptide fits precisely \cite{xia2025apexgensimultaneousdesignpeptide}.
 A template modeling (TM) score of 0.99 against the baseline comparison of PepFlow with 0.33 indicates ApexGen's
 ability to generate near-perfect folds and a better global topology alignment \cite{xia2025apexgensimultaneousdesignpeptide}.
 
@@ -198,8 +201,8 @@ approach allows for a collapse of all reptitive elements into singular edges and
 graph is "read coherent"; or a viable biological sequence formation \cite{10.1093/bioinformatics/bti1114}.
 
 MS/MS database tools (e.g. SEQUEST, Mascot, and modern alternatives) often face computational
-limitations when handling massive datasets of proteins, but where they struggle especially today is when it comes to 
-the task of identifying unknown or modified proteins without a reference \cite{doi:10.1073/pnas.0701130104}.
+limitations when handling massive datasets of proteins. They struggle when it comes to 
+the task of identifying unknown or modified proteins that lack a DB reference \cite{doi:10.1073/pnas.0701130104}.
 Spectral networks bypass the use of databases completely through alignment of "spectral pairs"
 (overlapping pairs of peptides or modified versions of the same) to form a full "spectral network" \cite{doi:10.1073/pnas.0701130104}.
 Analysing the entire "spectral network" at once was shown to increase the confidence of peptide identifications
@@ -421,12 +424,13 @@ is to reconstruct them so that they are back in the correct order as originally 
 Every approach (Random Order, Fixed Settings, Random Search, LLM-Guided) are all handling the same set of fragments / samples
 as each other.
 
-Three key metrics were selected to remove redundancy while capturing what matters most.
+Four key metrics were selected to remove redundancy while capturing what matters most.
 Adjacent Pair Accuracy serves as the core metric, considering the fraction of consecutive pairs in the reconstruction
 that are also present in the original.
 Exact Match is a ratio indicator of where a complete match has taken place i.e. the reconstruction is
 exactly the same as the original with all fragments ordered correctly.
 The Longest Correct Run metric considers the longest correctly ordered subsequence of ordered fragments, normalised by n.
+Edit Similarity measures the Levenshtein (edit) distance to reach the target, normalised by the length of the protein.
 
 \section{Results}
 The results go here.
@@ -502,6 +506,10 @@ I would like to thank my supervisors Enda Howley and Florence Abram for their ex
 \section*{Use of AI}
 AI tools were used to support this project. Claude (Anthropic) assisted with brainstorming and refining ideas during the research process. Claude Code and GitHub Copilot provided code suggestions during implementation. All experimental design, analysis, and written content remain the original work of the author.
 
+\section*{Code Repository}
+The implementation, evaluation pipeline, and results are available at: 
+
+\url{https://github.com/Whomstt/agentic-protein-reconstruction}.
 
 \ifCLASSOPTIONcaptionsoff
   \newpage
