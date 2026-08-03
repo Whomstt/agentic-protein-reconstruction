@@ -120,7 +120,9 @@ knowledge from cheaply learned internal representations before making expensive 
 
 Recurrent Neural Networks (RNNs) have been almost entirely replaced by the transformer architecture
 in the field of protein-sequence modeling since ProtBert \cite{9477085} highlighted the benefits 
-of self-attention in capturing long range dependencies of proteins on a large-scale. Our structural understanding
+of self-attention in capturing long range dependencies of proteins on a large-scale. Additionally, masked language modeling
+(MLM) has shown great success in repairing noisy protein sequences to their original states by probabilistically generating
+and selecting candidate amino acids to fill in the blanks \cite{9477085}. Our structural understanding
 of proteins has been improved through models like ESMFold \cite{lin2023esmfold} which allow for
 prediction of 3D structures directly from single protein sequences.
 
@@ -201,7 +203,7 @@ approach allows for a collapse of all reptitive elements into singular edges and
 graph is "read coherent"; or a viable biological sequence formation \cite{10.1093/bioinformatics/bti1114}.
 
 MS/MS database tools (e.g. SEQUEST, Mascot, and modern alternatives) often face computational
-limitations when handling massive datasets of proteins. They struggle when it comes to 
+limitations when handling massive datasets of proteins. They also struggle when it comes to 
 the task of identifying unknown or modified proteins that lack a DB reference \cite{doi:10.1073/pnas.0701130104}.
 Spectral networks bypass the use of databases completely through alignment of "spectral pairs"
 (overlapping pairs of peptides or modified versions of the same) to form a full "spectral network" \cite{doi:10.1073/pnas.0701130104}.
@@ -210,8 +212,8 @@ considerably, opening the door for shotgun protein sequencing \cite{doi:10.1073/
 
 \subsection{Agentic AI in Proteomics}
 Agentic AI has seen great success in recent times, particularly in the field of programming with tools
-such as Claude Code completely changing the way that we build software. Traditional rule-based pipelines struggle with handling noisy feedback signals and
-when things don't go as expected. An agentic system is controlled by an LLM "brain", which is granted access to "tools". Most agentic pipelines follow the ReAct pattern
+such as Claude Code completely changing the way that we build software. Traditional rule-based pipelines struggle with handling noisy, uncertain feedback signals
+which require manual hard-coded behaviours. An agentic system is controlled by an LLM "brain", which is granted access to "tools". Most agentic pipelines follow the ReAct pattern
 where an LLM receives a prompt and "reacts" by executing the most relevant tools respective to the query
 and its instruction. Sometimes tasks are so complex that it makes sense to have multiple agents acting together for a shared
 objective. 
@@ -240,10 +242,10 @@ this field \cite{ni2025agenticendtoendnovoprotein}.
 
 \subsection{Comparative Analysis}
 While pLMs such as ProtBERT \cite{9477085} and ESMFold \cite{lin2023esmfold} are excellent models
-for understanding the sequences and structures of proteins, they rely on the assumption that the problem being 
-dealt with involves a protein which is complete and perfectly ordered; this is not enough alone
-to unpack a mixture of peptide fragments and piece them back together to reconstruct the original
-protein.
+for understanding the sequences and structures of proteins in their base forms respectively, they rely on the assumption that the problem being 
+dealt with involves a protein which is correctly ordered and / or complete. These assumptions do not directly work for our downstream
+task in reconstruction with unordered tryptic fragments, however, they can be used as biological indicators
+to guide the reconstruction process through probabilistic and validity approaches.
 
 Masked language modeling has demonstrated success in predicting missing amino acids from surrounding
 context using Transformer-based models \cite{kharkar2024llmproteins}, this means that it can be effectively
@@ -252,23 +254,23 @@ process.
 
 Generative implementations like ApexGen \cite{xia2025apexgensimultaneousdesignpeptide} and
 ForceGen \cite{doi:10.1126/sciadv.adl4000} are effective systems capable of designing de novo
-proteins, however, they are not directed at reconstructing fragmented observed proteins which are
-novel.
+proteins. However, their aim is to design new proteins from scratch, while this research is undertaking
+reconstruction of lab-observed, unknown proteins which already exist.
 
 The application of agentic and multi-agent pipelines has shown great success for ProtAgents \cite{ghafarollahi2024protagentsproteindiscoverylarge}
 and VibeGen \cite{ni2025agenticendtoendnovoprotein}, highlighting the power of granting agents
 access to "tools" and having multiple agents cooperating to design targeted de novo proteins. VibeGen
-particularly praises the capacity of an "LLM brain" in terms of coordinating the design of a novel
-protein from scratch \cite{ni2025agenticendtoendnovoprotein}; while not at once relating to
-our reassembly problem, its success implicitly indicates usefulness of agentic AI in other regions
-of proteomics.
+particularly highlights the capacity of an "LLM brain" in terms of coordinating the design of a novel
+protein from scratch \cite{ni2025agenticendtoendnovoprotein}. VibeGen's success implicitly 
+indicates the utility of agentic AI in other regions of protein construction.
 
 \subsection{Key Findings}
-From the literature review, it is known that pLMs have been successful in learning biological information
+It is known that pLMs have been successful in learning biological information
 through sequential modeling. MLM methods can be used to infer missing residues, and that larger
 models typically capture more biological information than smaller ones. Existing applications
-of pLMs often assume complete, correctly-ordered sequences to perform an action upon; not exactly
-solving our problem.
+of pLMs in their base forms without a harness often assume complete or correctly-ordered sequences to perform an action upon.
+This means that to achieve the goal of de novo protein reconstruction a pipeline must be built around
+these biological indicators to guide reconstruction, but they cannot alone achieve the objective.
 
 Graph methods can considerably reduce the search space for reconstruction, with both string and spectral
 graph approaches operating without relying on a database. De novo identification methods often struggle
