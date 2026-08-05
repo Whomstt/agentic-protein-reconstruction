@@ -1,6 +1,5 @@
 \documentclass[journal]{IEEEtran}
 
-\usepackage{float}
 \usepackage{booktabs}
 \usepackage{url}
 
@@ -14,6 +13,12 @@
 
 
 \begin{document}
+
+% IEEEtran forces \flushbottom in two-column mode, which asks TeX to stretch
+% figure-heavy pages to the full text height and warns "Underfull \vbox" when
+% it cannot. Let those page bottoms ride instead.
+\raggedbottom
+
 \title{Agentic De Novo Protein Reconstruction}
 \author{Cathal~Crowe,~University of Galway}
 
@@ -264,51 +269,32 @@ particularly highlights the capacity of an "LLM brain" in terms of coordinating 
 protein from scratch \cite{ni2025agenticendtoendnovoprotein}. VibeGen's success implicitly 
 indicates the utility of agentic AI in other regions of protein construction.
 
-\subsection{Key Findings}
-It is known that pLMs have been successful in learning biological information
-through sequential modeling. MLM methods can be used to infer missing residues, and that larger
-models typically capture more biological information than smaller ones. Existing applications
-of pLMs in their base forms without a harness often assume complete or correctly-ordered sequences to perform an action upon.
-This means that to achieve the goal of de novo protein reconstruction a pipeline must be built around
-these biological indicators to guide reconstruction, but they cannot alone achieve the objective.
-
-Graph methods can considerably reduce the search space for reconstruction, with both string and spectral
-graph approaches operating without relying on a database. De novo identification methods often struggle
-with ambiguous fragments and current methods rely heavily on reference databases; limitations exist
-with pure assembly methods.
-
-Agentic AI and multi-agent systems have proven useful in protein design and related proteomics
-applications, with tool use and continuous iteration demonstrating improved decision-making.
-Existing agentic systems often focus on designing de novo proteins from scratch, rather than
-reconstructing them. A combination of these ideas remains largely unexplored.
-
 \subsection{Research Gap}
-pLMs are effective at filling in gaps in unified protein sequences, however they have not previously
-been used as a method to determine how fragments might join together.
+pLMs are capable of inferring missing residues through a probabilistic MLM approach but require a complete or an ordered input.
+Graph-based assembly methods such as creating an overlap graph can be used to effectively reduce the search
+space without a reference database, however, they lack a biological indicator for unconfirmed adjacencies.
+Agentic AI has been shown to improve the decision-making process for iterative systems, but only in de novo design,
+and not reconstruction.
 
-Graph-based assembly approaches including spectral \cite{doi:10.1073/pnas.0701130104} and 
-string graphs \cite{10.1093/bioinformatics/bti1114} are capable at reducing the
-search space of potential fragment pairings that are feasible significantly without a database, but they should be paired
-with AI models which understand the structural and sequential order of amino acids and peptides
-which form a biologically plausible protein.
+pLMs have not previously been used to determine how digested fragments will join together. Graph methods are shown to reduce
+the search space considerably, but require a pairing with something that understands the biological plausibility of sequences.
+Agentic AI has not yet been applied to the objective of de novo protein reconstruction.
 
-Agentic AI has worked well on several fronts already in the field of proteomics, usage of
-tools providing relevant feedback and multiple agents working together have allowed for a more
-hands-off approach in designing de novo proteins from scratch. It has not however, previously
-seen its usage in reconstruction of observed proteins from their fragments.
+It is not possible to create a full reconstruction of a protein from its fragments unless the overlap graph confirms all
+adjacent edges; a highly unlikely scenario in practice unless the number of digested replicas is substantial
+relative to the number of fragments in the digested protein. This is where guidance from a pLM is necessary,
+allowing scoring of unconfirmed adjacencies probabilistically to determine the most likely pairing.
 
-This makes for an exciting opportunity to combine the power of pLMs, agentic AI, and graph-assembly
-techniques to investigate whether this combination of technology is effective in
-guiding an accurate de novo protein reconstruction.
+The proposed combination is to take pLMs along with agentic AI and graph-assembly techniques to address
+the de novo reconstruction problem, rather than designing novel proteins with targeted properties from
+scratch; which is where most related work is currently investigating.
 
-The hope of this work is to answer the following questions: Can we reconstruct undiscovered proteins from
-fragments using agentic AI? Can we separate and reconstruct proteins from mixtures of fragments
-using agentic AI? How does a sequential vs agentic approach compare in the protein reconstruction
-process?
+Research questions to be addressed are as follows: Can we reconstruct de novo proteins from digested fragments
+using agentic AI? How effective is LLM-guided reasoning for the de novo reconstruction process?
 
 \section{Methodology}
 \subsection{Proposed Approach}
-Our proposed approach is aimed at dealing with the problem of reconstructing proteins from their
+The proposed approach is aimed at dealing with the problem of reconstructing proteins from their
 fragmented tryptic peptides without relying on a database of known proteomes. The idea of the system
 is that decisions in terms of approach and execution of reconstruction are orchestrated by an LLM "brain",
 capable of autonomously taking noisy feedback signals or corrupted ones and acting accordingly without
@@ -323,8 +309,8 @@ of the reconstruction process to an LLM brain and see how it compares against a 
 
 \subsection{System Architecture}
 The system is configured to have a shared pipeline across all variants. Each runs
-identically in terms of order; trypsin filter -> overlap graph -> junction scorer ->
-beam search -> validity scorer. What differs between runs is that we vary the number
+identically in terms of order; trypsin filter $\rightarrow$ overlap graph $\rightarrow$ junction scorer $\rightarrow$
+beam search $\rightarrow$ validity scorer. What differs between runs is that we vary the number
 of attempts the variant gets (1 or 5), and also where the tool parameters get their values from (fixed, random, LLM).
 
 The tunable settings which the agent has control over is limited to 5 parameters; 
@@ -342,7 +328,7 @@ been selected as the LLM brain, accessed through Microsoft's Foundry platform; i
 easily accessible. Fig.~\ref{fig:agentic_pipeline}
 provides an overview of the procedure which the agentic pipeline follows.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=0.75\columnwidth]{./images/agentic_pipeline.png}
 \caption{Agentic Pipeline: Overview of the agentic procedure.}
@@ -352,12 +338,12 @@ provides an overview of the procedure which the agentic pipeline follows.
 \subsection{Tools and Signals}
 The trypsin filter tool is typically used first to discard impossible pairings given trypsin digestion has
 occurred. Let's imagine that fragment A ends in K/R and fragment B starts with P, this tells us
-that A->B is an impossible pairing as trypsin would never have cleaved there. This reduces
+that A$\rightarrow$B is an impossible pairing as trypsin would never have cleaved there. This reduces
 our average search space considerably to $\sim$6.1\% found in initial experimentation.
 Additionally, this tool flags fragments beginning with M as starting (N-terminal) candidates.
 Fig.~\ref{fig:trypsin_filter} illustrates the trypsin filter tool and how impossible pairings are eliminated.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=0.75\columnwidth]{./images/trypsin_filter.png}
 \caption{Trypsin Filter Tool: Elimination of impossible fragment pairings.}
@@ -374,7 +360,7 @@ The score is determined by probability of selecting the correct amino acid. Mult
 is also optional as a potential improvement (i.e. mask 2-3 residues in the adjacent fragment).
 Fig.~\ref{fig:junction_scoring} illustrates the process of junction scoring across pairwise permutations.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=0.75\columnwidth]{./images/junction_scoring.png}
 \caption{Junction Scoring Tool: Scoring most likely pairings.}
@@ -391,7 +377,7 @@ initially apparent. Setting the k to one effectively acts as a greedy search for
 Fig.~\ref{fig:greedy_beam_search} illustrates the method of selecting the best pairing paths to form a complete
 protein.
 
-\begin{figure}[H]
+\begin{figure}[!htb]
 \centering
 \includegraphics[width=0.75\columnwidth]{./images/greedy_beam_search.png}
 \caption{Greedy / Beam Search Tool: Selecting optimal paths for pairings.}
@@ -447,14 +433,14 @@ than that of E. coli. This is primarily corellated with the number of fragments 
 found in yeast in comparison being much greater; objectively creating a harder reconstruction problem.
 
 A selection ceiling was also considered for the best candidate generated during the 5 iterations. Due
-to the inherent weakness of the validity scorer's signal; we only picked the real best candidate ~64\% of the time,
+to the inherent weakness of the validity scorer's signal; we only picked the real best candidate $\sim$64\% of the time,
 and throw away good candidates that were already generated for the other side of it.
 This ceiling shows us the potential of the system in its ability to reconstruct if we had
 higher quality validity signals such as folding models.
 
 It is evident from the clock time that the cost of the LLM-Guided setup is much more
 than that of the random search, with the intermediary LLM calls between iterations resulting
-in ~5x more time to compute for reconstructions than the random search approach.
+in $\sim$5x more time to compute for reconstructions than the random search approach.
 
 \input{tables/main_results_ecoli_r100}
 \input{tables/main_results_ecoli_r20}

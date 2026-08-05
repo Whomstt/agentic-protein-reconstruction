@@ -137,7 +137,17 @@ def run_suffix(run: Run) -> str:
 
 def _setup(run: Run) -> str:
     """'\\textit{E. coli}, 100 replicas' - the caption's setup identifier."""
-    return rf"\textit{{{_species(run)}}}, {run.replica_count} digestion replicas"
+    return rf"{_species_it(run)}, {run.replica_count} digestion replicas"
+
+
+def _species_it(run: Run) -> str:
+    """The italicised binomial, safe inside IEEEtran's small-caps captions.
+
+    ``\\textit`` on its own asks for a small-caps italic Times shape that does
+    not exist, so LaTeX warns and substitutes; ``\\textnormal`` resets the
+    family first and reaches the same italic without the warning.
+    """
+    return rf"\textnormal{{\textit{{{_species(run)}}}}}"
 
 
 def _species(run: Run) -> str:
@@ -270,7 +280,7 @@ def table_main_results(run: Run, rows, resamples) -> Table:
         headers=["Metric"] + [SHORT_ARM_LABELS[a] for a in arms],
         rows=table_rows,
         caption=(
-            rf"Reconstruction quality on \textit{{{_species(run)}}} at "
+            rf"Reconstruction quality on {_species_it(run)} at "
             rf"{run.replica_count} digestion replicas ($n={len(rows)}$ proteins). "
             r"Mean per protein."
         ),
@@ -283,7 +293,7 @@ def table_main_results(run: Run, rows, resamples) -> Table:
             r"whose sequences were not stored."
         ),
         environment="table*",
-        placement="!t",
+        placement="tp",
         raw_latex=True,
     )
 
@@ -334,7 +344,7 @@ def table_paired_tests(run: Run, rows, comparisons) -> Table:
         rows=table_rows,
         column_spec="llrrr",
         caption=(
-            rf"Paired per-sample comparisons on \textit{{{_species(run)}}} at "
+            rf"Paired per-sample comparisons on {_species_it(run)} at "
             rf"{run.replica_count} replicas ($n={len(rows)}$). Mean difference, "
             r"with $p$ values Holm-corrected within each comparison."
         ),
@@ -346,7 +356,7 @@ def table_paired_tests(run: Run, rows, comparisons) -> Table:
             rf"the {len(REPORTED_METRICS)} shown."
         ),
         environment="table*",
-        placement="!t",
+        placement="tp",
         raw_latex=True,
     )
 
@@ -389,7 +399,7 @@ def table_stratification(run: Run, rows) -> Table:
             "rest on fewer than n."
         ),
         environment="table*",
-        placement="!t",
+        placement="tp",
         raw_latex=True,
     )
 
@@ -570,7 +580,7 @@ def table_cost(run: Run, rows) -> Table:
         headers=["Measurement", "LLM-Guided", "Random Search"],
         rows=table_rows,
         caption=(
-            rf"Cost per protein on \textit{{{_species(run)}}} at {run.replica_count} "
+            rf"Cost per protein on {_species_it(run)} at {run.replica_count} "
             rf"digestion replicas ($n={run.n}$ proteins). The Random Search arm runs "
             "the same budget and pipeline with lever values from a non-LLM policy."
         ),
@@ -579,7 +589,7 @@ def table_cost(run: Run, rows) -> Table:
             rf"Time ratio {fmt(ratio, 2)}$\times$. Wall clock covers the full "
             r"per-protein pipeline, including the PLM scoring both arms share."
         ),
-        placement="!t",
+        placement="tbp",
         raw_latex=True,
     )
 
