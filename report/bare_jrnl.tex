@@ -2,6 +2,7 @@
 
 \usepackage{booktabs}
 \usepackage{url}
+\usepackage{cite}
 
 \ifCLASSINFOpdf
   \usepackage[pdftex]{graphicx}
@@ -9,14 +10,27 @@
   \usepackage[dvips]{graphicx}
 \fi
 
+\graphicspath{{images/}{./images/}}
+
+\usepackage{stfloats}
+\fnbelowfloat
+
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
+\setcounter{dbltopnumber}{3}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.7}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\renewcommand{\dblfloatpagefraction}{0.75}
+
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 
 \begin{document}
 
-% IEEEtran forces \flushbottom in two-column mode, which asks TeX to stretch
-% figure-heavy pages to the full text height and warns "Underfull \vbox" when
-% it cannot. Let those page bottoms ride instead.
 \raggedbottom
 
 \title{Agentic De Novo Protein Reconstruction}
@@ -295,17 +309,19 @@ using agentic AI? How effective is LLM-guided reasoning for the de novo reconstr
 \section{Methodology}
 \subsection{Proposed Approach}
 The proposed approach is aimed at dealing with the problem of reconstructing proteins from their
-fragmented tryptic peptides without relying on a database of known proteomes. The idea of the system
-is that decisions in terms of approach and execution of reconstruction are orchestrated by an LLM "brain",
-capable of autonomously taking noisy feedback signals or corrupted ones and acting accordingly without
-manual intervention.
+fragmented tryptic peptides without a reference database. The idea is for an LLM to guide the system to take decisions
+on the parameters used for tools to guide reconstruction based on validity signals and tool feedback.
+This autonomy allows the agent to reconstruct higher quality candidates iteratively through improved
+parameter selection and observing tool responses without requiring any predefined manual process.
 
-In essence the pipeline is structured around filtering impossible pairings of peptides, scoring how plausible
-junctions are between the remaining peptides, and finally returning the "optimal" or most confident ordering
-of peptides which is believed to be the closest match to the original protein subject.
+The pipeline essentially filters out impossible pairings through identifying invalid tryptic cleavages, confirms adjacencies through
+an overlap graph, scores likely pairings through MLM junction scoring with a pLM, and iteratively improves candidates through
+biological validation from a pLM's perplexity signal.
 
-In this approach, the aim is to investigate the potential advantages or disadvantages of handing off control 
-of the reconstruction process to an LLM brain and see how it compares against a baseline sequential approach.
+The aim of this setup was to identify any gain or loss which came with using LLM-guided reasoning
+for iterative candidate improvement vs. a random search of a parameter grid, while also measuring how a 
+single one-off setting configuration applied on all runs performs and finally as an absolute baseline; a complete
+random shuffle of the fragments to see how closely a shuffled sequences is to the original on average.
 
 \subsection{System Architecture}
 The system is configured to have a shared pipeline across all variants. Each runs
@@ -318,7 +334,7 @@ junction masking window (window size of the junction), search mode (beam / greed
 beam width (width of the beam), edge mode (soft / hard), and confirmed-edge bonus (0-1).
 
 A LangGraph ReAct framework served as the foundation for the agentic procedure. The input received
-by the LLM was the initial unordered peptide fragments, where it must first execute the deterministic run with fixed parameters.
+by the LLM is the initial unordered peptide fragments, with a first run to execute the deterministic parameters.
 After the first run, the agent has control over tuning the five parameters beforementioned in an attempt to improve the score
 returned by the validity scorer.
 
@@ -328,12 +344,7 @@ been selected as the LLM brain, accessed through Microsoft's Foundry platform; i
 easily accessible. Fig.~\ref{fig:agentic_pipeline}
 provides an overview of the procedure which the agentic pipeline follows.
 
-\begin{figure}[!htb]
-\centering
-\includegraphics[width=0.75\columnwidth]{./images/agentic_pipeline.png}
-\caption{Agentic Pipeline: Overview of the agentic procedure.}
-\label{fig:agentic_pipeline}
-\end{figure}
+\input{figures/agentic_pipeline}
 
 \subsection{Tools and Signals}
 The trypsin filter tool is typically used first to discard impossible pairings given trypsin digestion has
@@ -343,12 +354,12 @@ our average search space considerably to $\sim$6.1\% found in initial experiment
 Additionally, this tool flags fragments beginning with M as starting (N-terminal) candidates.
 Fig.~\ref{fig:trypsin_filter} illustrates the trypsin filter tool and how impossible pairings are eliminated.
 
-\begin{figure}[!htb]
-\centering
-\includegraphics[width=0.75\columnwidth]{./images/trypsin_filter.png}
-\caption{Trypsin Filter Tool: Elimination of impossible fragment pairings.}
-\label{fig:trypsin_filter}
-\end{figure}
+\input{figures/trypsin_filter}
+
+The overlap graph makes use of multiple digested replicas of the same protein, which will likely have missed
+cleavages at different sites. If two fragments are adjacent across many replicas, we can mark that as a confirmed
+adjacency. This essentially provides us with guaranteed pairings that can be found in the original protein,
+significantly reducing the search space.
 
 The junction scorer tool's objective is to score all pairwise fragment permutation junctions using
 masked language modelling (MLM). This involves creating an n*n matrix (n is the count of
@@ -360,14 +371,9 @@ The score is determined by probability of selecting the correct amino acid. Mult
 is also optional as a potential improvement (i.e. mask 2-3 residues in the adjacent fragment).
 Fig.~\ref{fig:junction_scoring} illustrates the process of junction scoring across pairwise permutations.
 
-\begin{figure}[!htb]
-\centering
-\includegraphics[width=0.75\columnwidth]{./images/junction_scoring.png}
-\caption{Junction Scoring Tool: Scoring most likely pairings.}
-\label{fig:junction_scoring}
-\end{figure}
+\input{figures/junction_scoring}
 
-After obtaining our score matrix from the junction scorer and considering impossible
+After obtaining the score matrix from the junction scorer and considering impossible
 candidates from the trypsin filter, there are greedy and beam search tools which
 can be performed on the scored junction matrix.
 In greedy search the most likely next fragment is picked given its score without considering
@@ -377,12 +383,9 @@ initially apparent. Setting the k to one effectively acts as a greedy search for
 Fig.~\ref{fig:greedy_beam_search} illustrates the method of selecting the best pairing paths to form a complete
 protein.
 
-\begin{figure}[!htb]
-\centering
-\includegraphics[width=0.75\columnwidth]{./images/greedy_beam_search.png}
-\caption{Greedy / Beam Search Tool: Selecting optimal paths for pairings.}
-\label{fig:greedy_beam_search}
-\end{figure}
+\input{figures/greedy_beam_search}
+
+The validity scorer uses a pLM.
 
 \subsection{Datasets}
 As a source of data for experimentation and testing, UniProt Reviewed (Swiss-Prot) \cite{10.1093/nar/gkae1010}
@@ -418,44 +421,41 @@ that are also present in the original.
 Exact Match is a ratio indicator of where a complete match has taken place i.e. the reconstruction is
 exactly the same as the original with all fragments ordered correctly.
 The Longest Correct Run metric considers the longest correctly ordered subsequence of ordered fragments, normalised by n.
-Edit Similarity measures the Levenshtein (edit) distance to reach the target, normalised by the length of the protein.
+Edit Similarity measures the Levenshtein (edit) distance required to reach the target (repositioning amino acids), normalised by the length of the protein.
 
 \section{Results}
 The results go here.
 \subsection{Quantitative Results}
+% Floats are released next to the paragraph that discusses them so LaTeX can
+% start placing them here rather than queueing them all to the end of the paper.
+\input{tables/main_results_ecoli_r100}
+\input{tables/main_results_ecoli_r20}
+\input{tables/main_results_ecoli_r5}
 Based on the results from experimentation, in its current implementation most gains
 in Adjacent Pair Accuracy (APA) come from the fact that we had a larger budget for iterations.
 The LLM's reasoning ability does however lead to a slightly higher APA than Random Search
 on both E. coli (+0.016) and yeast (+0.024) respectively.
 
+\input{tables/main_results_yeast_r100}
+\input{tables/main_results_yeast_r20}
+\input{tables/main_results_yeast_r5}
 Across all variants of the system on all metrics the reconstruction of yeast was worse
 than that of E. coli. This is primarily corellated with the number of fragments and sequence length
 found in yeast in comparison being much greater; objectively creating a harder reconstruction problem.
 
+\input{tables/organism_gap}
+\input{figures/fragment_correlation}
 A selection ceiling was also considered for the best candidate generated during the 5 iterations. Due
 to the inherent weakness of the validity scorer's signal; we only picked the real best candidate $\sim$64\% of the time,
 and throw away good candidates that were already generated for the other side of it.
 This ceiling shows us the potential of the system in its ability to reconstruct if we had
 higher quality validity signals such as folding models.
 
+\input{tables/cost_ecoli_r100}
 It is evident from the clock time that the cost of the LLM-Guided setup is much more
 than that of the random search, with the intermediary LLM calls between iterations resulting
 in $\sim$5x more time to compute for reconstructions than the random search approach.
 
-\input{tables/main_results_ecoli_r100}
-\input{tables/main_results_ecoli_r20}
-\input{tables/main_results_ecoli_r5}
-\input{tables/main_results_yeast_r100}
-\input{tables/main_results_yeast_r20}
-\input{tables/main_results_yeast_r5}
-\input{tables/cost_ecoli_r100}
-\begin{figure*}[!t]
-  \centering
-  \includegraphics[width=\textwidth]{./images/fragment_correlation.png}
-  \caption{Reconstruction quality versus fragment count at 100 digestion
-  replicas. All three metrics decline as fragment count rises.}
-  \label{fig:fragment_correlation}
-\end{figure*}
 \subsection{Qualitative Analysis}
 In general the reconstruction is more likely to be not be perfect than to be perfect,
 however, we see that most reconstructions have a very strong APA score which means that
