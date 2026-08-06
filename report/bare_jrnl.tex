@@ -314,7 +314,8 @@ on the parameters used for tools to guide reconstruction based on validity signa
 This autonomy allows the agent to reconstruct higher quality candidates iteratively through improved
 parameter selection and observing tool responses without requiring any predefined manual process.
 
-The pipeline essentially filters out impossible pairings through identifying invalid tryptic cleavages, confirms adjacencies through
+Building upon the the digestion process described earlier,
+the pipeline effectively filters out impossible pairings through identifying invalid tryptic cleavages, confirms adjacencies through
 an overlap graph, scores likely pairings through MLM junction scoring with a pLM, and iteratively improves candidates through
 biological validation from a pLM's perplexity signal.
 
@@ -356,16 +357,21 @@ Fig.~\ref{fig:trypsin_filter} illustrates the trypsin filter tool and how imposs
 
 \input{figures/trypsin_filter}
 
-The overlap graph makes use of multiple digested replicas of the same protein, which will likely have missed
+The overlap graph makes use of multiple digested replicas of the same protein molecule, which are likely to have missed
 cleavages at different sites. If two fragments are adjacent across many replicas, we can mark that as a confirmed
 adjacency. This essentially provides us with guaranteed pairings that can be found in the original protein,
-significantly reducing the search space.
+significantly reducing the search space for guesswork during reconstruction. It should be noted that these confirmed adjacencies
+are not entirely the ground truth as there could be same-fragment sequences found within one protein, this is why we allow
+for a configuration of hard / soft adjacency interpretations; where hard will mean that we never consider other candidates
+that don't include the confirmed pairings, and soft can take a confirmed bonus parameter determines the strength
+of the adjacency confirmation and whether other candidates will be considered. As the number of replicas available
+increases, the number of confirmed adjacencies also rises.
 
 The junction scorer tool's objective is to score all pairwise fragment permutation junctions using
 masked language modelling (MLM). This involves creating an n*n matrix (n is the count of
 tryptic peptides) The first amino acid of fragment B is masked, then the MLM attempts to unmask it
 when given the sequence A + MASK [1:B].
-The MLM functionality is provided by the pLMs ESM-2 / ProtBERT. The
+The MLM functionality is provided by the pLM ESM-2. The
 model returns a probability distribution of likely amino acids which would best fill this mask.
 The score is determined by probability of selecting the correct amino acid. Multiple residue masking 
 is also optional as a potential improvement (i.e. mask 2-3 residues in the adjacent fragment).
@@ -385,7 +391,16 @@ protein.
 
 \input{figures/greedy_beam_search}
 
-The validity scorer uses a pLM.
+The validity scorer efficiently makes use of the same pLM used for junction scoring (ESM-2).
+It takes the candidate solution proposed by the agent and returns a biological plausibility score,
+calculated through a perplexity (uncertainty) measurement gathered from the previous junction scoring step
+along with an agreement reading from the confirmed adjacencies identified from the overlap graph tool. This signal is used to select the
+best candidate by the agent, with the lowest perplexity candidate always being selected after all 
+iterations have been exhausted. The feedback from this tool directly tells the agent if the parameter
+configurations which it is trying is working well or not, triggering an exploration vs. exploitation
+dillema for the agent to optimise the reconstruction. It is worth stating that this tool is incapable of 
+guaranteeing that it will correctly indicate the closest candidate to the original, and should only be considered
+as a proxy.
 
 \subsection{Datasets}
 As a source of data for experimentation and testing, UniProt Reviewed (Swiss-Prot) \cite{10.1093/nar/gkae1010}
@@ -400,6 +415,10 @@ cuts the molecule into small peptide fragments by cleaving after lysine (K)
 or arginine(R) residues, unless they are followed by proline(P). To simulate
 a more realistic environment without adding unnecessary complexity, an assumption that 30\% and 45\% of the time, the molecule
 will not be cut at a given target site for arginine (R) and lysine (K) is made respectively; i.e. will have a missed cleavage.
+
+\input{tables/dataset_coverage}
+
+\input{figures/sample_fragment_counts}
 
 \subsection{Experimental Setup}
 To ensure that the experiments had solid coverage and were substantial, six configurations were tested on
@@ -426,8 +445,6 @@ Edit Similarity measures the Levenshtein (edit) distance required to reach the t
 \section{Results}
 The results go here.
 \subsection{Quantitative Results}
-% Floats are released next to the paragraph that discusses them so LaTeX can
-% start placing them here rather than queueing them all to the end of the paper.
 \input{tables/main_results_ecoli_r100}
 \input{tables/main_results_ecoli_r20}
 \input{tables/main_results_ecoli_r5}
@@ -481,6 +498,10 @@ future directions:
 Subsection text here.
 \subsection{Challenges and Limitations}
 Subsection text here.
+
+- validity signal
+- computational budget
+- time
 
 
 \section{Conclusion}
