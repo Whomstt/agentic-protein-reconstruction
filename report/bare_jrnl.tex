@@ -15,16 +15,24 @@
 \usepackage{stfloats}
 \fnbelowfloat
 
+\usepackage{flafter}
+
+% Floats are placed by LaTeX now, so nothing needs flushing by hand; a
+% \clearpage here only strands the queue on sparse float-only pages.
+\newcommand{\floatflush}{}
+
 \setcounter{topnumber}{3}
 \setcounter{bottomnumber}{2}
-\setcounter{totalnumber}{5}
-\setcounter{dbltopnumber}{3}
+\setcounter{totalnumber}{4}
+\setcounter{dbltopnumber}{2}
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\bottomfraction}{0.7}
 \renewcommand{\dbltopfraction}{0.9}
 \renewcommand{\textfraction}{0.07}
-\renewcommand{\floatpagefraction}{0.75}
-\renewcommand{\dblfloatpagefraction}{0.75}
+% High: a float page is only allowed once the floats nearly fill it, so
+% leftovers ride along at the top or bottom of a text page instead.
+\renewcommand{\floatpagefraction}{0.85}
+\renewcommand{\dblfloatpagefraction}{0.85}
 
 \hyphenation{op-tical net-works semi-conduc-tor}
 
@@ -46,8 +54,9 @@ Microbial communities play a crucial role in processes from organic matter decom
 Protein profiling (proteomics) is a necessary step to understand the function within an ecosystem. The reconstruction
 of proteins from unordered tryptic fragments is a bottleneck which is limiting our ability to perform proteomic profiling.
 An agentic AI approach using Protein Language Models (PLMs) and Large Language Models (LLMs) was built combining several
-tools which allow for more effective protein reconstruction. Results from the experiments confirm that the iterated, agentic
-approach performs better on average than manually predefined system parameters. This research indicates that there is
+tools which allow for more effective protein reconstruction. Results from the experiments show that the iterated, agentic
+reasoning approach performs considerably better on average than using manually predefined system parameters, while only
+minimally outperforming an iterative random search of multiple parameters on the same budget without a reasoning engine. This research indicates that there is
 a much larger potential gain to come of agentic AI in the field of proteomics, especially for environments with fewer
 computational constraints and richer informational signals.
 \end{abstract}
@@ -92,7 +101,7 @@ Papers suitable for this research paper were obtained through searching keywords
 Additionally, some of my references include suggestions from my capstone supervisors Enda Howley and Florence Abram,
 whom have previously worked in this domain.
 Selection of papers for the literature review was based on the value they added to the conversation and their diverse
-coverage of topics to meet the target of $\sim$10 papers indicated by the capstone guidelines.
+coverage of topics to meet the target of $\sim$10 papers for the literature review as indicated by the capstone guidelines.
 
 \subsection{Proteins, Peptides and Proteomics}
 Proteins are made up of chains of amino acids (peptides), with the complete set of proteins
@@ -120,7 +129,12 @@ a sample remain unidentified, in fact on average as little as 25\% of spectra ob
 experimentation can be identified, while the rest is discarded. \cite{MCDONNELL20232732}. It is
 common in proteomics for there to be an ambiguous mapping between peptides and proteins as they
 are not unique, making it considerably difficult to classify which parent protein the candidate peptide
-belongs to \cite{MCDONNELL20232732}. This further motivates a need for more advanced reconstruction
+belongs to \cite{MCDONNELL20232732}. 
+
+Fortunately, in most proteomics workflow environments multiple digestions are performed on replicas of the 
+same sample; with counts of five replicas or more being common places, and in clinical trials this count is
+often much higher \cite{10.3389/fgene.2015.00360}.
+This further motivates a need for more advanced reconstruction
 algorithms, capable of mapping fragments from noisy signals to their original form, especially when
 considering under-documented or undiscovered proteomes that are often found within mixed microbial communities.
 
@@ -171,7 +185,7 @@ are visible due to noise or errors occuring. Masked language modeling helps to s
 a network to complete peptides with noise through randomly masking residues or single amino acids
 and inferring their proper values through the surrounding context \cite{kharkar2024llmproteins}.
 
-Well-documented species such as E. coli have abudant training data, and as such pLMs will perform
+Well-documented species such as \textit{E. coli} have abudant training data, and as such pLMs will perform
 better on these species and similar ones, as they have trained on them more extensively, with the model's parameters
 tuned more effectively from this luxury. Fine-tuning transformer models like BERT and RoBERTa that were originally trained purely on natural language are capable
 of adapting to the task of predicting missing amino acids, while pLMs including ProteinBERT
@@ -336,7 +350,7 @@ beam width (width of the beam), edge mode (soft / hard), and confirmed-edge bonu
 
 A LangGraph ReAct framework served as the foundation for the agentic procedure. The input received
 by the LLM is the initial unordered peptide fragments, with a first run to execute the deterministic parameters.
-After the first run, the agent has control over tuning the five parameters beforementioned in an attempt to improve the score
+After the first run, the agent has control over tuning the five parameters aforementioned in an attempt to improve the score
 returned by the validity scorer.
 
 To preserve the components of the reconstruction, a shared memory state is accessible between tools
@@ -357,7 +371,7 @@ Fig.~\ref{fig:trypsin_filter} illustrates the trypsin filter tool and how imposs
 
 \input{figures/trypsin_filter}
 
-The overlap graph makes use of multiple digested replicas of the same protein molecule, which are likely to have missed
+The overlap graph makes use of multiple digested replicas of the same protein, which are likely to have missed
 cleavages at different sites. If two fragments are adjacent across many replicas, we can mark that as a confirmed
 adjacency. This essentially provides us with guaranteed pairings that can be found in the original protein,
 significantly reducing the search space for guesswork during reconstruction. It should be noted that these confirmed adjacencies
@@ -366,6 +380,9 @@ for a configuration of hard / soft adjacency interpretations; where hard will me
 that don't include the confirmed pairings, and soft can take a confirmed bonus parameter determines the strength
 of the adjacency confirmation and whether other candidates will be considered. As the number of replicas available
 increases, the number of confirmed adjacencies also rises.
+Fig.~\ref{fig:overlap_graph} illustrates how an adjacency is confirmed from agreement across replicas.
+
+\input{figures/overlap_graph}
 
 The junction scorer tool's objective is to score all pairwise fragment permutation junctions using
 masked language modelling (MLM). This involves creating an n*n matrix (n is the count of
@@ -395,26 +412,30 @@ The validity scorer efficiently makes use of the same pLM used for junction scor
 It takes the candidate solution proposed by the agent and returns a biological plausibility score,
 calculated through a perplexity (uncertainty) measurement gathered from the previous junction scoring step
 along with an agreement reading from the confirmed adjacencies identified from the overlap graph tool. This signal is used to select the
-best candidate by the agent, with the lowest perplexity candidate always being selected after all 
+best candidate by the agent, with the best scoring candidate always being selected after all 
 iterations have been exhausted. The feedback from this tool directly tells the agent if the parameter
 configurations which it is trying is working well or not, triggering an exploration vs. exploitation
 dillema for the agent to optimise the reconstruction. It is worth stating that this tool is incapable of 
 guaranteeing that it will correctly indicate the closest candidate to the original, and should only be considered
-as a proxy.
+as a proxy. Fig.~\ref{fig:validity_scorer} illustrates how competing candidate reconstructions are scored and selected.
+
+\input{figures/validity_scorer}
 
 \subsection{Datasets}
-As a source of data for experimentation and testing, UniProt Reviewed (Swiss-Prot) \cite{10.1093/nar/gkae1010}
-served as an excellent resource for well-curated proteins. To condense the scope of the project
-into something feasible, a decision was made to focus on only two organisms, Escherichia coli (E. coli) and Saccharomyces cerevisiae (yeast)
-as they are well-studied and have a substantial amount of data publicly available on them.
+The source of data used for the experiments carried out in this project was the UniProt Reviewed (Swiss-Prot) dataset \cite{10.1093/nar/gkae1010}.
+It served as an excellent resource for well-curated proteins, and is completely free to use and accessible online.
+To condense the scope of the project into something feasible given time and budget constraints, a decision was made to focus on only two organisms, \textit{Escherichia coli} (\textit{E. coli}) and \textit{Saccharomyces cerevisiae} (yeast)
+as their biological sequences are considerably different in terms of length and structure.
 
-Filtering the UniProt curated dataset left $\sim$23,000 e. coli molecules and
-$\sim$8,000 records for yeast. After filtering, each molecule is fragmented into appropriate
+Filtering the UniProt curated dataset left $\sim$23,000 \textit{E. coli} proteins and
+$\sim$8,000 records for yeast. After filtering, each protein is fragmented into appropriate
 peptides according to trypsin digestion; an enzymatic process in which a trypsin protease
-cuts the molecule into small peptide fragments by cleaving after lysine (K)
+cuts the protein into small peptide fragments by cleaving after lysine (K)
 or arginine(R) residues, unless they are followed by proline(P). To simulate
-a more realistic environment without adding unnecessary complexity, an assumption that 30\% and 45\% of the time, the molecule
+a more realistic environment without adding unnecessary complexity, an assumption that 30\% and 45\% of the time, the protein
 will not be cut at a given target site for arginine (R) and lysine (K) is made respectively; i.e. will have a missed cleavage.
+This is consistent with ratios of digestions occurring more efficiently at arginine sites than lysine ones during
+tryptic digestion as found in \cite{siepen2007prediction}; with a 42\% and 58\% split found for R and K respectively.
 
 \input{tables/dataset_coverage}
 
@@ -423,7 +444,7 @@ will not be cut at a given target site for arginine (R) and lysine (K) is made r
 \subsection{Experimental Setup}
 To ensure that the experiments had solid coverage and were substantial, six configurations were tested on
 100 protein samples with varying replica counts and microorganisms being considered. The digestion replica counts
-consisted of 5, 20, and 100 respectively to cover constrained to ideal conditions. E. coli and yeast were selected as they
+consisted of 5, 20, and 100 respectively to cover constrained to ideal conditions. \textit{E. coli} and yeast were selected as they
 have a sizeable difference in the number of fragments within each sample.
 
 \input{tables/config_table}
@@ -443,21 +464,16 @@ The Longest Correct Run metric considers the longest correctly ordered subsequen
 Edit Similarity measures the Levenshtein (edit) distance required to reach the target (repositioning amino acids), normalised by the length of the protein.
 
 \section{Results}
-The results go here.
 \subsection{Quantitative Results}
-\input{tables/main_results_ecoli_r100}
-\input{tables/main_results_ecoli_r20}
-\input{tables/main_results_ecoli_r5}
+\input{tables/main_results_all}
 Based on the results from experimentation, in its current implementation most gains
 in Adjacent Pair Accuracy (APA) come from the fact that we had a larger budget for iterations.
 The LLM's reasoning ability does however lead to a slightly higher APA than Random Search
-on both E. coli (+0.016) and yeast (+0.024) respectively.
+on both \textit{E. coli} (+0.016) and yeast (+0.024) respectively.
+\input{figures/search_comparison}
 
-\input{tables/main_results_yeast_r100}
-\input{tables/main_results_yeast_r20}
-\input{tables/main_results_yeast_r5}
 Across all variants of the system on all metrics the reconstruction of yeast was worse
-than that of E. coli. This is primarily corellated with the number of fragments and sequence length
+than that of \textit{E. coli}. This is primarily correlated with the number of fragments and sequence length
 found in yeast in comparison being much greater; objectively creating a harder reconstruction problem.
 
 \input{tables/organism_gap}
@@ -480,33 +496,83 @@ the system can still be useful. One point especially worth considering with thes
 that the system can help disambiguate fragments which are shared by multiple parent proteins.
 
 While the results heavily indicate towards most of the real value coming from testing
-more combinations i.e. increasing the search space, the LLM brain clearly has some merit to
-it. It consistently outperfrmed or matched the random search metrics when given the same
+more combinations i.e. increasing the search space, the LLM brain evidently has some merit to
+it, even in its restricted form. It consistently outperformed or matched the random search metrics when given the same
 iteration budget. This demonstrates that the LLM was able to intelligently interpret the feedback
 signals from the tools and select more appropriate parameters than just randomly guessing to
 produce better candidates. It should also be considered that more tools and further signals which
 are more noisy would likely see the LLM outshine any random search with the same number of iterations.
+
+\floatflush
+
 \section{Discussion}
-The discussion goes here.
-future directions:
-- folding models as validity signal
-- more iterations
-- more tools and signals
-- try more PLMs
-- mixed sequences
 \subsection{Interpretation of Results}
-Subsection text here.
+It is clear from the results that the biggest gains in performance came from the jump from
+fixed settings with one iteration to a random search of settings on an iterative budget.
+It is also evident from the current results that the gap between the LLM-guided approach and
+the random search is minimal.
+
+The reasoning for this negligible increase in performance is likely due to the fact that the LLM-guided
+approach only has limited control over the reconstruction process in its current form; with only 5
+levers available to tune and also a limited 5 iteration budget. This means that a random search is
+likely to cover a similar search space during its iterations by chance; leading to similar results.
+It is likely that this gap would considerably increase if the LLM was granted more control over a
+larger number of levers, however, the experiments still indicate that even with a limited selection
+an LLM reasoning engine shows promise.
+
+The biggest bottleneck can be seen through the best candidate metrics which show the selection ceiling.
+This shows us what the metrics would have been if the validity signal was always right in terms of
+telling us which candidate is really the closest to the original.
+
+There is clearly a gap in reconstruction performance between both organisms, this is no surprise however,
+as seen in data that both have significant differences in terms of their fragment counts. Yeast has
+approximately 1.5x the number of fragments of E. coli; mean average of 32.5 and 19.3 fragments respectively
+from the sampled split. This creates an objectively harder reconstructive problem.
+
+The LLM reasoning comes at a cost which is considerable, taking approximately 5x as long to complete a
+reconstruction than that of the
+iterated random search approach due to intermediary LLM API calls. In its current state, this
+time increase is hard to justify, but given the nature of the objective being solved, even a small accuracy gain
+could be justified for a substantial time cost.
+
 \subsection{Challenges and Limitations}
-Subsection text here.
+The validity signal is clearly the biggest challenge of reconstruction as we have to attempt to
+approximate what the original protein is through such a weak signal. The proxy of perplexity found
+with junction scoring and the confirmed adjacencies with the overlap graph provide a rough indication
+of which candidate is closer to the original, and is correct most of the time, however, the ceiling
+demonstrates that there are huge potential performance uplifts with a stronger signal.
 
-- validity signal
-- computational budget
-- time
+The experiment runs themselves were quite limited statistically in that only 100 samples were considered for
+each species and only one run was performed for each configuration with the same random seed. Additionally,
+the computational and timing budgets only allowed for 5 iterations per sample, potentially hiding
+the true strength of the LLM's reasoning; similarly the limited lever control.
 
+The scope of the project limited the experiments to consider only two species of organism,
+a single pLM (ESM-2 - 8M), and no mixtures of proteins as originally planned.
+
+\subsection{Future Directions}
+
+The most apparent future direction for this work would be to discover a more reliable validity signal.
+Folding models were initially considered as better indicators of biological plausibility and thus, better
+candidates, however, computational constraints made it impossible to proceed with such models (e.g ESMFold / AlphaFold)
+as even a single candidate evaluation could take upwards of 10 minutes on the hardware available.
+The ceiling gap would suggest that the higher computational demand from a much richer validity signal
+would be worth the reconstructive accuracy uplifts.
+
+A larger iteration budget, more tools, and more lever control would likely see the gap between
+LLM-guided reconstruction and random search grow considerably. It should also be noted that due to
+the limited selection of tools available for the agent and budget constraints, a decision was made
+to remove intermediary calls to the LLM between tool calls before candidate presentation; with a wider
+selection of tools, allowing more freedom over the execution order of tools could yield even greater results.
+
+To capture more statistically significant results, a larger sampling of proteins per species, and
+more species considered would be a desirable for future work. Furthermore, investigating reconstruction from mixed protein samples
+would be beneficial as this is more likely to be the case in real-world mixed microbial community sampling. Considering alternative pLMs (e.g. higher parameter models) and
+alternative pLM architectures (e.g. decoder-only / encoder/decoder; ESM-2 is encoder-only) would be interesting to see how capable they
+are at improving the reconstruction process in terms of junction scoring and guiding the best candidate selection. Brief testing during
+early experimentation has already shown promising uplifts in reconstruction accuracy with a larger ESM model (ESM-2 650M).
 
 \section{Conclusion}
-The conclusion goes here.
-
 
 \section*{Acknowledgment}
 I would like to thank my supervisors Enda Howley and Florence Abram for their exceptional guidance and support throughout this project.
@@ -527,7 +593,6 @@ The implementation, evaluation pipeline, and results are available at:
 \bibliographystyle{IEEEtran}
 \bibliography{IEEEabrv,references}
 
-% that's all folks
 \end{document}
 
 

@@ -35,7 +35,7 @@ import math
 from pathlib import Path
 
 from evaluation import figures
-from evaluation.exports import MIDRULE, Table, fmt
+from evaluation.exports import MIDRULE, Raw, Table, fmt
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 REPORT_TABLES = PROJECT_ROOT / "report" / "tables"
@@ -267,8 +267,10 @@ def build_report_table(pool_rows: list[dict], series: dict) -> Table:
             name = "Full Dataset" if "full pool" in row["group"] else "Evaluated Split"
             rows.append(
                 [
-                    # Data cells are always escaped, so these stay plain text.
-                    f"{label} - {name}",
+                    # The binomial has to be italic wherever it appears, so the
+                    # cell opts out of escaping via Raw and keeps a plain form
+                    # for the markdown/CSV views.
+                    Raw(rf"\textit{{{label}}} - {name}", f"{label} - {name}"),
                     fmt(row["n_proteins"]),
                     fmt(float(row["seq_len_mean"]), 1),
                     fmt(float(row["frags_per_protein_mean"]), 1),
@@ -288,7 +290,7 @@ def build_report_table(pool_rows: list[dict], series: dict) -> Table:
         rows=rows,
         column_spec="lrrrr",
         environment="table*",
-        placement="!t",
+        placement="!tb",
         raw_latex=True,
         caption=(
             "The 100 evaluated proteins against the full per-organism dataset that "
@@ -305,7 +307,7 @@ def build_report_table(pool_rows: list[dict], series: dict) -> Table:
     )
 
 
-FIGURE_TEX = r"""\begin{{figure*}}[!t]
+FIGURE_TEX = r"""\begin{{figure*}}[!tb]
   \centering
   \includegraphics[width=\textwidth]{{images/{name}.png}}
   \caption{{Fragments per protein for the 100 evaluated proteins against the full
@@ -364,7 +366,10 @@ def plot_fragment_distributions(
             linestyle=figures.LINESTYLES[0],
             label=f"evaluated sample (n={len(sample)})",
         )
-        ax.set_title(f"{entry['label']}: {entry['coverage_pct']:.1f}% of pool sampled")
+        ax.set_title(
+            f"{figures.italic_species(entry['label'])}: "
+            f"{entry['coverage_pct']:.1f}% of pool sampled"
+        )
         ax.set_xlabel("fragments per protein")
         ax.set_ylabel("density")
         ax.legend(frameon=False)
@@ -373,7 +378,7 @@ def plot_fragment_distributions(
     return figures._save(fig, out_dir, name, formats)
 
 
-SAMPLE_FIGURE_TEX = r"""\begin{{figure*}}[!t]
+SAMPLE_FIGURE_TEX = r"""\begin{{figure*}}[!tb]
   \centering
   \includegraphics[width=\textwidth]{{images/{name}.png}}
   \caption{{Fragments per protein across the 100 evaluated proteins, per organism.
@@ -424,7 +429,7 @@ def plot_sample_fragment_counts(
             linewidth=1.0,
             label=f"median {median:.0f}",
         )
-        ax.set_title(f"{entry['label']} (n={len(counts)})")
+        ax.set_title(f"{figures.italic_species(entry['label'])} (n={len(counts)})")
         ax.set_xlabel("fragments per protein")
         ax.set_ylabel("proteins")
         ax.legend(frameon=False)

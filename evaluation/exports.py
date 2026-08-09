@@ -46,7 +46,29 @@ _UNICODE_TO_LATEX = {
 }
 
 
+class Raw(str):
+    """A data cell that is already LaTeX and must not be escaped.
+
+    Data cells are escaped by default so a stray ``%`` or ``_`` in a value can
+    never break the document. The one thing that legitimately needs markup in a
+    cell is a species binomial, which has to be italic wherever it appears, so
+    it is opted in explicitly rather than by relaxing the default.
+
+    ``plain`` is what the same cell renders as outside LaTeX (CSV, markdown),
+    where the markup would be noise.
+    """
+
+    plain: str
+
+    def __new__(cls, latex: str, plain: str | None = None):
+        cell = super().__new__(cls, latex)
+        cell.plain = latex if plain is None else plain
+        return cell
+
+
 def latex_escape(text: str) -> str:
+    if isinstance(text, Raw):
+        return str(text)
     out = []
     for char in str(text):
         if char in _UNICODE_TO_LATEX:
@@ -105,10 +127,16 @@ class Table:
 
     ``key`` names the .tex file; ``caption``/``label``/``notes`` are LaTeX-only.
     ``environment`` is ``"table"`` or ``"table*"``, the two-column-spanning float an
-    IEEE template needs for a wide table. With ``raw_latex`` the caption, notes and
-    headers are emitted verbatim instead of escaped, so a table written for the
-    report can use maths and font commands; data cells are always escaped.
-    ``provenance`` is filled in by :func:`stamp_tables`."""
+    IEEE template needs for a wide table. Prefer plain ``"table"`` where the columns
+    fit: a single-column float can take the top or bottom of either column, so it
+    lands beside the text that refers to it, whereas a spanning one only ever gets a
+    page top and drifts pages away when several queue up. ``body_size``
+    (e.g. ``"\\small"``) and ``col_sep`` (e.g. ``"4pt"``) buy the width that makes
+    the difference, and apply to the tabular only — the caption keeps its own size.
+    With ``raw_latex`` the caption, notes and headers are emitted verbatim instead
+    of escaped, so a table written for the report can use maths and font commands;
+    data cells are always escaped. ``provenance`` is filled in by
+    :func:`stamp_tables`."""
 
     key: str
     headers: list[str]
@@ -119,7 +147,9 @@ class Table:
     column_spec: str = ""
     formatted: bool = True
     environment: str = "table"
-    placement: str = "htbp"
+    placement: str = "!tb"
+    body_size: str = ""
+    col_sep: str = ""
     raw_latex: bool = False
     provenance: dict = field(default_factory=dict)
     _extra: dict = field(default_factory=dict)
@@ -129,6 +159,8 @@ class Table:
         """A literal pipe would end the column early, so escape it."""
         if value is None:
             return ""
+        if isinstance(value, Raw):
+            value = value.plain
         return str(value).replace("|", r"\|")
 
     def to_markdown(self) -> str:
@@ -173,6 +205,12 @@ class Table:
             lines.append(rf"  \caption{{{self._prose(self.caption)}}}")
         if self.label:
             lines.append(rf"  \label{{{self.label}}}")
+        # After the caption so the caption keeps the class's own size; inside the
+        # float, so both are local to it.
+        if self.body_size:
+            lines.append(f"  {self.body_size}")
+        if self.col_sep:
+            lines.append(rf"  \setlength{{\tabcolsep}}{{{self.col_sep}}}")
         lines += [
             rf"  \begin{{tabular}}{{{spec}}}",
             r"    \toprule",

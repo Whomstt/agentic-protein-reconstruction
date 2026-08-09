@@ -1,4 +1,4 @@
-\begin{table*}[tp]
+\begin{table*}[!tb]
   \centering
   \caption{Spearman rank correlation between protein shape and reconstruction quality for the LLM-Guided arm, at 100 digestion replicas. Negative $\rho$ means quality falls as the predictor rises. Rank correlation is used because fragment count is right-skewed, Exact Match is binary and the ordering metrics saturate.}
   \label{tab:fragment_correlation}
@@ -6,13 +6,15 @@
     \toprule
     Predictor & Metric & \textit{E. coli} $\rho$ & adj. $p$ & $n$ & \textit{S. cerevisiae} $\rho$ & adj. $p$ & $n$ \\
     \midrule
-    Fragments per protein & Adjacent Pair Accuracy & -0.297 & 0.019 & 100 & -0.598 & $<$0.001 & 99 \\
+    Fragments per protein & Adjacent Pair Accuracy & -0.297 & 0.024 & 100 & -0.598 & $<$0.001 & 99 \\
     Fragments per protein & Exact Match & -0.467 & $<$0.001 & 100 & -0.669 & $<$0.001 & 100 \\
     Fragments per protein & Longest Correct Run & -0.563 & $<$0.001 & 100 & -0.837 & $<$0.001 & 99 \\
-    Mean fragment length & Adjacent Pair Accuracy & -0.100 & 0.967 & 100 & +0.162 & 0.545 & 99 \\
-    Mean fragment length & Exact Match & -0.059 & 1.000 & 100 & +0.146 & 0.588 & 100 \\
-    Mean fragment length & Longest Correct Run & +0.046 & 1.000 & 100 & +0.215 & 0.198 & 99 \\
+    Fragments per protein & Edit Similarity & -0.553 & $<$0.001 & 100 & -0.642 & $<$0.001 & 100 \\
+    Mean fragment length & Adjacent Pair Accuracy & -0.100 & 1.000 & 100 & +0.162 & 0.655 & 99 \\
+    Mean fragment length & Exact Match & -0.059 & 1.000 & 100 & +0.146 & 0.735 & 100 \\
+    Mean fragment length & Longest Correct Run & +0.046 & 1.000 & 100 & +0.215 & 0.231 & 99 \\
+    Mean fragment length & Edit Similarity & +0.003 & 1.000 & 100 & +0.231 & 0.166 & 100 \\
     \bottomrule
   \end{tabular}
-  \par\smallskip\footnotesize{$p$ values are Holm-corrected across all 12 correlations in the table. $n$ is the proteins with that metric defined; ordering metrics are undefined where the true fragment order could not be recovered.}
+  \par\smallskip\footnotesize{$p$ values are Holm-corrected across all 16 correlations in the table. $n$ is the proteins with that metric defined; ordering metrics are undefined where the true fragment order could not be recovered.}
 \end{table*}

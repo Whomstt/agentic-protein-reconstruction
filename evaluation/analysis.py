@@ -21,6 +21,7 @@ fragment strings survive."""
 
 from __future__ import annotations
 
+import gzip
 import json
 import math
 from dataclasses import dataclass, field
@@ -213,17 +214,38 @@ def _backfill_edit_similarity(sample: dict) -> None:
         oracle["edit_similarity"] = max(finite) if finite else float("nan")
 
 
+def samples_path(run_dir) -> Path | None:
+    """The run's per-sample file, or None if the folder is not a run folder.
+
+    Runs committed under ``final_results/`` store it gzipped to keep the repo
+    small, so both spellings have to be accepted everywhere a run is discovered
+    or loaded."""
+    path = Path(run_dir)
+    for name in ("samples.jsonl", "samples.jsonl.gz"):
+        candidate = path / name
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def open_samples(path: Path):
+    """Text handle over a plain or gzipped ``samples.jsonl``."""
+    if path.suffix == ".gz":
+        return gzip.open(path, "rt", encoding="utf-8")
+    return path.open(encoding="utf-8")
+
+
 def load_run(run_dir) -> Run:
     """Read one results folder. ``samples.jsonl`` is the source of truth for
     per-sample data; ``summary.json`` is read only for the config snapshot and
     run name (its ``samples`` list duplicates the jsonl)."""
     path = Path(run_dir)
-    samples_path = path / "samples.jsonl"
-    if not samples_path.exists():
-        raise FileNotFoundError(f"{samples_path} not found — not a run folder")
+    file = samples_path(path)
+    if file is None:
+        raise FileNotFoundError(f"{path / 'samples.jsonl'} not found — not a run folder")
 
     samples = []
-    with samples_path.open(encoding="utf-8") as handle:
+    with open_samples(file) as handle:
         for line in handle:
             if line.strip():
                 sample = json.loads(line)
@@ -250,7 +272,7 @@ def discover_runs(root=RESULTS_ROOT) -> list[Path]:
     root = Path(root)
     if not root.exists():
         return []
-    return sorted(p for p in root.iterdir() if p.is_dir() and (p / "samples.jsonl").exists())
+    return sorted(p for p in root.iterdir() if p.is_dir() and samples_path(p) is not None)
 
 
 # --------------------------------------------------------------------------

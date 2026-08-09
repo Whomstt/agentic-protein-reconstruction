@@ -1,0 +1,41 @@
+\begin{table*}[!tb]
+  \centering
+  \caption{Reconstruction quality across every configuration ($n=100$ proteins each). Mean per protein.}
+  \label{tab:main_results_all}
+  \begin{tabular}{lrlrrrrr}
+    \toprule
+    Organism & Replicas & Metric & Random Order & Fixed Settings & Random Search & LLM-Guided & Best Candidate \\
+    \midrule
+    \textit{E. coli} & 100 & Adjacent Pair Accuracy & 0.068 & 0.784 & 0.863 & 0.879 & 0.926 \\
+     &  & Exact Match & 0.010 & 0.320 & 0.400 & 0.460 & 0.640 \\
+     &  & Longest Correct Run & 0.136 & 0.628 & 0.682 & 0.717 & 0.820 \\
+     &  & Edit Similarity & n/a & 0.725 & 0.751 & 0.795 & 0.886 \\
+    \midrule
+    \textit{E. coli} & 20 & Adjacent Pair Accuracy & 0.120 & 0.586 & 0.710 & 0.734 & 0.783 \\
+     &  & Exact Match & 0.030 & 0.170 & 0.270 & 0.290 & 0.370 \\
+     &  & Longest Correct Run & 0.170 & 0.422 & 0.502 & 0.524 & 0.582 \\
+     &  & Edit Similarity & n/a & 0.569 & 0.649 & 0.662 & 0.746 \\
+    \midrule
+    \textit{E. coli} & 5 & Adjacent Pair Accuracy & 0.101 & 0.294 & 0.436 & 0.433 & 0.493 \\
+     &  & Exact Match & 0.020 & 0.050 & 0.090 & 0.090 & 0.120 \\
+     &  & Longest Correct Run & 0.159 & 0.229 & 0.297 & 0.289 & 0.342 \\
+     &  & Edit Similarity & n/a & 0.449 & 0.548 & 0.538 & 0.610 \\
+    \midrule
+    \textit{S. cerevisiae} & 100 & Adjacent Pair Accuracy & 0.050 & 0.703 & 0.788 & 0.812 & 0.855 \\
+     &  & Exact Match & 0.000 & 0.160 & 0.260 & 0.260 & 0.350 \\
+     &  & Longest Correct Run & 0.094 & 0.448 & 0.513 & 0.530 & 0.623 \\
+     &  & Edit Similarity & n/a & 0.582 & 0.633 & 0.641 & 0.751 \\
+    \midrule
+    \textit{S. cerevisiae} & 20 & Adjacent Pair Accuracy & 0.064 & 0.499 & 0.616 & 0.642 & 0.692 \\
+     &  & Exact Match & 0.010 & 0.100 & 0.150 & 0.160 & 0.230 \\
+     &  & Longest Correct Run & 0.108 & 0.300 & 0.361 & 0.377 & 0.442 \\
+     &  & Edit Similarity & n/a & 0.463 & 0.506 & 0.518 & 0.600 \\
+    \midrule
+    \textit{S. cerevisiae} & 5 & Adjacent Pair Accuracy & 0.071 & 0.270 & 0.384 & 0.397 & 0.449 \\
+     &  & Exact Match & 0.020 & 0.050 & 0.100 & 0.110 & 0.140 \\
+     &  & Longest Correct Run & 0.120 & 0.205 & 0.252 & 0.266 & 0.307 \\
+     &  & Edit Similarity & n/a & 0.414 & 0.446 & 0.457 & 0.539 \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{Adjacent Pair Accuracy is the primary metric. Edit Similarity was added post these runs and is n/a for Random Order, whose sequences were not stored. Replicas is the number of digestion replicas the overlap graph was built from.}
+\end{table*}

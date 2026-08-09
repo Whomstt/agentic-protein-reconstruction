@@ -112,6 +112,13 @@ def _series_style(index: int, total: int | None = None) -> dict:
     }
 
 
+def italic_species(name: str) -> str:
+    """A species binomial as mathtext, so figure titles italicise it the way the
+    surrounding LaTeX does. Matplotlib has no inline markup, so the binomial goes
+    through mathtext and any trailing text stays outside the ``$...$``."""
+    return r"$\it{" + name.replace(" ", r"\ ") + "}$"
+
+
 def _apply_metric_axis(ax, metric: str) -> None:
     """Kendall tau gets the full [-1, 1]; the others [0, 1] with headroom."""
     if metric in SIGNED_METRICS:
@@ -173,7 +180,11 @@ def fragment_stratification(
 
 
 def metrics_by_fragment_bin(
-    panels: list, out_dir: Path, name: str, formats: tuple = ("pdf", "png")
+    panels: list,
+    out_dir: Path,
+    name: str,
+    formats: tuple = ("pdf", "png"),
+    stacked: bool = False,
 ) -> dict:
     """Every reported metric against fragment count, one panel per organism.
 
@@ -192,17 +203,31 @@ def metrics_by_fragment_bin(
     ``panels`` is [(panel_title, centres, [(metric_label, values)])], where a None
     value leaves a gap rather than interpolating over an empty bin. Bin sizes are
     not drawn; whether a thinly populated interval needs a caveat is a question for
-    the caption, not something to hang off the axis."""
+    the caption, not something to hang off the axis.
+
+    ``stacked`` puts the panels one above the other at a single column's width
+    instead of side by side across two. The panels are read one at a time, so the
+    stack loses nothing, and it keeps the figure out of a page-spanning float —
+    which is what lets it sit next to the paragraph that refers to it."""
     plt = _pyplot()
     apply_style()
 
-    fig, axes = plt.subplots(
-        1, len(panels),
-        figsize=(SINGLE_COLUMN_WIDTH * len(panels), DEFAULT_HEIGHT + 0.35),
-        squeeze=False,
-        sharey=True,
-    )
-    axes = axes[0]
+    if stacked:
+        fig, axes = plt.subplots(
+            len(panels), 1,
+            figsize=(SINGLE_COLUMN_WIDTH, 1.85 * len(panels) + 0.55),
+            squeeze=False,
+            sharey=True,
+        )
+        axes = [row[0] for row in axes]
+    else:
+        fig, axes = plt.subplots(
+            1, len(panels),
+            figsize=(SINGLE_COLUMN_WIDTH * len(panels), DEFAULT_HEIGHT + 0.35),
+            squeeze=False,
+            sharey=True,
+        )
+        axes = axes[0]
 
     for ax, (title, centres, series) in zip(axes, panels):
         for index, (metric_label, values) in enumerate(series):
@@ -223,11 +248,21 @@ def metrics_by_fragment_bin(
         ax.tick_params(labelleft=True)
 
     handles, labels_ = axes[0].get_legend_handles_labels()
-    fig.legend(
-        handles, labels_, loc="upper center", bbox_to_anchor=(0.5, 0.055),
-        ncol=len(labels_), handlelength=2.6, columnspacing=1.6,
-    )
-    fig.subplots_adjust(bottom=0.24, wspace=0.22)  # room for every panel's y labels
+    if stacked:
+        # Two rows of two: four entries across a 3.5 in figure would set the
+        # legend type below the 8 pt floor.
+        legend_bottom = 0.40 / (1.85 * len(panels) + 0.55)
+        fig.legend(
+            handles, labels_, loc="upper center", bbox_to_anchor=(0.5, legend_bottom),
+            ncol=2, handlelength=2.6, columnspacing=1.6,
+        )
+        fig.subplots_adjust(bottom=legend_bottom + 0.06, hspace=0.55)
+    else:
+        fig.legend(
+            handles, labels_, loc="upper center", bbox_to_anchor=(0.5, 0.055),
+            ncol=len(labels_), handlelength=2.6, columnspacing=1.6,
+        )
+        fig.subplots_adjust(bottom=0.24, wspace=0.22)  # room for every panel's y labels
     return _save(fig, out_dir, name, formats)
 
 
@@ -385,6 +420,77 @@ def error_taxonomy(counts_by_run: dict, class_labels: dict, out_dir: Path, name:
         borderaxespad=0.0,
     )
     return _save(fig, out_dir, name)
+
+
+def grouped_bars(
+    group_labels: list[str],
+    series: list[tuple[str, list[float]]],
+    ylabel: str,
+    out_dir: Path,
+    name: str,
+    formats: tuple = ("pdf", "png"),
+    annotate: bool = True,
+    width: float | None = None,
+) -> dict:
+    """One bar per series within each group — a direct two-arm comparison.
+
+    Fill, hatch and edge all differ per series, so the pairing survives greyscale
+    printing without relying on the grey ramp alone. Values are annotated because
+    the differences of interest here are smaller than the eye reads off a bar.
+
+    ``width`` in inches overrides the label-count default. Pass
+    ``SINGLE_COLUMN_WIDTH`` for a figure destined for one IEEE column: drawing at
+    the final size keeps type at the 8 pt floor instead of shrinking it by
+    whatever scale factor \\includegraphics would have applied."""
+    plt = _pyplot()
+    apply_style()
+    if width is None:
+        width = max(SINGLE_COLUMN_WIDTH, 0.62 * len(group_labels) * len(series) + 1.0)
+    fig, ax = plt.subplots(figsize=(width, DEFAULT_HEIGHT + 0.2))
+
+    fills = ["#d9d9d9", "#595959", "#a6a6a6", "#000000"]
+    hatches = ["", "///", "...", "xxx"]
+    bar_width = 0.8 / len(series)
+    for index, (label, values) in enumerate(series):
+        offsets = [
+            position + (index - (len(series) - 1) / 2) * bar_width
+            for position in range(len(group_labels))
+        ]
+        ax.bar(
+            offsets,
+            values,
+            width=bar_width * 0.92,
+            label=label,
+            color=fills[index % len(fills)],
+            edgecolor="#000000",
+            linewidth=0.6,
+            hatch=hatches[index % len(hatches)],
+        )
+        if annotate:
+            for x, value in zip(offsets, values):
+                ax.annotate(
+                    f"{value:.2f}",
+                    (x, value),
+                    textcoords="offset points",
+                    xytext=(0, 2),
+                    ha="center",
+                    fontsize=MIN_FONT_PT - 1.5,
+                )
+
+    ax.set_xticks(range(len(group_labels)))
+    ax.set_xticklabels(group_labels)
+    ax.set_ylabel(ylabel)
+    ax.grid(axis="x", visible=False)
+    # Above the axes rather than inside it: with tall bars and value labels there
+    # is no in-plot corner an inside legend can occupy without covering data.
+    ax.legend(
+        loc="lower center",
+        bbox_to_anchor=(0.5, 1.0),
+        ncol=len(series),
+        handlelength=1.8,
+        borderaxespad=0.3,
+    )
+    return _save(fig, out_dir, name, formats)
 
 
 def paired_gain_distribution(deltas: list[float], xlabel: str, out_dir: Path, name: str) -> dict:

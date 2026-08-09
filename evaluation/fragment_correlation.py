@@ -53,6 +53,7 @@ METRICS = (
     ("adjacent_pair_acc", "Adjacent Pair Accuracy"),
     ("exact_match", "Exact Match"),
     ("longest_correct_run", "Longest Correct Run"),
+    ("edit_similarity", "Edit Similarity"),
 )
 
 PREDICTORS = (
@@ -173,7 +174,7 @@ def build_table(runs: list[Run], by_run: dict, adjusted: dict) -> Table:
         rows=rows,
         column_spec="ll" + "rrr" * len(runs),
         environment="table*",
-        placement="!t",
+        placement="!tb",
         raw_latex=True,
         caption=(
             "Spearman rank correlation between protein shape and reconstruction "
@@ -235,7 +236,7 @@ def build_figure(runs: list[Run], out_dir: Path) -> dict:
                 values.append(sum(scores) / len(scores) if scores else None)
             series.append((metric_label, values))
 
-        panels.append((_species(run), centres, series))
+        panels.append((figures.italic_species(_species(run)), centres, series))
 
     if excluded:
         print(
@@ -243,7 +244,7 @@ def build_figure(runs: list[Run], out_dir: Path) -> dict:
             "figure's axis; correlations and tables still use every sample."
         )
     return figures.metrics_by_fragment_bin(
-        panels, out_dir, "fragment_correlation", FIGURE_FORMATS
+        panels, out_dir, "fragment_correlation", FIGURE_FORMATS, stacked=True
     )
 
 

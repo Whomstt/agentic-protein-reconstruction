@@ -45,11 +45,13 @@ from evaluation.analysis import (
     load_run,
     oracle_gap,
     sample_rows,
+    samples_path,
     stratify_by_bin,
     taxonomy_counts,
 )
 from evaluation.exports import (
     MIDRULE,
+    Raw,
     Table,
     fmt,
     fmt_p,
@@ -293,7 +295,70 @@ def table_main_results(run: Run, rows, resamples) -> Table:
             r"whose sequences were not stored."
         ),
         environment="table*",
-        placement="tp",
+        placement="!tb",
+        raw_latex=True,
+    )
+
+
+def table_main_results_all(runs: list[Run], resamples: int = DEFAULT_RESAMPLES) -> Table:
+    """The headline table for every configuration at once, one block per run.
+
+    Same cells as :func:`table_main_results`, computed the same way from the same
+    ``metric_interval``; the only difference is that all six setups share one
+    float, with a ``\\midrule`` between blocks the way the organism-gap table
+    separates its replica blocks. Organism and replica count are printed on each
+    block's first row only, so the eye reads down the leading columns as group
+    labels rather than as repeated data.
+
+    Runs are ordered organism-major, then by descending replica count, so the
+    reading order matches the prose: the richest condition first, then the two
+    increasingly constrained ones, then the same three for the second organism.
+    """
+    ordered = sorted(runs, key=lambda r: (_species(r), -r.replica_count))
+    arms: list[str] = []
+    for run in ordered:
+        for arm in run.arms:
+            if arm not in arms:
+                arms.append(arm)
+
+    table_rows: list = []
+    for run in ordered:
+        rows = sample_rows(run)
+        if table_rows:
+            table_rows.append(MIDRULE)  # one rule per configuration block
+        for position, metric in enumerate(REPORTED_METRICS):
+            cells = [
+                Raw(rf"\textit{{{_species(run)}}}", _species(run)) if position == 0 else "",
+                str(run.replica_count) if position == 0 else "",
+                METRIC_NAMES[metric],
+            ]
+            for arm in arms:
+                cells.append(
+                    _point(metric_interval(rows, arm, metric, resamples))
+                    if arm in run.arms else "n/a"
+                )
+            table_rows.append(cells)
+
+    return Table(
+        key="main_results_all",
+        headers=["Organism", "Replicas", "Metric"] + [SHORT_ARM_LABELS[a] for a in arms],
+        rows=table_rows,
+        column_spec="lrl" + "r" * len(arms),
+        caption=(
+            "Reconstruction quality across every configuration "
+            f"($n={len(sample_rows(ordered[0]))}$ proteins each). Mean per protein."
+        ),
+        label="tab:main_results_all",
+        # The full metric family is disclosed by the paired-tests table's note,
+        # which is where the Holm correction it matters for is actually reported.
+        notes=(
+            rf"{METRIC_NAMES[PRIMARY_METRIC]} is the primary metric. Edit "
+            r"Similarity was added post these runs and is n/a for Random Order, "
+            r"whose sequences were not stored. Replicas is the number of "
+            r"digestion replicas the overlap graph was built from."
+        ),
+        environment="table*",
+        placement="!tb",
         raw_latex=True,
     )
 
@@ -356,7 +421,7 @@ def table_paired_tests(run: Run, rows, comparisons) -> Table:
             rf"the {len(REPORTED_METRICS)} shown."
         ),
         environment="table*",
-        placement="tp",
+        placement="!tb",
         raw_latex=True,
     )
 
@@ -399,7 +464,7 @@ def table_stratification(run: Run, rows) -> Table:
             "rest on fewer than n."
         ),
         environment="table*",
-        placement="tp",
+        placement="!tb",
         raw_latex=True,
     )
 
@@ -589,7 +654,13 @@ def table_cost(run: Run, rows) -> Table:
             rf"Time ratio {fmt(ratio, 2)}$\times$. Wall clock covers the full "
             r"per-protein pipeline, including the PLM scoring both arms share."
         ),
-        placement="tbp",
+        # Three narrow columns: this one fits a single IEEE column, so it can sit
+        # beside the paragraph that reads the time ratio off it.
+        column_spec="@{}lrr@{}",
+        environment="table",
+        placement="!tb",
+        body_size=r"\small",
+        col_sep="4pt",
         raw_latex=True,
     )
 
@@ -628,12 +699,16 @@ def config_table_tex(runs: list[Run]) -> str:
         ("Random seed", distinct(lambda r: config(r, "misc", "seed"), key=int)),
     ]
     body = "\n".join(rf"{name} & {value} \\" for name, value in rows)
+    # Two columns of short values: a single-column float, so it sits next to the
+    # experimental-setup paragraph rather than taking a page top of its own.
     return (
-        "\\begin{table}[!t]\n"
+        "\\begin{table}[!tb]\n"
         "\\caption{Experimental Configuration}\n"
         "\\label{tab:config}\n"
         "\\centering\n"
-        "\\begin{tabular}{ll}\n"
+        "\\small\n"
+        "\\setlength{\\tabcolsep}{4pt}\n"
+        "\\begin{tabular}{@{}ll@{}}\n"
         "\\hline\n"
         "\\textbf{Parameter} & \\textbf{Value} \\\\\n"
         "\\hline\n"
@@ -676,7 +751,7 @@ def _sibling_runs(run: Run, results_root: Path) -> list[Run]:
     the whole experimental grid, not just the run the result tables come from."""
     runs = []
     for path in sorted(Path(results_root).iterdir()):
-        if (path / "samples.jsonl").exists():
+        if samples_path(path) is not None:
             runs.append(run if path.name == run.path.name else load_run(path))
     return runs or [run]
 
@@ -754,6 +829,30 @@ def build_tables(run_dir, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
     return paths
 
 
+def build_cross_run_tables(run_dirs, out_dir: Path, resamples: int = DEFAULT_RESAMPLES,
+                           quiet: bool = False) -> list[Path]:
+    """Write the tables that span every configuration rather than one run.
+
+    Unsuffixed by construction: there is exactly one of each, so there is nothing
+    for a suffix to disambiguate.
+    """
+    runs = [load_run(path) for path in run_dirs]
+    tables = [table_main_results_all(runs, resamples)]
+    stamp_tables(
+        tables,
+        source_run=", ".join(run.path.name for run in runs),
+        command="python -m evaluation.thesis_tables --all",
+        n_rows=sum(len(run.samples) for run in runs),
+        source_file="samples.jsonl in each run folder",
+    )
+    paths = write_tables_tex(tables, out_dir, comments=False, merge_index=True)
+    if not quiet:
+        print(f"cross-run -> {out_dir}")
+        for path in paths:
+            print(f"  {path.name}")
+    return paths
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         prog="python -m evaluation.thesis_tables",
@@ -790,7 +889,7 @@ def main(argv=None) -> int:
 
     root = Path(args.results_root)
     if args.all:
-        run_dirs = [p for p in sorted(root.iterdir()) if (p / "samples.jsonl").exists()]
+        run_dirs = [p for p in sorted(root.iterdir()) if samples_path(p) is not None]
         if not run_dirs:
             print(f"No runs with samples.jsonl under {root}")
             return 1
@@ -799,7 +898,7 @@ def main(argv=None) -> int:
             print("Pass --run <folder> or --all")
             return 1
         run_dir = Path(args.run) if Path(args.run).exists() else root / args.run
-        if not (run_dir / "samples.jsonl").exists():
+        if samples_path(run_dir) is None:
             print(f"No samples.jsonl under {run_dir}")
             return 1
         run_dirs = [run_dir]
@@ -814,6 +913,12 @@ def main(argv=None) -> int:
             only=tuple(k.strip() for k in args.only.split(",") if k.strip()) or None,
             suffix=args.suffix,
         )
+
+    # Cross-run: one headline table covering every configuration, so the report
+    # can show the whole grid in a single float. Needs every run, so it is built
+    # here rather than in the per-run BUILDERS registry.
+    if args.all and not args.only:
+        build_cross_run_tables(run_dirs, Path(args.out), resamples=args.resamples, quiet=args.quiet)
     return 0
 
 

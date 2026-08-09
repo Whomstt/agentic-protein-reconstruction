@@ -325,8 +325,9 @@ def build_table(by_replica: dict[int, dict[str, list[dict]]]) -> Table:
         ),
         label="tab:organism_gap",
         notes=(
-            "Both gaps say how much higher E. coli scores than S. cerevisiae, as "
-            "a percentage of the S. cerevisiae mean: $+76.9$ means an E. coli "
+            r"Both gaps say how much higher \textit{E. coli} scores than "
+            r"\textit{S. cerevisiae}, as a percentage of the "
+            r"\textit{S. cerevisiae} mean: $+76.9$ means an \textit{E. coli} "
             "score nearly twice the yeast one. The size-adjusted gap is the same "
             f"comparison made within bins of {BIN_WIDTH} fragments, so the two "
             "organisms are matched on protein size. It collapses towards zero at "

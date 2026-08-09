@@ -262,7 +262,15 @@ finished run.
 - `evaluation/analysis.py` — per-sample derivations: fragment bins, breakpoints,
   N-terminal start, error taxonomy, concordance, oracle gap.
 - `evaluation/exports.py` / `figures.py` — CSV and booktabs LaTeX from shared row
-  data, and the figure house style.
+  data, and the figure house style. Float rule for anything `\input` into the
+  IEEE paper: emit a single-column `table`/`figure` unless the content genuinely
+  cannot fit 252 pt, since a spanning `table*`/`figure*` only ever gets a page
+  top and drifts pages from its reference once several queue up. `Table` takes
+  `body_size` and `col_sep` to buy that width; figures are drawn at
+  `SINGLE_COLUMN_WIDTH` and included at `\columnwidth` so type is never rescaled
+  (`grouped_bars(width=)`, `metrics_by_fragment_bin(stacked=True)`). Only
+  `main_results_all`, `dataset_coverage`, `organism_gap` and
+  `sample_fragment_counts` span both columns.
 - `evaluation/thesis_tables.py` — the report's Results tables
   (`python -m evaluation.thesis_tables --all` → `report/tables/*.tex`, one set per
   run; `--run <folder>` for a single configuration). Filenames and LaTeX labels
@@ -276,6 +284,10 @@ finished run.
   into the paper. Computed nowhere else: the agent-behaviour table (which levers
   the LLM moved, and how often a later iteration displaced iteration 1) and the
   experimental-configuration table, derived from every run's config snapshot.
+  `--all` additionally writes one cross-run table, `main_results_all.tex`, which
+  is what the report actually `\input`s: the same cells as the six per-run
+  headline tables, stacked into a single float with a `\midrule` between
+  configuration blocks. The per-run six are still written and still tested.
   `tests/test_thesis_tables.py` re-derives values from `samples.jsonl` with no
   `evaluation/` imports and asserts them against the emitted cells.
 
@@ -285,6 +297,8 @@ is a valid results root: `rebuild.py` and `thesis_tables.py` both take
 `--results-root final_results`. Two size changes and nothing else — the `samples`
 key is stripped from `summary.json` (it was a byte-identical duplicate of
 `samples.jsonl`) and `samples.jsonl` is stored gzipped, so the whole set is ~8 MB.
+`analysis.samples_path()` / `open_samples()` accept either spelling, so run
+discovery and loading work the same against `results/` and `final_results/`.
 Figure PDFs are omitted since `*.pdf` is gitignored; the PNG twins are there. Keep
 `final_results/README.md` in step if a run is added or replaced.
 

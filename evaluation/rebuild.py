@@ -52,6 +52,7 @@ from evaluation.analysis import (
     nterm_analysis,
     oracle_gap,
     sample_rows,
+    samples_path,
     stratify_by_bin,
     taxonomy_counts,
     trypsin_recall_summary,
@@ -1484,7 +1485,7 @@ def main(argv=None) -> int:
     started = time.time()
     artifacts = []
     for run_dir in run_dirs:
-        if not (Path(run_dir) / "samples.jsonl").exists():
+        if samples_path(run_dir) is None:
             print(f"Skipping {run_dir} — no samples.jsonl")
             continue
         if not args.quiet:

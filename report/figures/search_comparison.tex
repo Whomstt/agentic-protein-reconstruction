@@ -1,0 +1,19 @@
+\begin{figure}[!tb]
+  \centering
+  \includegraphics[width=\columnwidth]{images/search_comparison_ecoli.png}
+  \caption{Random Search versus LLM-Guided on \textit{E. coli} at 100 digestion
+  replicas. Both arms use the same pipeline, iteration budget and best-validity
+  selection; only the source of the lever values differs, so the gap between the
+  bars isolates the LLM's reasoning.}
+  \label{fig:search_comparison_ecoli}
+\end{figure}
+
+\begin{figure}[!tb]
+  \centering
+  \includegraphics[width=\columnwidth]{images/search_comparison_yeast.png}
+  \caption{Random Search versus LLM-Guided on \textit{S. cerevisiae} at 100
+  digestion replicas, on the same scale as
+  Figure~\ref{fig:search_comparison_ecoli}. The gap narrows on the harder
+  organism, and Exact Match is unchanged.}
+  \label{fig:search_comparison_yeast}
+\end{figure}
