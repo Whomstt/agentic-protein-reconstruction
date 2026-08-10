@@ -50,9 +50,9 @@
 \maketitle
 
 \begin{abstract}
-Microbial communities play a crucial role in processes from organic matter decomposition to keeping our guts healthy.
+Microbial communities play a crucial role in processes from organic matter decomposition to maintaining a healthy gut.
 Protein profiling (proteomics) is a necessary step to understand the function within an ecosystem. The reconstruction
-of proteins from unordered tryptic fragments is a bottleneck which is limiting our ability to perform proteomic profiling.
+of proteins from unordered tryptic fragments is a bottleneck which is limiting the ability to perform proteomic profiling.
 An agentic AI approach using Protein Language Models (PLMs) and Large Language Models (LLMs) was built combining several
 tools which allow for more effective protein reconstruction. Results from the experiments show that the iterated, agentic
 reasoning approach performs considerably better on average than using manually predefined system parameters, while only
@@ -108,7 +108,7 @@ Proteins are made up of chains of amino acids (peptides), with the complete set 
 expressed by an organism considered as its proteome \cite{https://doi.org/10.1002/imt2.70031}. The sequence
 in which amino acids occur in a protein captures enough information to determine its structure and biological function
 \cite{Dinh2026}. Proteins are often seen as the "language of life", capable of 
-carrying out instructions that are found within our DNA, serving as enzymes for biochemical
+carrying out instructions that are found within DNA, serving as enzymes for biochemical
 reactions and providing the necessary support for cellular life structures \cite{https://doi.org/10.1002/imt2.70031}.
 All of this complexity and diversity in functionality is captured in what could be considered as a biological alphabet consisting of 20 standard amino acids, motivating
 the development of sequence models inspired by Natural Language Processing (NLP) approaches \cite{Dinh2026}.
@@ -147,15 +147,15 @@ masked amino acids from known sequences instead of words \cite{9477085}.
 
 While the training objective remains simple in nature, when performed over millions of proteins
 the model begins to internalise more than just sequence patterns, but also the evolutionary structure
-\cite{lin2023esmfold}. Training an additional folding head on top of the base pLM allows us to transfer
-knowledge from cheaply learned internal representations before making expensive 3D structure predictions
+\cite{lin2023esmfold}. Training an additional folding head on top of the base pLM allows a transfer
+of knowledge from cheaply learned internal representations before making expensive 3D structure predictions
 \cite{lin2023esmfold}.
 
 Recurrent Neural Networks (RNNs) have been almost entirely replaced by the transformer architecture
 in the field of protein-sequence modeling since ProtBert \cite{9477085} highlighted the benefits 
 of self-attention in capturing long range dependencies of proteins on a large-scale. Additionally, masked language modeling
 (MLM) has shown great success in repairing noisy protein sequences to their original states by probabilistically generating
-and selecting candidate amino acids to fill in the blanks \cite{9477085}. Our structural understanding
+and selecting candidate amino acids to fill in the blanks \cite{9477085}. The structural understanding
 of proteins has been improved through models like ESMFold \cite{lin2023esmfold} which allow for
 prediction of 3D structures directly from single protein sequences.
 
@@ -163,8 +163,8 @@ Despite these major advances, pLMs remain limited in their functionality. While 
 exceptionally more efficient at structural predictions than their alignment-based counterparts; performing up
 60x faster in inference time compared with the likes of AlphaFold and RosettaFold \cite{lin2023esmfold}, these models
 focus on predicting structures from known sequences rather than designing or inferring novel ones. Moreover,
-current pLMs are fundamentally restricted by our limited viewpoint from data on known existing proteins 
-which have already been produced by nature, inhibiting us from potentially uncovering proteins which differ
+current pLMs are fundamentally restricted by the limited viewpoint from data on known existing proteins 
+which have already been produced by nature, inhibiting the potential to uncover proteins which differ
 from these captured patterns.
 
 \subsection{De Novo Peptide Identification}
@@ -225,7 +225,7 @@ sophisticated sequence assembly algorithms to be done effectively. Standard appr
 make use of software which will match against known proteins from a database. Alternative approaches
 often involve overlap-layout-consensus (OLC) and string graph approaches, spectral-network-based methods
 and de Brujin graphs. The alternative graph-based approaches which do not rely on existing knowledge of
-proteins existing is much more suitable for our problem.
+proteins existing is much more suitable for the application of this research given that it is de novo.
 
 A string graph is a representation of all that is inferable about a sequence from a collection of fragmented
 readings collected from it \cite{10.1093/bioinformatics/bti1114}. String graphs are capable of removing
@@ -245,7 +245,7 @@ considerably, opening the door for shotgun protein sequencing \cite{doi:10.1073/
 
 \subsection{Agentic AI in Proteomics}
 Agentic AI has seen great success in recent times, particularly in the field of programming with tools
-such as Claude Code completely changing the way that we build software. Traditional rule-based pipelines struggle with handling noisy, uncertain feedback signals
+such as Claude Code completely changing the way in which software is built. Traditional rule-based pipelines struggle with handling noisy, uncertain feedback signals
 which require manual hard-coded behaviours. An agentic system is controlled by an LLM "brain", which is granted access to "tools". Most agentic pipelines follow the ReAct pattern
 where an LLM receives a prompt and "reacts" by executing the most relevant tools respective to the query
 and its instruction. Sometimes tasks are so complex that it makes sense to have multiple agents acting together for a shared
@@ -276,7 +276,7 @@ this field \cite{ni2025agenticendtoendnovoprotein}.
 \subsection{Comparative Analysis}
 While pLMs such as ProtBERT \cite{9477085} and ESMFold \cite{lin2023esmfold} are excellent models
 for understanding the sequences and structures of proteins in their base forms respectively, they rely on the assumption that the problem being 
-dealt with involves a protein which is correctly ordered and / or complete. These assumptions do not directly work for our downstream
+dealt with involves a protein which is correctly ordered and / or complete. These assumptions do not directly work for the downstream
 task in reconstruction with unordered tryptic fragments, however, they can be used as biological indicators
 to guide the reconstruction process through probabilistic and validity approaches.
 
@@ -317,7 +317,7 @@ The proposed combination is to take pLMs along with agentic AI and graph-assembl
 the de novo reconstruction problem, rather than designing novel proteins with targeted properties from
 scratch; which is where most related work is currently investigating.
 
-Research questions to be addressed are as follows: Can we reconstruct de novo proteins from digested fragments
+Research questions to be addressed are as follows: Can de novo proteins be reconstructed from their digested fragments
 using agentic AI? How effective is LLM-guided reasoning for the de novo reconstruction process?
 
 \section{Methodology}
@@ -341,8 +341,8 @@ random shuffle of the fragments to see how closely a shuffled sequences is to th
 \subsection{System Architecture}
 The system is configured to have a shared pipeline across all variants. Each runs
 identically in terms of order; trypsin filter $\rightarrow$ overlap graph $\rightarrow$ junction scorer $\rightarrow$
-beam search $\rightarrow$ validity scorer. What differs between runs is that we vary the number
-of attempts the variant gets (1 or 5), and also where the tool parameters get their values from (fixed, random, LLM).
+beam search $\rightarrow$ validity scorer. What differs between runs is that the number
+of attempts the variant gets (1 or 5) is varied, and also where the tool parameters get their values from (fixed, random, LLM).
 
 The tunable settings which the agent has control over is limited to 5 parameters; 
 junction masking window (window size of the junction), search mode (beam / greedy), 
@@ -363,21 +363,21 @@ provides an overview of the procedure which the agentic pipeline follows.
 
 \subsection{Tools and Signals}
 The trypsin filter tool is typically used first to discard impossible pairings given trypsin digestion has
-occurred. Let's imagine that fragment A ends in K/R and fragment B starts with P, this tells us
+occurred. Let's imagine that fragment A ends in K/R and fragment B starts with P, this means
 that A$\rightarrow$B is an impossible pairing as trypsin would never have cleaved there. This reduces
-our average search space considerably to $\sim$6.1\% found in initial experimentation.
+the average search space considerably to $\sim$6.1\% found in initial experimentation.
 Additionally, this tool flags fragments beginning with M as starting (N-terminal) candidates.
 Fig.~\ref{fig:trypsin_filter} illustrates the trypsin filter tool and how impossible pairings are eliminated.
 
 \input{figures/trypsin_filter}
 
 The overlap graph makes use of multiple digested replicas of the same protein, which are likely to have missed
-cleavages at different sites. If two fragments are adjacent across many replicas, we can mark that as a confirmed
-adjacency. This essentially provides us with guaranteed pairings that can be found in the original protein,
+cleavages at different sites. If two fragments are adjacent across many replicas it can be marked as a confirmed
+adjacency. This essentially provides guaranteed pairings that can be found in the original protein,
 significantly reducing the search space for guesswork during reconstruction. It should be noted that these confirmed adjacencies
-are not entirely the ground truth as there could be same-fragment sequences found within one protein, this is why we allow
-for a configuration of hard / soft adjacency interpretations; where hard will mean that we never consider other candidates
-that don't include the confirmed pairings, and soft can take a confirmed bonus parameter determines the strength
+are not entirely the ground truth as there could be same-fragment sequences found within one protein, this is why
+a configuration of hard / soft adjacency interpretations are allowed; where hard will mean that candidate solutions
+that don't include the confirmed pairings are never considered, and soft can take a confirmed bonus parameter which determines the strength
 of the adjacency confirmation and whether other candidates will be considered. As the number of replicas available
 increases, the number of confirmed adjacencies also rises.
 Fig.~\ref{fig:overlap_graph} illustrates how an adjacency is confirmed from agreement across replicas.
@@ -415,7 +415,7 @@ along with an agreement reading from the confirmed adjacencies identified from t
 best candidate by the agent, with the best scoring candidate always being selected after all 
 iterations have been exhausted. The feedback from this tool directly tells the agent if the parameter
 configurations which it is trying is working well or not, triggering an exploration vs. exploitation
-dillema for the agent to optimise the reconstruction. It is worth stating that this tool is incapable of 
+dilemma for the agent to optimise the reconstruction. It is worth stating that this tool is incapable of 
 guaranteeing that it will correctly indicate the closest candidate to the original, and should only be considered
 as a proxy. Fig.~\ref{fig:validity_scorer} illustrates how competing candidate reconstructions are scored and selected.
 
@@ -467,9 +467,8 @@ Edit Similarity measures the Levenshtein (edit) distance required to reach the t
 \subsection{Quantitative Results}
 \input{tables/main_results_all}
 Based on the results from experimentation, in its current implementation most gains
-in Adjacent Pair Accuracy (APA) come from the fact that we had a larger budget for iterations.
-The LLM's reasoning ability does however lead to a slightly higher APA than Random Search
-on both \textit{E. coli} (+0.016) and yeast (+0.024) respectively.
+in Adjacent Pair Accuracy (APA) come from the fact that there was a larger budget for the number of iterations.
+The LLM's reasoning ability shows a small, but consistent advantage over random search across all four metrics.
 \input{figures/search_comparison}
 
 Across all variants of the system on all metrics the reconstruction of yeast was worse
@@ -479,10 +478,10 @@ found in yeast in comparison being much greater; objectively creating a harder r
 \input{tables/organism_gap}
 \input{figures/fragment_correlation}
 A selection ceiling was also considered for the best candidate generated during the 5 iterations. Due
-to the inherent weakness of the validity scorer's signal; we only picked the real best candidate $\sim$64\% of the time,
+to the inherent weakness of the validity scorer's signal; the real best candidate was only selected $\sim$64\% of the time,
 and throw away good candidates that were already generated for the other side of it.
-This ceiling shows us the potential of the system in its ability to reconstruct if we had
-higher quality validity signals such as folding models.
+This ceiling shows the potential of the system in its ability to reconstruct if a
+higher quality validity signal was available.
 
 \input{tables/cost_ecoli_r100}
 It is evident from the clock time that the cost of the LLM-Guided setup is much more
@@ -490,8 +489,8 @@ than that of the random search, with the intermediary LLM calls between iteratio
 in $\sim$5x more time to compute for reconstructions than the random search approach.
 
 \subsection{Qualitative Analysis}
-In general the reconstruction is more likely to be not be perfect than to be perfect,
-however, we see that most reconstructions have a very strong APA score which means that
+In general the reconstruction is more likely to not be perfect than to be perfect,
+however, it is visible that most reconstructions have a very strong APA score which means that
 the system can still be useful. One point especially worth considering with these results is
 that the system can help disambiguate fragments which are shared by multiple parent proteins.
 
@@ -502,6 +501,28 @@ iteration budget. This demonstrates that the LLM was able to intelligently inter
 signals from the tools and select more appropriate parameters than just randomly guessing to
 produce better candidates. It should also be considered that more tools and further signals which
 are more noisy would likely see the LLM outshine any random search with the same number of iterations.
+
+Though only a modest advantage can be seen from the agentic approach, it is consistent, and the
+data indicates that there is more merit than it just covering a wider search space of parameter configurations.
+The intermediary thought process between iterations demonstrates logical reasoning from the LLM
+in its decision-making process for next parameter selection based on the signals its receiving.
+A strong example of this can be seen in the run of \textit{E. coli} r20, sample 1, iter. 2 in Table~\ref{tab:llm_reasoning_examples}.
+The agent correctly diagnosed that the local junction perplexity was high which indicated that a larger junction width would likely be more
+suitable to produce a better candidate.
+
+The agent does not always use the same strategy, it is capable of doing the inverse strategy when
+the signals would suggest it to be wise. Consider the run of \textit{Saccharomyces cerevisiae} r100, sample 84, iter. 4 in Table~\ref{tab:llm_reasoning_examples};
+the LLM decides that increasing the junction window is unnecessary given that the local signal is already strong.
+Other examples, for example the run of \textit{E. coli} r100, sample 10, iter. 5 in Table~\ref{tab:llm_reasoning_examples} would indicate that the reasoning while often plausible,
+does not always lead to better candidates; and can sometimes cause reduce accuracy of the reconstruction. In this case the validity dropped
+massively with these new parameters, suggesting that modifying the parameters with rational decision-making can sometimes lead to counterproductive results;
+also highlighting the question of balancing exploration vs. exploitation given the limited iterative budget.
+
+These examples demonstrate suggest that the LLM-guidance can meaninfully interpret
+feedback from the signals available and adapt the approach accordingly. They also suggest that the
+reasoning is not consistently reliable and should be considered as an imperfect reasoner.
+
+\input{tables/reasoning_examples}
 
 \floatflush
 
@@ -521,8 +542,8 @@ larger number of levers, however, the experiments still indicate that even with 
 an LLM reasoning engine shows promise.
 
 The biggest bottleneck can be seen through the best candidate metrics which show the selection ceiling.
-This shows us what the metrics would have been if the validity signal was always right in terms of
-telling us which candidate is really the closest to the original.
+This shows what the metrics would have really been if the validity signal was always right in terms of
+indicating which candidate is really the closest to the original.
 
 There is clearly a gap in reconstruction performance between both organisms, this is no surprise however,
 as seen in data that both have significant differences in terms of their fragment counts. Yeast has
@@ -531,13 +552,14 @@ from the sampled split. This creates an objectively harder reconstructive proble
 
 The LLM reasoning comes at a cost which is considerable, taking approximately 5x as long to complete a
 reconstruction than that of the
-iterated random search approach due to intermediary LLM API calls. In its current state, this
-time increase is hard to justify, but given the nature of the objective being solved, even a small accuracy gain
-could be justified for a substantial time cost.
+iterated random search approach due to intermediary LLM API calls. Whether the cost of the agentic
+implementation is worth it is a debatable point, given that the current uplift in
+reconstruction quality is negligible with the LLM-guided implementation, and the
+uncertainty in the contribution which came from LLM-reasoning.
 
 \subsection{Challenges and Limitations}
-The validity signal is clearly the biggest challenge of reconstruction as we have to attempt to
-approximate what the original protein is through such a weak signal. The proxy of perplexity found
+The validity signal is clearly the biggest challenge of reconstruction as it forces candidate selection through
+a proxy which is evidently weak. The proxy of perplexity found
 with junction scoring and the confirmed adjacencies with the overlap graph provide a rough indication
 of which candidate is closer to the original, and is correct most of the time, however, the ceiling
 demonstrates that there are huge potential performance uplifts with a stronger signal.

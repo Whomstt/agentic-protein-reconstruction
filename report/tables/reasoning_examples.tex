@@ -1,0 +1,29 @@
+\begin{table*}[!tb]
+  \centering
+  \caption{Selected examples of diagnostic-driven reasoning by the LLM during reconstruction.}
+  \label{tab:llm_reasoning_examples}
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}p{0.18\textwidth}p{0.76\textwidth}@{}}
+    \toprule
+    Example & LLM reasoning \\
+    \midrule
+
+    \textit{E. coli} r20, sample 1, iter. 2 &
+    ``Junction local perplexity is high and the PLM junction scores have modest spread, suggesting the model needs broader successor-fragment context to discriminate plausible joins. I increase junction\_window from 1 to 4... The greedy search experienced a fallback step (one forced impossible pick), so switch to beam search... Confirmed-adjacency agreement was already perfect (1.00), so keep edge\_mode as 'hard'...'' \\
+
+    \addlinespace
+
+    \textit{Saccharomyces cerevisiae} r100, sample 84, iter. 4 &
+    ``The junction scoring spread was narrow and the PLM likely relies on very local motif signals... so I keep a narrow junction\_window=1... Greedy previously gave the best score, but to explore alternatives near that solution I switch to a small beam... Confirmed adjacencies were already fully respected (agreement=1.00), so I do not force them harder; instead I use soft edge handling with a modest confirmed\_bonus=0.5...'' \\
+
+    \addlinespace
+
+    \textit{E. coli} r100, sample 10, iter. 5 &
+    ``Junction-local perplexity is still fairly high and the junction score spread is narrow at window=1, so I widen the junction window to 5... Greedy search historically produced the best overall validity... I pick a moderate beam\_width (15) only as a placeholder...'' \\
+
+    \bottomrule
+  \end{tabular}
+  \par\smallskip
+  \footnotesize{Examples illustrate both useful and counterproductive diagnostic-driven search decisions.}
+\end{table*}
