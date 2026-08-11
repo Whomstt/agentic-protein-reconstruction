@@ -19,8 +19,6 @@
 
 \usepackage{flafter}
 
-% Floats are placed by LaTeX now, so nothing needs flushing by hand; a
-% \clearpage here only strands the queue on sparse float-only pages.
 \newcommand{\floatflush}{}
 
 \setcounter{topnumber}{3}
@@ -31,8 +29,6 @@
 \renewcommand{\bottomfraction}{0.7}
 \renewcommand{\dbltopfraction}{0.9}
 \renewcommand{\textfraction}{0.07}
-% High: a float page is only allowed once the floats nearly fill it, so
-% leftovers ride along at the top or bottom of a text page instead.
 \renewcommand{\floatpagefraction}{0.85}
 \renewcommand{\dblfloatpagefraction}{0.85}
 
@@ -570,7 +566,7 @@ demonstrates that there are huge potential performance uplifts with a stronger s
 The experiment runs themselves were quite limited statistically in that only 100 samples were considered for
 each species and only one run was performed for each configuration with the same random seed. Additionally,
 the computational and timing budgets only allowed for 5 iterations per sample, potentially hiding
-the true strength of the LLM's reasoning; similarly the limited lever control.
+the true strength of the LLM's reasoning; similarly from the restricted influence with the LLM has on proceeding runs.
 
 The scope of the project limited the experiments to consider only two species of organism,
 a single pLM (ESM-2 - 8M), and no mixtures of proteins as originally planned.
@@ -584,7 +580,7 @@ as even a single candidate evaluation could take upwards of 10 minutes on the ha
 The ceiling gap would suggest that the higher computational demand from a much richer validity signal
 would be worth the reconstructive accuracy uplifts.
 
-A larger iteration budget, more tools, and more lever control would likely see the gap between
+A larger iteration budget, more tools, and more influential control would likely see the gap between
 LLM-guided reconstruction and random search grow considerably. It should also be noted that due to
 the limited selection of tools available for the agent and budget constraints, a decision was made
 to remove intermediary calls to the LLM between tool calls before candidate presentation; with a wider
@@ -598,6 +594,26 @@ are at improving the reconstruction process in terms of junction scoring and gui
 early experimentation has already shown promising uplifts in reconstruction accuracy with a larger ESM model (ESM-2 650M).
 
 \section{Conclusion}
+
+The reconstruction of tryptic fragments into their original proteins without a reference database is a challenging task.
+The combination of using an overlap-graph, pLM junction scoring, and LLM-guided reasoning is a novel approach to this problem.
+
+To answer the first research question of "Can de novo proteins be reconstructed from their digested fragments
+using agentic AI?", the answer is evidently yes. The APA metric went from 0.068 from the baseline random shuffle up to
+0.879 with the agentic approach. It is also clear that most of the gains came from iterative search, rather than
+intelligent reasoning, along with confirmed adjacencies from the overlap graph, especially when higher replica counts were available.
+
+The picture is not as clear for the second research question of "How effective is LLM-guided reasoning for the de novo reconstruction process?".
+While the current accuracy gains found from the addition of LLM-guided reasoning are minimal as seen in Fig.~\ref{fig:search_comparison_ecoli} and Fig.~\ref{fig:search_comparison_yeast},
+the reasoning examples as seen in Table~\ref{tab:llm_reasoning_examples} are more promising in showing a genuine biological reasoning capability from informative signals
+rather than being acts of random intuition.
+
+Finding an effective validity signal is surely the biggest bottleneck of the system now, with only an ~64\% correct pick rate for
+the best reconstructed candidate. This impediment left huge gains on the table as shown by the 'Best Candidate' metrics in Table~\ref{tab:main_results_all}.
+
+A stronger validity signal appears to be the best way to get large immediate accuracy gains, a folding model
+would be a strong starting point for serious experimentation with a large computational budget. Larger-scale experimentation
+on more samples, species, and configurations would certainly yield more statisically sound results.
 
 \section*{Acknowledgment}
 I would like to thank my supervisors Enda Howley and Florence Abram for their exceptional guidance and support throughout this project.

@@ -1,6 +1,6 @@
-# Agentic Protein Reconstruction
+# Agentic De Novo Protein Reconstruction
 
-Reconstruct protein sequences from unordered trypsin-digestion fragments. An LLM
+Reconstructing protein sequences from unordered trypsin-digestion fragments. An LLM
 agent iterates over reconstruction strategies, scores each candidate with an
 ESM-2 based validity signal, and keeps the best one. Unlike most protein design
 work, which builds novel sequences with intended properties, this reassembles a
