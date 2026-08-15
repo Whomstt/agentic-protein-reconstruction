@@ -49,14 +49,14 @@
 
 \begin{abstract}
 Microbial communities play a crucial role in processes from organic matter decomposition to maintaining a healthy gut.
-Protein profiling (proteomics) is a necessary step to understand the function within an ecosystem. The reconstruction
-of proteins from unordered tryptic fragments is a bottleneck which is limiting the ability to perform proteomic profiling.
-An agentic AI approach using Protein Language Models (PLMs) and Large Language Models (LLMs) was built combining several
-tools which allow for more effective protein reconstruction. Results from the experiments show that the iterated, agentic
+Protein profiling (proteomics) is a necessary step to understand microbial function within an ecosystem. The reconstruction
+of proteins from unordered tryptic fragments is a bottleneck which is limiting the ability to perform proteomics.
+An agentic AI approach using Protein Language Models (pLMs) and Large Language Models (LLMs) was built combining several
+tools which promise more effective protein reconstruction. The results show that the iterated, agentic
 reasoning approach performs considerably better on average than using manually predefined system parameters, while only
-minimally outperforming an iterative random search of multiple parameters on the same budget without a reasoning engine. This research indicates that there is
-a much larger potential gain to come of agentic AI in the field of proteomics, especially for environments with fewer
-computational constraints and richer informational signals.
+minimally outperforming an iterative, random search of multiple parameters on the same iteration budget without a reasoning engine. 
+This research indicates that there is a much larger potential gain to come of agentic AI in the field of proteomics, especially for environments with fewer
+computational constraints and richer information signals.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -70,18 +70,18 @@ agentic AI, protein language models, proteomics, de novo protein reconstruction.
 Capturing the functional interactions that occur within a microbial ecosystem and understanding their characteristics
 has given rise to many advancements in the domains of human biology, soil and marine environments, and bioengineered systems \cite{10.1111/j.1574-6941.2011.01284.x}.
 In activated sludge, metaproteomic analysis was capable of distinguishing functioning and non-functioning systems from protein expression alone, demonstrating the potential
-of protein profiling to diagnose performance issues in engineered systems such as wastewater treatment \cite{10.1111/j.1574-6941.2011.01284.x}.
+of proteomics to diagnose performance issues in engineered systems such as wastewater treatment \cite{10.1111/j.1574-6941.2011.01284.x}.
 These types of analyses are constrained by the lack of available relevant genome and metagenome sequences, and in cases where none exist, de novo peptide sequencing
 is required \cite{10.1111/j.1574-6941.2011.01284.x}.
 
 A proteome is the complete set of proteins expressed by a genome under a set of given conditions; correspondingly, proteomics is the profiling of these expressed proteins 
 \cite{https://doi.org/10.1002/imt2.70031}.
 Metaproteomics is the equivalent profiling performed on a community level, where from a given sample not all proteins may belong to the same organism \cite{10.1111/j.1574-6941.2011.01284.x}.
-Metagenomes and genomes show what an ecosystem is capable of, whereas the proteins expressed during sampling reveal the story of what it is actually doing;
-protein profiling makes it possible to link community members to the functions which they carry out \cite{10.1111/j.1574-6941.2011.01284.x}.
+Metagenomes and genomes show what an ecosystem is capable of, whereas the proteins expressed during sampling reveal their true nature.
+Metaproteomics makes it possible to link community members to the functions which they carry out \cite{10.1111/j.1574-6941.2011.01284.x}.
 
 Proteomics involves analysing protein fragments that resulted from enzymatic digestion,
-and because of this, the original parent protein must be inferred from this jigsaw puzzle of fragments \cite{https://doi.org/10.1002/imt2.70031}.
+and because of this, the original parent protein must be inferred from an implicit jigsaw puzzle of fragments \cite{https://doi.org/10.1002/imt2.70031}.
 Enzymatic digestions are not perfect, often resulting in missed cleavages and ambiguous fragments which could belong to multiple
 parent proteins \cite{MCDONNELL20232732}. This motivates the need for more capable reconstruction algorithms, particularly when
 no reference database entry exists for a given protein.
@@ -89,29 +89,29 @@ no reference database entry exists for a given protein.
 Agentic AI has already shown great promise in de novo protein design problems \cite{ghafarollahi2024protagentsproteindiscoverylarge}, \cite{ni2025agenticendtoendnovoprotein}. 
 The primary objective of this project was to investigate the application of agentic AI 
 in reconstructing proteins from their fragments; to observe intelligence from the LLM as it receives feedback during the
-reconstruction process, and its respective decision-making process to produce a better candidate solution.
+reconstruction process, and its respective decision-making process to iteratively produce a better candidate solution.
 
 \section{Literature Review}
 
 \subsection{Methodology for Paper Selection}
 Papers suitable for this research paper were obtained through searching keywords on Google Scholar including
-"protein language models", "de novo protein reconstruction", "agentic AI proteomics", microbial communities, and similar.
+'protein language models', 'de novo protein reconstruction', 'agentic AI proteomics', 'microbial function', and similar.
 Additionally, some of my references include suggestions from my capstone supervisors Enda Howley and Florence Abram,
 whom have previously worked in this domain.
 Selection of papers for the literature review was based on the value they added to the conversation and their diverse
-coverage of topics to meet the target of $\sim$10 papers for the literature review as indicated by the capstone guidelines.
+coverage of topics to meet the target reference count as indicated by the capstone guidelines.
 
 \subsection{Proteins, Peptides and Proteomics}
 Proteins are made up of chains of amino acids (peptides), with the complete set of proteins
-expressed by an organism considered as its proteome \cite{https://doi.org/10.1002/imt2.70031}. The sequence
+expressed by an organism being its proteome \cite{https://doi.org/10.1002/imt2.70031}. The sequence
 in which amino acids occur in a protein captures enough information to determine its structure and biological function
 \cite{Dinh2026}. Proteins are often seen as the "language of life", capable of 
 carrying out instructions that are found within DNA, serving as enzymes for biochemical
-reactions and providing the necessary support for cellular life structures \cite{https://doi.org/10.1002/imt2.70031}.
+reactions, and providing the necessary support for cellular life structures \cite{https://doi.org/10.1002/imt2.70031}.
 All of this complexity and diversity in functionality is captured in what could be considered as a biological alphabet consisting of 20 standard amino acids, motivating
-the development of sequence models inspired by Natural Language Processing (NLP) approaches \cite{Dinh2026}.
+the development of sequence models inspired by Natural Language Processing (NLP) techniques \cite{Dinh2026}.
 
-In proteomics, the analysis of proteins is typically not completed on their full form, but rather through a bottom-up
+In proteomics, the analysis of proteins is typically not performed on their full form, but rather through a bottom-up
 approach involving an enzymatic digestion causing a decomposition of proteins into fragmented peptides \cite{https://doi.org/10.1002/imt2.70031}.
 The trypsin enzyme is often used for this process due its specificity in terms of splitting (cleaving)
 proteins at terminal sites of lysine (K) and arginine (R) amino acids (residues) respectively \cite{https://doi.org/10.1002/imt2.70031}.
@@ -119,8 +119,8 @@ As the proteins under analysis can only be observed through its
 cleaved peptide fragments, bioinformatics software must be used to infer a mapping to the most likely
 parent candidates \cite{https://doi.org/10.1002/imt2.70031}.
 
-Enzymatic digestions are not perfect and often result in "missed cleavages"; when the protein
-is not cut at the site it should have been. Tandem mass spectrometry (MS) is the method used to detect peptides,
+Enzymatic digestions are not perfect and often result in 'missed cleavages'; when the protein
+is not cut at the site in which it should have been. Tandem mass spectrometry (MS) is the method used to detect peptides,
 and these unexpected sequences formed through digestion can make
 it more difficult to infer the sequence from the mass spectra \cite{MCDONNELL20232732}. A significant portion of peptides observed in
 a sample remain unidentified, in fact on average as little as 25\% of spectra obtained through
@@ -130,80 +130,80 @@ are not unique, making it considerably difficult to classify which parent protei
 belongs to \cite{MCDONNELL20232732}. 
 
 Fortunately, in most proteomics workflow environments multiple digestions are performed on replicas of the 
-same sample; with counts of five replicas or more being common places, and in clinical trials this count is
+same sample; with counts of five replicas or more being common place, and in clinical trials this count is
 often much higher \cite{10.3389/fgene.2015.00360}.
 This further motivates a need for more advanced reconstruction
 algorithms, capable of mapping fragments from noisy signals to their original form, especially when
-considering under-documented or undiscovered proteomes that are often found within mixed microbial communities.
+considering under-documented or undiscovered proteins that often prevail in the natural environment, including the human host.
 
 \subsection{Protein Language Models}
 Advances in NLP through Large Language Models (LLMs) have enabled a 
-better appreciation of the "language of life" \cite{9477085}
+better appreciation for the "language of life" \cite{9477085}
 through training on large datasets of proteins. Protein Language Models (pLMs) transfer the notion of using
 tokens to represent amino acids in a self-supervised process, effectively learning to predict
-masked amino acids from known sequences instead of words \cite{9477085}.
+masked amino acids from known sequences instead of word tokens \cite{9477085}.
 
 While the training objective remains simple in nature, when performed over millions of proteins
 the model begins to internalise more than just sequence patterns, but also the evolutionary structure
-\cite{lin2023esmfold}. Training an additional folding head on top of the base pLM allows a transfer
-of knowledge from cheaply learned internal representations before making expensive 3D structure predictions
-\cite{lin2023esmfold}.
+\cite{lin2023esmfold}. Training an additional folding head on top of a base pLM allows a transfer
+of knowledge from cheaply learned internal representations before making more expensive 3D structure predictions
+to finetune the output \cite{lin2023esmfold}.
 
 Recurrent Neural Networks (RNNs) have been almost entirely replaced by the transformer architecture
 in the field of protein-sequence modeling since ProtBert \cite{9477085} highlighted the benefits 
 of self-attention in capturing long range dependencies of proteins on a large-scale. Additionally, masked language modeling
-(MLM) has shown great success in repairing noisy protein sequences to their original states by probabilistically generating
+(MLM) has shown great success in repairing incomplete protein sequences to their original states by probabilistically generating
 and selecting candidate amino acids to fill in the blanks \cite{9477085}. The structural understanding
 of proteins has been improved through models like ESMFold \cite{lin2023esmfold} which allow for
 prediction of 3D structures directly from single protein sequences.
 
-Despite these major advances, pLMs remain limited in their functionality. While folding models like ESMFold are
-exceptionally more efficient at structural predictions than their alignment-based counterparts; performing up
-60x faster in inference time compared with the likes of AlphaFold and RosettaFold \cite{lin2023esmfold}, these models
+Despite these major advances, pLMs remain somewhat limited in their functionality. While folding models like ESMFold are
+exceptionally more efficient at structural predictions than their alignment-based counterparts; performing up to
+60x faster in inference time compared with models such as AlphaFold and RosettaFold \cite{lin2023esmfold}, these models
 focus on predicting structures from known sequences rather than designing or inferring novel ones. Moreover,
 current pLMs are fundamentally restricted by the limited viewpoint from data on known existing proteins 
 which have already been produced by nature, inhibiting the potential to uncover proteins which differ
-from these captured patterns.
+from these captured, and potentially biased patterns.
 
 \subsection{De Novo Peptide Identification}
 Identifying peptides is a non-trivial task, with an average of 75\% of spectra obtained
-through experimentation remaining unidentified \cite{MCDONNELL20232732}. Peptides do not always fragment as expected, 
-or aren't fully cleaved during enzymatic digestion. This poses the greatest challenge in 
+through experimentation remaining unidentified \cite{MCDONNELL20232732}. Furthermore, peptides do not always fragment as expected, 
+or aren't fully 'cleaved' during enzymatic digestion. This poses the greatest challenge in 
 peptide identification when fragments are incomplete or ambiguous \cite{MCDONNELL20232732}.
 
 Machine learning has been successful in recovering structural information from incomplete signals
 on several accounts in proteomics. Traditional CNNs such as DeepNovo only look at local neighbours
 within a spectrum, where hybrid CNN-GNN models allow for long-range interconnections \cite{MCDONNELL20232732};
-demonstrating that new architectures which combine existing ideas in new ways
-are constantly being introduced and often result in improved results.
+highlighting that new architectures which combine existing ideas in new ways
+are constantly being introduced, often resulting in improved results.
 
-Uncertainties in protein identification do not only appear on the spectrum level but also often on the sequence level.
-In real world experimentation, only partial views of proteins and their respective peptide chains
-are visible due to noise or errors occuring. Masked language modeling helps to simulate and train
-a network to complete peptides with noise through randomly masking residues or single amino acids
-and inferring their proper values through the surrounding context \cite{kharkar2024llmproteins}.
+Uncertainties in protein identification do not only appear on the mass spectrum level, but also on the sequence level.
+In real-world experimentation, only partial views of proteins
+are visible due to noise or errors in the data. MLM helps to simulate and train
+a network to complete peptides with noise through randomly masking residues (amino acids)
+and inferring their correct values through the surrounding context \cite{kharkar2024llmproteins}.
 
-Well-documented species such as \textit{E. coli} have abudant training data, and as such pLMs will perform
-better on these species and similar ones, as they have trained on them more extensively, with the model's parameters
-tuned more effectively from this luxury. Fine-tuning transformer models like BERT and RoBERTa that were originally trained purely on natural language are capable
+Well-documented species such as \textit{E. coli} have abundant training data, as such, pLMs are expected to generally perform
+better on them than proteins which were not represented during training. 
+Fine-tuning transformer models like BERT and RoBERTa that were originally trained purely on natural language are capable
 of adapting to the task of predicting missing amino acids, while pLMs including ProteinBERT
 which have already been trained on millions of protein sequences can be fine-tuned further
-to improve their performance on identifying species which only had minimal training data originally \cite{kharkar2024llmproteins}.
+to improve their performance on specific species which may have been underrepresented during initial training \cite{kharkar2024llmproteins}.
 
 \subsection{De Novo Protein Design}
-De novo protein design involves creating proteins from scratch rather than making changes to existing ones
-that occur naturally. While creating de novo proteins that are not targeting a specific functionality is an interesting exercise,
+De novo protein design involves creating proteins from scratch rather than modifying existing ones
+which occur naturally. While creating de novo proteins that are not targeting a specific functionality is an interesting exercise,
 the design of de novo proteins that match desirable structural makeups or 
-useful properties can be considered as a much more challenging, but rewarding task \cite{doi:10.1126/sciadv.adl4000}.
+target biological properties can be considered as a much more challenging, but rewarding task \cite{doi:10.1126/sciadv.adl4000}.
 Proteins that occur naturally represent only a fraction of the theoretical potential number of possible
 sequences; A peptide of length $L$ offers approximately $20^L$ possible sequences, most of which 
 have never been observed in nature \cite{xia2025apexgensimultaneousdesignpeptide}.
 
-ForceGen takes an interesting approach to design through mapping desired mechanical properties such as
-toughness and strength rather than structural properties \cite{doi:10.1126/sciadv.adl4000}. Through a
+ForceGen uses an interesting approach to de novo design through mapping desired mechanical properties such as
+toughness and strength rather than structural properties \cite{doi:10.1126/sciadv.adl4000}. Via a
 combination of a frozen pretrained pLM (ESM-2) and a diffusion model developed to operate within the pLM's
 probability latent space, this protein language diffusion model (pLDM) architecture was capable of creating
-novel proteins through mapping a dataset of only 7,026 curated proteins \cite{doi:10.1126/sciadv.adl4000}.
+novel proteins through mapping a dataset of only 7,026 curated records \cite{doi:10.1126/sciadv.adl4000}.
 As a measure of novelty, a BLAST validation was done to observe whether there was a significant similarity
 to known proteins from the ones generated; they found many of the generated sequences did not match any
 sequences in the database of known proteins \cite{doi:10.1126/sciadv.adl4000}.
@@ -219,23 +219,23 @@ ability to generate near-perfect folds and a better global topology alignment \c
 
 \subsection{Sequence Assembly Algorithms}
 The problem of reconstructing original protein sequences from their fragmented peptides requires the use of
-sophisticated sequence assembly algorithms to be done effectively. Standard approaches to proteomic assembly
-make use of software which will match against known proteins from a database. Alternative approaches
+sophisticated sequence assembly algorithms to be achieved effectively. Standard approaches to proteomic assembly
+make use of software which matches against known proteins from a database. Alternative approaches
 often involve overlap-layout-consensus (OLC) and string graph approaches, spectral-network-based methods
-and de Brujin graphs. The alternative graph-based approaches which do not rely on existing knowledge of
-proteins existing is much more suitable for the application of this research given that it is de novo.
+and de Brujin graphs. The alternative graph-based approaches which do not rely on an existing database of
+proteins is much more suitable for the application of this research.
 
 A string graph is a representation of all that is inferable about a sequence from a collection of fragmented
 readings collected from it \cite{10.1093/bioinformatics/bti1114}. String graphs are capable of removing
 redundant edges from graphs without loss of sequence information, furthermore, they can filter out "contained
 reads"; a reduction of roughly 40\% of reads in assembly data and 64\% of overlaps providing a significant
 reduction in the size and complexity of the problem \cite{10.1093/bioinformatics/bti1114}. This graph
-approach allows for a collapse of all reptitive elements into singular edges and ensures that the final
+approach allows for a collapse of all repetitive elements into singular edges and ensures that the final
 graph is "read coherent"; or a viable biological sequence formation \cite{10.1093/bioinformatics/bti1114}.
 
 MS/MS database tools (e.g. SEQUEST, Mascot, and modern alternatives) often face computational
 limitations when handling massive datasets of proteins. They also struggle when it comes to 
-the task of identifying unknown or modified proteins that lack a DB reference \cite{doi:10.1073/pnas.0701130104}.
+the task of identifying unknown or modified proteins that lack a database reference \cite{doi:10.1073/pnas.0701130104}.
 Spectral networks bypass the use of databases completely through alignment of "spectral pairs"
 (overlapping pairs of peptides or modified versions of the same) to form a full "spectral network" \cite{doi:10.1073/pnas.0701130104}.
 Analysing the entire "spectral network" at once was shown to increase the confidence of peptide identifications
@@ -244,9 +244,9 @@ considerably, opening the door for shotgun protein sequencing \cite{doi:10.1073/
 \subsection{Agentic AI in Proteomics}
 Agentic AI has seen great success in recent times, particularly in the field of programming with tools
 such as Claude Code completely changing the way in which software is built. Traditional rule-based pipelines struggle with handling noisy, uncertain feedback signals
-which require manual hard-coded behaviours. An agentic system is controlled by an LLM "brain", which is granted access to "tools". Most agentic pipelines follow the ReAct pattern
-where an LLM receives a prompt and "reacts" by executing the most relevant tools respective to the query
-and its instruction. Sometimes tasks are so complex that it makes sense to have multiple agents acting together for a shared
+which require manual hard-coded behaviours. An agentic system is controlled by an LLM 'brain', which is granted access to 'tools'. Most agentic pipelines follow the ReAct pattern
+where an LLM receives a prompt and 'reacts' by executing the most relevant tools respective to the query
+and its instruction. Sometimes tasks are so complex that it makes sense to have multiple LLM agents acting together towards a shared
 objective. 
 
 ProtAgents proposed a multi-agent system for de novo protein design which involved multiple
@@ -258,7 +258,7 @@ OmegaFold and Chroma, physics-based simulations, and retrieval-augmented generat
 relevant scientfic literature provide direct feedback signals to the GPT-4 powered agents, 
 allowing them to cooperate and design novel proteins with minimal human intervention \cite{ghafarollahi2024protagentsproteindiscoverylarge}.
 In several experiments the "Critic" agent was able to correct JSON formatting errors from resulting tool
-calls and plan accordingly, something which would have needed to be explicitly handled in a sequential
+calls and plan accordingly, an example of something which would have needed to be explicitly handled in a sequential
 end-to-end pipeline \cite{ghafarollahi2024protagentsproteindiscoverylarge}.
 
 VibeGen follows in the footsteps of ProtAgents, making use of multiple agents to generate de novo proteins,
@@ -266,22 +266,23 @@ but instead makes use of pLDMs \cite{ni2025agenticendtoendnovoprotein}.
 Proteins designed by the system are created by targeted vibrational properties where the "Protein Designer"
 agent generates sequence candidates given the target properties and the "Protein Predictor" evaluates these
 candidates from their normal mode shapes without requiring expensive physics simulations \cite{ni2025agenticendtoendnovoprotein}.
-While VibeGen is not agentic in terms of LLMs, it proves that even a relatively simple two-agent system produces 
-considerably better outcomes than a single actor. The authors even suggest that LLM-powered behaviour could
+VibeGen's success proves that even a relatively simple two-agent system produces 
+considerably better outcomes than that of a single actor. The authors even suggest that LLM-powered behaviour could
 enhance predictive power and mechanistic interpretability, further incentivising more work to be done in
 this field \cite{ni2025agenticendtoendnovoprotein}.
 
 \subsection{Comparative Analysis}
 While pLMs such as ProtBERT \cite{9477085} and ESMFold \cite{lin2023esmfold} are excellent models
-for understanding the sequences and structures of proteins in their base forms respectively, they rely on the assumption that the problem being 
-dealt with involves a protein which is correctly ordered and / or complete. These assumptions do not directly work for the downstream
-task in reconstruction with unordered tryptic fragments, however, they can be used as biological indicators
-to guide the reconstruction process through probabilistic and validity approaches.
+for understanding the sequences and structures of proteins in their base forms respectively, they rely on the assumption that their 
+input involves a protein sequence which is already correctly-ordered or complete. The implications of this are that the 
+reconstruction of proteins with unordered tryptic fragments is not achievable
+via direct use of the base pLMs alone, however, they can be used as biological indicators
+to guide the reconstruction process through probabilistic and validity techniques.
 
-Masked language modeling has demonstrated success in predicting missing amino acids from surrounding
-context using Transformer-based models \cite{kharkar2024llmproteins}, this means that it can be effectively
-made use of in a junction scoring mechanism to find plausible pairings of peptides, guiding the reconstruction
-process.
+MLM has demonstrated success in predicting missing amino acids from surrounding
+context using Transformer-based models \cite{kharkar2024llmproteins}. This means that we can productively make use of
+MLM as a technique at the junctions between fragment pairs to find plausible pairings of peptides, 
+which would considerably aid the reconstruction process.
 
 Generative implementations like ApexGen \cite{xia2025apexgensimultaneousdesignpeptide} and
 ForceGen \cite{doi:10.1126/sciadv.adl4000} are effective systems capable of designing de novo
@@ -290,30 +291,30 @@ reconstruction of lab-observed, unknown proteins which already exist.
 
 The application of agentic and multi-agent pipelines has shown great success for ProtAgents \cite{ghafarollahi2024protagentsproteindiscoverylarge}
 and VibeGen \cite{ni2025agenticendtoendnovoprotein}, highlighting the power of granting agents
-access to "tools" and having multiple agents cooperating to design targeted de novo proteins. VibeGen
-particularly highlights the capacity of an "LLM brain" in terms of coordinating the design of a novel
-protein from scratch \cite{ni2025agenticendtoendnovoprotein}. VibeGen's success implicitly 
-indicates the utility of agentic AI in other regions of protein construction.
+access to 'tools' and having multiple agents cooperating to design targeted de novo proteins. VibeGen
+particularly highlights the potential of an 'LLM brain' in terms of coordinating the design of a novel
+protein from scratch \cite{ni2025agenticendtoendnovoprotein}. The success of ProtAgents implicitly 
+implies the utility of agentic AI being applied to other regions of protein design and construction.
 
 \subsection{Research Gap}
-pLMs are capable of inferring missing residues through a probabilistic MLM approach but require a complete or an ordered input.
-Graph-based assembly methods such as creating an overlap graph can be used to effectively reduce the search
+pLMs are capable of inferring missing residues through a probabilistic MLM approach but require a complete or ordered input.
+Graph-based assembly methods, such as creating an overlap graph can be used to effectively reduce the search
 space without a reference database, however, they lack a biological indicator for unconfirmed adjacencies.
 Agentic AI has been shown to improve the decision-making process for iterative systems, but only in de novo design,
 and not reconstruction.
 
 pLMs have not previously been used to determine how digested fragments will join together. Graph methods are shown to reduce
-the search space considerably, but require a pairing with something that understands the biological plausibility of sequences.
+the search space considerably, but require a pairing with a utility that understands the biological plausibility of sequences.
 Agentic AI has not yet been applied to the objective of de novo protein reconstruction.
 
-It is not possible to create a full reconstruction of a protein from its fragments unless the overlap graph confirms all
-adjacent edges; a highly unlikely scenario in practice unless the number of digested replicas is substantial
+Currently, it is not possible to create a full reconstruction of a protein from its fragments unless the overlap graph confirms all
+adjacent edges. This would be a highly unlikely scenario in practice, unless the number of digested replicas is substantial
 relative to the number of fragments in the digested protein. This is where guidance from a pLM is necessary,
 allowing scoring of unconfirmed adjacencies probabilistically to determine the most likely pairing.
 
-The proposed combination is to take pLMs along with agentic AI and graph-assembly techniques to address
+The proposed combination is to combine pLMs with graph-assembly techniques and agentic AI reasoning to address
 the de novo reconstruction problem, rather than designing novel proteins with targeted properties from
-scratch; which is where most related work is currently investigating.
+scratch; where most related work is currently investigating.
 
 Research questions to be addressed are as follows: Can de novo proteins be reconstructed from their digested fragments
 using agentic AI? How effective is LLM-guided reasoning for the de novo reconstruction process?

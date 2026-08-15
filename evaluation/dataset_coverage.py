@@ -351,7 +351,7 @@ def plot_fragment_distributions(
             clip(pool),
             bins=bins,
             density=True,
-            color=figures.GREYS[3],
+            color="#c9d7e3",
             edgecolor="none",
             label=f"pool (n={len(pool)})",
         )
@@ -362,7 +362,7 @@ def plot_fragment_distributions(
             density=True,
             histtype="step",
             linewidth=1.2,
-            color=figures.GREYS[0],
+            color="#3f6e8c",
             linestyle=figures.LINESTYLES[0],
             label=f"evaluated sample (n={len(sample)})",
         )
@@ -414,17 +414,23 @@ def plot_sample_fragment_counts(
     for ax, organism in zip(axes, organisms):
         entry = series[organism]
         counts = entry["sample_as_run"]
+        if organism == "ecoli":
+            fill_color = "#a7c6db"
+            edge_color = "#2f5f7f"
+        else:
+            fill_color = "#b8d8b8"
+            edge_color = "#4f7f5f"
         ax.hist(
             counts,
             bins=15,
-            color=figures.GREYS[3],
-            edgecolor=figures.GREYS[0],
+            color=fill_color,
+            edgecolor=edge_color,
             linewidth=0.6,
         )
         median = _median(counts)
         ax.axvline(
             median,
-            color=figures.GREYS[0],
+            color=edge_color,
             linestyle="--",
             linewidth=1.0,
             label=f"median {median:.0f}",

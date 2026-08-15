@@ -3,12 +3,12 @@
 House style, applied by ``apply_style()``:
 
 - Light theme, vector PDF for LaTeX inclusion. The PNG twin exists only
-  so the markdown report has something to preview.
-- Greyscale-safe: series are distinguished by marker and linestyle first, colour
-  is a grey ramp. Nothing is identifiable by hue alone.
+    so the markdown report has something to preview.
+- Muted accent colours with markers and linestyles doing most of the work, so
+    the figures stay readable in print while no series depends on hue alone.
 - 3.5 in wide (single column), 8 pt minimum type including tick labels.
 - Kendall tau axes span [-1, 1]: its negative half means a reversed ordering,
-  and clipping at 0 would hide the reversal failures.
+    and clipping at 0 would hide the reversal failures.
 
 matplotlib is imported lazily and the module degrades to a no-op with a clear
 message if it is missing, so the rest of the report still generates."""
@@ -21,8 +21,11 @@ SINGLE_COLUMN_WIDTH = 3.5  # inches
 DEFAULT_HEIGHT = 2.4
 MIN_FONT_PT = 8
 
-# Grey ramp: distinct in colour AND when printed greyscale.
+# Neutral ramp for fills and structural elements.
 GREYS = ["#000000", "#4d4d4d", "#808080", "#a6a6a6", "#cccccc"]
+# Muted accents for line and bar series. Kept low-saturation so the report stays
+# journal-like rather than presentation-like.
+SERIES_COLORS = ["#3f6e8c", "#4f8a6b", "#b07a43", "#6c829f", "#8a6f5a", "#708090"]
 MARKERS = ["o", "s", "^", "D", "v", "P"]
 LINESTYLES = ["-", "--", "-.", ":", (0, (3, 1, 1, 1)), (0, (5, 2))]
 
@@ -96,13 +99,14 @@ def apply_style() -> None:
 def _series_style(index: int, total: int | None = None) -> dict:
     """Style for series ``index`` of ``total``.
 
-    The grey ramp runs light-to-dark so the last series carries the most weight:
-    series arrive in method-ladder order, which puts the arm under test last."""
+    The palette is ordered so later series stay a little darker: the arm under
+    test usually appears last, and it should carry the strongest visual weight
+    without needing a saturated colour."""
     if total and total > 1:
-        step = min(total, len(GREYS))
-        color = GREYS[max(0, step - 1 - min(index, step - 1))]
+        step = min(total, len(SERIES_COLORS))
+        color = SERIES_COLORS[max(0, step - 1 - min(index, step - 1))]
     else:
-        color = GREYS[index % len(GREYS)]
+        color = SERIES_COLORS[index % len(SERIES_COLORS)]
     return {
         "color": color,
         "marker": MARKERS[index % len(MARKERS)],
@@ -214,7 +218,8 @@ def metrics_by_fragment_bin(
 
     if stacked:
         fig, axes = plt.subplots(
-            len(panels), 1,
+            len(panels),
+            1,
             figsize=(SINGLE_COLUMN_WIDTH, 1.85 * len(panels) + 0.55),
             squeeze=False,
             sharey=True,
@@ -222,7 +227,8 @@ def metrics_by_fragment_bin(
         axes = [row[0] for row in axes]
     else:
         fig, axes = plt.subplots(
-            1, len(panels),
+            1,
+            len(panels),
             figsize=(SINGLE_COLUMN_WIDTH * len(panels), DEFAULT_HEIGHT + 0.35),
             squeeze=False,
             sharey=True,
@@ -253,14 +259,24 @@ def metrics_by_fragment_bin(
         # legend type below the 8 pt floor.
         legend_bottom = 0.40 / (1.85 * len(panels) + 0.55)
         fig.legend(
-            handles, labels_, loc="upper center", bbox_to_anchor=(0.5, legend_bottom),
-            ncol=2, handlelength=2.6, columnspacing=1.6,
+            handles,
+            labels_,
+            loc="upper center",
+            bbox_to_anchor=(0.5, legend_bottom),
+            ncol=2,
+            handlelength=2.6,
+            columnspacing=1.6,
         )
         fig.subplots_adjust(bottom=legend_bottom + 0.06, hspace=0.55)
     else:
         fig.legend(
-            handles, labels_, loc="upper center", bbox_to_anchor=(0.5, 0.055),
-            ncol=len(labels_), handlelength=2.6, columnspacing=1.6,
+            handles,
+            labels_,
+            loc="upper center",
+            bbox_to_anchor=(0.5, 0.055),
+            ncol=len(labels_),
+            handlelength=2.6,
+            columnspacing=1.6,
         )
         fig.subplots_adjust(bottom=0.24, wspace=0.22)  # room for every panel's y labels
     return _save(fig, out_dir, name, formats)
@@ -307,7 +323,9 @@ def lift_by_bin(lift: dict, metric_label: str, out_dir: Path, name: str) -> dict
     return _save(fig, out_dir, name)
 
 
-def method_ladder(records: list[dict], metric: str, metric_label: str, out_dir: Path, name: str) -> dict:
+def method_ladder(
+    records: list[dict], metric: str, metric_label: str, out_dir: Path, name: str
+) -> dict:
     """Arm means with confidence intervals — the method ladder for one metric.
 
     Error bars are the Wilson interval for Exact Match and the BCa bootstrap
@@ -319,8 +337,14 @@ def method_ladder(records: list[dict], metric: str, metric_label: str, out_dir: 
 
     labels = [r["arm_label"] for r in records]
     points = [r["point"] for r in records]
-    lows = [max(0.0, r["point"] - r["low"]) if r["low"] is not None else 0.0 for r in records]
-    highs = [max(0.0, r["high"] - r["point"]) if r["high"] is not None else 0.0 for r in records]
+    lows = [
+        max(0.0, r["point"] - r["low"]) if r["low"] is not None else 0.0
+        for r in records
+    ]
+    highs = [
+        max(0.0, r["high"] - r["point"]) if r["high"] is not None else 0.0
+        for r in records
+    ]
 
     positions = range(len(labels))
     ax.errorbar(
@@ -370,7 +394,9 @@ def replica_scaling(
     return _save(fig, out_dir, name)
 
 
-def error_taxonomy(counts_by_run: dict, class_labels: dict, out_dir: Path, name: str) -> dict:
+def error_taxonomy(
+    counts_by_run: dict, class_labels: dict, out_dir: Path, name: str
+) -> dict:
     """Stacked composition of failure shapes per run.
 
     Segments are ordered best-to-worst outcome and shaded along the grey ramp
@@ -383,7 +409,9 @@ def error_taxonomy(counts_by_run: dict, class_labels: dict, out_dir: Path, name:
 
     run_labels = list(counts_by_run)
     ordered_classes = [
-        key for key in class_labels if any(counts_by_run[r].get(key) for r in run_labels)
+        key
+        for key in class_labels
+        if any(counts_by_run[r].get(key) for r in run_labels)
     ]
     hatches = ["", "///", "...", "xxx", "\\\\\\", "+++", "ooo"]
 
@@ -448,7 +476,7 @@ def grouped_bars(
         width = max(SINGLE_COLUMN_WIDTH, 0.62 * len(group_labels) * len(series) + 1.0)
     fig, ax = plt.subplots(figsize=(width, DEFAULT_HEIGHT + 0.2))
 
-    fills = ["#d9d9d9", "#595959", "#a6a6a6", "#000000"]
+    fills = ["#dce9f5", "#8eae9b", "#d9d9d9", "#6b7c93"]
     hatches = ["", "///", "...", "xxx"]
     bar_width = 0.8 / len(series)
     for index, (label, values) in enumerate(series):
@@ -493,7 +521,9 @@ def grouped_bars(
     return _save(fig, out_dir, name, formats)
 
 
-def paired_gain_distribution(deltas: list[float], xlabel: str, out_dir: Path, name: str) -> dict:
+def paired_gain_distribution(
+    deltas: list[float], xlabel: str, out_dir: Path, name: str
+) -> dict:
     """Histogram of per-sample paired gains, with the zero line marked.
 
     The paired distribution is what the Wilcoxon test actually sees; a mean
