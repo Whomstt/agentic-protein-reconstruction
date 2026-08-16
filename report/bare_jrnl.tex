@@ -510,60 +510,75 @@ Edit Similarity measures the Levenshtein (edit) distance required to reach the t
 \subsection{Quantitative Results}
 \input{tables/main_results_all}
 Based on the results from experimentation, in its current implementation most gains
-in Adjacent Pair Accuracy (APA) come from the fact that there was a larger budget for the number of iterations.
-The LLM's reasoning ability shows a small, but consistent advantage over random search across all four metrics.
+in Adjacent Pair Accuracy (APA) come from the fact that there was a larger budget for the number of iterations
+and a higher protein replica count.
+The LLM's reasoning ability shows a small, but consistent advantage over random search across all four metrics
+seen in Table~\ref{tab:main_results_all}.
+
 \input{figures/search_comparison}
 
 Across all variants of the system on all metrics the reconstruction of yeast was worse
-than that of \textit{E. coli}. This is primarily correlated with the number of fragments and sequence length
-found in yeast in comparison being much greater; objectively creating a harder reconstruction problem.
+than that of e. coli; APA of 0.879 vs. 0.812, EM of 0.460 vs. 0.260, LCR of 0.717 vs. 0.530, and ES of
+0.795 vs. 0.641 between e. coli and yeast with 100 replicas, the same pattern repeats on the other replica
+counts as seen in Table~\ref{tab:organism_gap}. This is primarily correlated with the number of fragments
+found in yeast being much greater in comparison; objectively creating a harder reconstruction problem. When the
+results of both species are size-adjusted, the gap between them becomes negligible; Table~\ref{tab:organism_gap}. 
+The differences between the species beyond fragment count likely come from the
+limited sample count under analysis, and the binning method used to adjust metrics for the size; 
+proteins with fragment counts within a range of bins of 10 were grouped together and averaged for the average.
 
 \input{tables/organism_gap}
 \input{figures/fragment_correlation}
-A selection ceiling was also considered for the best candidate generated during the 5 iterations. Due
-to the inherent weakness of the validity scorer's signal; the real best candidate was only selected $\sim$64\% of the time,
-and throw away good candidates that were already generated for the other side of it.
-This ceiling shows the potential of the system in its ability to reconstruct if a
+
+The selection ceiling ('Best Candidate') column highlights the inherent weakness of the validity scorer's signal;
+the real best candidate was only selected $\sim$64\% of the time, a better signal than purely random but it is
+clearly not reliable enough. These results show the potential of the system in its ability to reconstruct if a
 higher quality validity signal was available.
 
 \input{tables/cost_ecoli_r100}
-It is evident from the clock time that the cost of the LLM-Guided setup is much more
-than that of the random search, with the intermediary LLM calls between iterations resulting
-in $\sim$5x more time to compute for reconstructions than the random search approach.
+
+It is evident from the clock times of the LLM-Guided approach and the Random Search as shown in
+Table~\ref{tab:cost_ecoli_r100} that the time cost of the LLM calls between candidates is significant
+with respect to the rest of the pipeline. The overhead of the LLM resulted
+in $\sim$5x more time (35.8s vs. 7s. on average per candidate) to compute the reconstructions than the random search approach.
 
 \subsection{Qualitative Analysis}
-In general the reconstruction is more likely to not be perfect than to be perfect,
+In general the reconstruction from the agentic approach is more likely to not be perfect than to be perfect,
 however, it is visible that most reconstructions have a very strong APA score which means that
 the system can still be useful. One point especially worth considering with these results is
 that the system can help disambiguate fragments which are shared by multiple parent proteins.
 
 While the results heavily indicate towards most of the real value coming from testing
-more combinations i.e. increasing the search space, the LLM brain evidently has some merit to
-it, even in its restricted form. It consistently outperformed or matched the random search metrics when given the same
+more combinations i.e. increasing the iteration budget, the LLM brain showed real-merit
+even in its limited form with only 5 tunable settings. It consistently outperformed or matched the random search metrics when given the same
 iteration budget. This demonstrates that the LLM was able to intelligently interpret the feedback
-signals from the tools and select more appropriate parameters than just randomly guessing to
-produce better candidates. It should also be considered that more tools and further signals which
-are more noisy would likely see the LLM outshine any random search with the same number of iterations.
+signals from the tools and select more appropriate parameters than just randomly guessing. 
+It should also be considered that more tools and further signals which
+are more unpredictable (e.g. API calls which may return errors or unexpected responses) 
+would likely see the LLM outshine any random search with the same number of iterations.
 
 Though only a modest advantage can be seen from the agentic approach, it is consistent, and the
-data indicates that there is more merit than it just covering a wider search space of parameter configurations.
-The intermediary thought process between iterations demonstrates logical reasoning from the LLM
-in its decision-making process for next parameter selection based on the signals its receiving.
+data suggests that there is more value from it than just covering a wider search.
+The observable thought process between iterations demonstrated logical reasoning from the LLM
+in its decision-making process for next parameter selection based on the signals it received from tool outputs such as the validity scorer.
 A strong example of this can be seen in the run of \textit{E. coli} r20, sample 1, iter. 2 in Table~\ref{tab:llm_reasoning_examples}.
 The agent correctly diagnosed that the local junction perplexity was high which indicated that a larger junction width would likely be more
-suitable to produce a better candidate.
+suitable with these fragments to produce a better candidate.
 
 The agent does not always use the same strategy, it is capable of doing the inverse strategy when
-the signals would suggest it to be wise. Consider the run of \textit{Saccharomyces cerevisiae} r100, sample 84, iter. 4 in Table~\ref{tab:llm_reasoning_examples};
+the tool outputs suggest it to be wise. Consider the run of \textit{Saccharomyces cerevisiae} r100, sample 84, iter. 4 in Table~\ref{tab:llm_reasoning_examples};
 the LLM decides that increasing the junction window is unnecessary given that the local signal is already strong.
-Other examples, for example the run of \textit{E. coli} r100, sample 10, iter. 5 in Table~\ref{tab:llm_reasoning_examples} would indicate that the reasoning while often plausible,
-does not always lead to better candidates; and can sometimes cause reduce accuracy of the reconstruction. In this case the validity dropped
-massively with these new parameters, suggesting that modifying the parameters with rational decision-making can sometimes lead to counterproductive results;
-also highlighting the question of balancing exploration vs. exploitation given the limited iterative budget.
 
-These examples demonstrate suggest that the LLM-guidance can meaninfully interpret
-feedback from the signals available and adapt the approach accordingly. They also suggest that the
-reasoning is not consistently reliable and should be considered as an imperfect reasoner.
+Another example seen in the run of \textit{E. coli} r100, sample 10, iter. 5 in Table~\ref{tab:llm_reasoning_examples} would indicate that the reasoning of the agent while often plausible,
+does not always lead to better candidates; and can sometimes reduce the accuracy of the reconstruction. In this case the validity dropped
+massively with these new parameters, suggesting that modifying the parameters with rational decision-making can sometimes lead to counterproductive results;
+also highlighting the question of balancing exploration vs. exploitation given the limited iterative budget and how the LLM manages its available resources
+efficiently.
+
+These examples suggest that the LLM-guidance can meaningfully interpret
+feedback from the signals available and adapt the approach accordingly. However, they also highlight that the
+LLM's proceeding candidate is not always better than the one preceding it and that an exploration vs. exploitation
+dilemma arises when the iteration budget is small.
 
 \input{tables/reasoning_examples}
 
@@ -576,65 +591,68 @@ fixed settings with one iteration to a random search of settings on an iterative
 It is also evident from the current results that the gap between the LLM-guided approach and
 the random search is minimal.
 
-The reasoning for this negligible increase in performance is likely due to the fact that the LLM-guided
+The reasoning for the minimal increase in performance is likely due to the fact that the LLM-guided
 approach only has limited control over the reconstruction process in its current form; with only 5
 levers available to tune and also a limited 5 iteration budget. This means that a random search is
-likely to cover a similar search space during its iterations by chance; leading to similar results.
-It is likely that this gap would considerably increase if the LLM was granted more control over a
-larger number of levers, however, the experiments still indicate that even with a limited selection
-an LLM reasoning engine shows promise.
+likely to cover a similar search space during its iterations by chance; leading to similar results
+achieved by the agentic system.
+It is likely that this gap would considerably increase if the pipeline granted more control over a
+larger number of levers and tools, and even the order of execution. However, the experiments still indicate that even with limited autonomy
+an LLM reasoning engine shows promising results.
 
 The biggest bottleneck can be seen through the best candidate metrics which show the selection ceiling.
-This shows what the metrics would have really been if the validity signal was always right in terms of
-indicating which candidate is really the closest to the original.
+This shows the potential of the agentic pipeline if the validity signal was always right in
+indicating which generated candidate is really the closest to the original.
 
-There is clearly a gap in reconstruction performance between both organisms, this is no surprise however,
-as seen in data that both have significant differences in terms of their fragment counts. Yeast has
-approximately 1.5x the number of fragments of E. coli; mean average of 32.5 and 19.3 fragments respectively
-from the sampled split. This creates an objectively harder reconstructive problem.
+There is clearly a gap in reconstruction performance between both species. However, this is no surprise,
+as it is there is a significant difference in terms of fragment count between them. Yeast has
+approximately 1.5x the number of fragments of e. coli, with a mean average of 32.5 and 19.3 fragments respectively
+from the sampled split as in Table~\ref{tab:dataset_coverage}. This creates an objectively harder reconstruction problem.
 
 The LLM reasoning comes at a cost which is considerable, taking approximately 5x as long to complete a
 reconstruction than that of the
 iterated random search approach due to intermediary LLM API calls. Whether the cost of the agentic
-implementation is worth it is a debatable point, given that the current uplift in
-reconstruction quality is negligible with the LLM-guided implementation, and the
-uncertainty in the contribution which came from LLM-reasoning.
+implementation is worth it is subjective given that the current uplift in
+reconstruction accuracy is quite minimal.
 
 \subsection{Challenges and Limitations}
 The validity signal is clearly the biggest challenge of reconstruction as it forces candidate selection through
 a proxy which is evidently weak. The proxy of perplexity found
 with junction scoring and the confirmed adjacencies with the overlap graph provide a rough indication
-of which candidate is closer to the original, and is correct most of the time, however, the ceiling
-demonstrates that there are huge potential performance uplifts with a stronger signal.
+of which candidate is closer to the original protein, and it is correct most of the time, however, the ceiling
+demonstrates that substantial performance uplifts would come with a more reliable validity signal.
 
-The experiment runs themselves were quite limited statistically in that only 100 samples were considered for
+The experiment runs themselves were quite limited in their scale; only 100 samples were considered for
 each species and only one run was performed for each configuration with the same random seed. Additionally,
-the computational and timing budgets only allowed for 5 iterations per sample, potentially hiding
-the true strength of the LLM's reasoning; similarly from the restricted influence with the LLM has on proceeding runs.
+the computational and time budgets only allowed for 5 iterations per protein, potentially hiding most of
+the true strength of the LLM's reasoning. Similarly, the restricted influence which the LLM has on proceeding runs, 
+could be limiting most of the potential that comes with the agentic approach.
 
-The scope of the project limited the experiments to consider only two species of organism,
-a single pLM (ESM-2 - 8M), and no mixtures of proteins as originally planned.
+The scope of the project had to be limited due to time and computational constraints. This made it possible to only consider 
+two species of organism, a single pLM (ESM-2 - 8M), and no mixtures of proteins as originally planned.
 
 \subsection{Future Directions}
 
-The most apparent future direction for this work would be to discover a more reliable validity signal.
-Folding models were initially considered as better indicators of biological plausibility and thus, better
-candidates, however, computational constraints made it impossible to proceed with such models (e.g ESMFold / AlphaFold)
-as even a single candidate evaluation could take upwards of 10 minutes on the hardware available.
-The ceiling gap would suggest that the higher computational demand from a much richer validity signal
-would be worth the reconstructive accuracy uplifts.
+The most rewarding future direction for this work appears to lie in discovering a more reliable validity signal.
+Folding models were initially considered as better indicators of biological plausibility and validity, 
+however, computational constraints made it impossible to proceed with such models (e.g ESMFold / AlphaFold);
+even a single candidate evaluation could take upwards of 10 minutes on the hardware available.
+The best candidate ceiling from the results would suggest that the increased computational 
+demand from a richer validity signal
+such as a folding model would be worth the reconstructive accuracy uplifts.
 
-A larger iteration budget, more tools, and more influential control would likely see the gap between
-LLM-guided reconstruction and random search grow considerably. It should also be noted that due to
+A larger iteration budget, more tools, and more influential control over the pipeline would likely see the gap between
+LLM-guided reconstruction and random search grow considerably, however, it would also become increasingly more
+difficult to measure. It should also be noted that due to
 the limited selection of tools available for the agent and budget constraints, a decision was made
 to remove intermediary calls to the LLM between tool calls before candidate presentation; with a wider
-selection of tools, allowing more freedom over the execution order of tools could yield even greater results.
+selection of tools, allowing more freedom over the execution order of tools could yield even better results.
 
-To capture more statistically significant results, a larger sampling of proteins per species, and
+To capture more significant results, a larger sampling of proteins per species, and
 more species considered would be a desirable for future work. Furthermore, investigating reconstruction from mixed protein samples
 would be beneficial as this is more likely to be the case in real-world mixed microbial community sampling. Considering alternative pLMs (e.g. higher parameter models) and
-alternative pLM architectures (e.g. decoder-only / encoder/decoder; ESM-2 is encoder-only) would be interesting to see how capable they
-are at improving the reconstruction process in terms of junction scoring and guiding the best candidate selection. Brief testing during
+alternative pLM architectures such as decoder-only / encoder/decoder (ESM-2 is encoder-only) would be interesting in seeing how capable they
+are at improving the reconstruction process. Brief testing during
 early experimentation has already shown promising uplifts in reconstruction accuracy with a larger ESM model (ESM-2 650M).
 
 \section{Conclusion}
@@ -643,21 +661,23 @@ The reconstruction of tryptic fragments into their original proteins without a r
 The combination of using an overlap-graph, pLM junction scoring, and LLM-guided reasoning is a novel approach to this problem.
 
 To answer the first research question of "Can de novo proteins be reconstructed from their digested fragments
-using agentic AI?", the answer is evidently yes. The APA metric went from 0.068 from the baseline random shuffle up to
-0.879 with the agentic approach. It is also clear that most of the gains came from iterative search, rather than
+using agentic AI?", the conclusion from the results would be yes, but with a caveat. The APA metric went from 0.068 from the baseline random shuffle up to
+0.879 with the agentic approach, however, the agentic approach is not capable of reconstructing perfect parent-matching proteins reliably. 
+It is also clear that most of the gains came from iterative search, rather than
 intelligent reasoning, along with confirmed adjacencies from the overlap graph, especially when higher replica counts were available.
 
 The picture is not as clear for the second research question of "How effective is LLM-guided reasoning for the de novo reconstruction process?".
-While the current accuracy gains found from the addition of LLM-guided reasoning are minimal as seen in Fig.~\ref{fig:search_comparison_ecoli} and Fig.~\ref{fig:search_comparison_yeast},
-the reasoning examples as seen in Table~\ref{tab:llm_reasoning_examples} are more promising in showing a genuine biological reasoning capability from informative signals
-rather than being acts of random intuition.
+While the current accuracy gains found from the addition of LLM-guided reasoning are minimal,
+the observed reasoning examples suggest a genuine biological reasoning capability from informative signals
+rather than being plausible-sounding nonsense.
 
-Finding an effective validity signal is surely the biggest bottleneck of the system now, with only an ~64\% correct pick rate for
-the best reconstructed candidate. This impediment left huge gains on the table as shown by the 'Best Candidate' metrics in Table~\ref{tab:main_results_all}.
+Finding an effective validity signal is the biggest bottleneck of the system now, leaving behind huge gains on the table.
+A folding model
+would be a strong starting point for more extensive experimentation with a larger computational budget. Larger-scale experimentation
+on more samples, species, and configurations would provide more comprehensive results on the application of agentic AI to protein reconstruction.
 
-A stronger validity signal appears to be the best way to get large immediate accuracy gains, a folding model
-would be a strong starting point for serious experimentation with a large computational budget. Larger-scale experimentation
-on more samples, species, and configurations would certainly yield more statisically sound results.
+However, this work demonstrates the potential of agentic AI in proteomics as a potentially viable avenue for de novo protein reconstruction,
+and proposes novel techniques to protein reconstruction, particularly in junction scoring through pLMs.
 
 \section*{Acknowledgment}
 I would like to thank my supervisors Enda Howley and Florence Abram for their exceptional guidance and support throughout this project.
@@ -667,8 +687,7 @@ I would like to thank my supervisors Enda Howley and Florence Abram for their ex
 AI tools were used to support this project. Claude (Anthropic) assisted with brainstorming and refining ideas during the research process. Claude Code and GitHub Copilot provided code suggestions during implementation. All experimental design, analysis, and written content remain the original work of the author.
 
 \section*{Code Repository}
-The implementation, evaluation pipeline, and results are available at: 
-
+The implementation, evaluation pipeline, and raw results are available at: 
 \url{https://github.com/Whomstt/agentic-protein-reconstruction}.
 
 \ifCLASSOPTIONcaptionsoff
