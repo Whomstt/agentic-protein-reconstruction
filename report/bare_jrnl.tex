@@ -422,7 +422,7 @@ reflecting the original protein. The score is
 calculated through a perplexity (uncertainty) measurement gathered from the previous junction scoring step
 along with an agreement reading from the confirmed adjacencies identified from the overlap graph tool. This signal is used to select the
 best candidate produced by the agent, with the best scoring candidate always being selected after all 
-iterations have been exhausted. The feedback from this tool directly tells the agent if the parameter
+iterations have been exhausted (lower score is better). The feedback from this tool directly tells the agent if the parameter
 configurations are working well or not, triggering an exploration vs. exploitation
 dilemma for the agent to optimise the reconstruction given its limited iteration budget. It is worth stating that this tool is incapable of 
 guaranteeing that it will correctly indicate which candidate is the closest to the original, and should only be considered
