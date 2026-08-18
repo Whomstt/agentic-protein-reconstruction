@@ -96,7 +96,7 @@ reconstruction process, and its respective decision-making process to iterativel
 \subsection{Methodology for Paper Selection}
 Papers suitable for this research paper were obtained through searching keywords on Google Scholar including
 'protein language models', 'de novo protein reconstruction', 'agentic AI proteomics', 'microbial function', and similar.
-Additionally, some of my references include suggestions from my capstone supervisors Enda Howley and Florence Abram,
+Additionally, some of the references include suggestions from my capstone supervisors Enda Howley and Florence Abram,
 whom have previously worked in this domain.
 Selection of papers for the literature review was based on the value they added to the conversation and their diverse
 coverage of topics to meet the target reference count as indicated by the capstone guidelines.
@@ -108,7 +108,8 @@ in which amino acids occur in a protein captures enough information to determine
 \cite{Dinh2026}. Proteins are often seen as the "language of life", capable of 
 carrying out instructions that are found within DNA, serving as enzymes for biochemical
 reactions, and providing the necessary support for cellular life structures \cite{https://doi.org/10.1002/imt2.70031}.
-All of this complexity and diversity in functionality is captured in what could be considered as a biological alphabet consisting of 20 standard amino acids, motivating
+All of this complexity and diversity in functionality is captured in what could be considered as a biological alphabet; where a peptide is a word, 
+a protein is a sequence, amino acids are single letters or tokens, and a vocabulary of 20 residues exist. These conditions motivated
 the development of sequence models inspired by Natural Language Processing (NLP) techniques \cite{Dinh2026}.
 
 In proteomics, the analysis of proteins is typically not performed on their full form, but rather through a bottom-up
@@ -137,9 +138,9 @@ algorithms, capable of mapping fragments from noisy signals to their original fo
 considering under-documented or undiscovered proteins that often prevail in the natural environment, including the human host.
 
 \subsection{Protein Language Models}
-Advances in NLP through Large Language Models (LLMs) have enabled a 
+Advances in NLP through LLMs have enabled a 
 better appreciation for the "language of life" \cite{9477085}
-through training on large datasets of proteins. Protein Language Models (pLMs) transfer the notion of using
+through training on large datasets of proteins. pLMs transfer the notion of using
 tokens to represent amino acids in a self-supervised process, effectively learning to predict
 masked amino acids from known sequences instead of word tokens \cite{9477085}.
 
@@ -280,14 +281,14 @@ via direct use of the base pLMs alone, however, they can be used as biological i
 to guide the reconstruction process through probabilistic and validity techniques.
 
 MLM has demonstrated success in predicting missing amino acids from surrounding
-context using Transformer-based models \cite{kharkar2024llmproteins}. This means that we can productively make use of
-MLM as a technique at the junctions between fragment pairs to find plausible pairings of peptides, 
+context using Transformer-based models \cite{kharkar2024llmproteins}. This means that
+MLM can be used productively as a technique at the junctions between fragment pairs to find plausible pairings of peptides, 
 which would considerably aid the reconstruction process.
 
 Generative implementations like ApexGen \cite{xia2025apexgensimultaneousdesignpeptide} and
 ForceGen \cite{doi:10.1126/sciadv.adl4000} are effective systems capable of designing de novo
 proteins. However, their aim is to design new proteins from scratch, while this research is undertaking
-reconstruction of lab-observed, unknown proteins which already exist.
+reconstruction of lab-observed, unknown proteins which already exist without matching against a reference database.
 
 The application of agentic and multi-agent pipelines has shown great success for ProtAgents \cite{ghafarollahi2024protagentsproteindiscoverylarge}
 and VibeGen \cite{ni2025agenticendtoendnovoprotein}, highlighting the power of granting agents
@@ -361,24 +362,33 @@ model which was easily accessible through Microsoft's 'Azure For Students' progr
 credits on the platform which were used on API calls to the LLM Fig.~\ref{fig:agentic_pipeline}.
 provides an overview of the procedure which the agentic pipeline follows.
 
+The LLM was configured to use a 'low' thinking effort to allow for additional thinking tokens which could
+result in improved decision-making for the tool parameters. Ideally this thinking effort level could have been set
+to a higher setting, however, to avoid exhausting the cloud credits prematurely, a compromise to leave it at 'low' was decided.
+Similarly, for cost savings only one API call to the LLM was made after each iteration to prompt for the new parameters
+rather than communicating with the LLM after each tool call and allowing for next tool selection; which would give more autonomy
+and potentially better results to the system if more tools were added that don't need to follow a sequential order.
+
 \input{figures/agentic_pipeline}
 
 \subsection{Tools and Signals}
 The trypsin filter tool is used first to discard impossible pairings given trypsin digestion has
-occurred. If we have two fragments; A and B, where fragment A ends in K/R and fragment B starts with P
+occurred. If there are two fragments; A and B, where fragment A ends in K/R and fragment B starts with P
 this means that this is an impossible pairing as trypsin would never have cleaved there; trypsin never cuts
 at K/R when followed by P. The elimination of these impossible pairings reduces
 the average search space considerably by $\sim$6.1\% as found in initial experimentation.
 Additionally, this tool flags fragments beginning with M as starting (N-terminal) candidates as translated proteins
-typically begin with methionine, and all proteins in the dataset used begin with M.
+typically begin with methionine, and all proteins in the dataset used begin with M. Similarly, ending (C-terminus) candidates
+are flagged for fragments that do not end in K or R.
+
 
 Fig.~\ref{fig:trypsin_filter} illustrates the trypsin filter tool and how impossible pairings are eliminated.
 
 \input{figures/trypsin_filter}
 
-The overlap graph makes use of numerous digested replicas of the same protein, which are likely to contain missed
+The overlap graph is a directed constraint graph which makes use of numerous digested replicas of the same protein, which are likely to contain missed
 cleavages at different sites. If two fragments are adjacent across multiple replicas due to missed cleavages
-it may be marked as a confirmed adjacency. This tool is capabale of confirming fragment pairings between replicas that were found in the original protein 
+it may be marked as a confirmed adjacency. This tool is capable of confirming fragment pairings between replicas that were found in the original protein 
 if duplicate peptides do not occur within the same replica, and partially confirming the rest where ambiguity occurs.
 This tool significantly reduces the search space for guesswork during reconstruction. Partial confirmed adjacencies
 can occur if there are multiple of the same peptide found within the same replica. A configuration of hard and soft 
@@ -406,7 +416,7 @@ Fig.~\ref{fig:junction_scoring} illustrates the process of junction scoring acro
 
 After obtaining the score matrix from the junction scorer, the greedy / beam search tool must
 be performed on the scored junction matrix.
-In greedy search the most likely next fragment is picked given its score without considering
+In greedy search the most likely next fragment is picked given its junction score without considering
 other initially less-likely paths which may lead to more probable sequences overall. 
 In beam search, the top-k most probable paths
 are considered to discover potentially stronger candidates than
@@ -419,14 +429,25 @@ Fig.~\ref{fig:greedy_beam_search} illustrates the method of selecting the best p
 The validity scorer efficiently uses the same pLM that was used for junction scoring (ESM-2).
 It takes the candidate solution proposed by the agent and returns a score which represents the likelihood of it 
 reflecting the original protein. The score is
-calculated through a perplexity (uncertainty) measurement gathered from the previous junction scoring step
-along with an agreement reading from the confirmed adjacencies identified from the overlap graph tool. This signal is used to select the
+calculated through a perplexity (uncertainty) measurement gathered from a junction scoring step on unconfirmed adjacencies,
+along with an agreement reading from the confirmed adjacencies identified from the overlap graph tool, and a weighted
+penalty constant of value 0.75 that reduces the impact of confirmed adjacencies on the overall score.
+
+\begin{equation}
+V = J(1 + P(1-A))
+\end{equation}
+
+{\scriptsize
+\noindent $V$: validity score; $J$: junction local PPL; $P$: confirmed penalty; $A$: confirmed adjacency agreement.
+}
+
+This signal is used to select the
 best candidate produced by the agent, with the best scoring candidate always being selected after all 
 iterations have been exhausted (lower score is better). The feedback from this tool directly tells the agent if the parameter
 configurations are working well or not, triggering an exploration vs. exploitation
 dilemma for the agent to optimise the reconstruction given its limited iteration budget. It is worth stating that this tool is incapable of 
 guaranteeing that it will correctly indicate which candidate is the closest to the original, and should only be considered
-as a proxy. 
+as a proxy.
 
 Fig.~\ref{fig:validity_scorer} illustrates how competing candidate reconstructions are scored and selected.
 
@@ -436,7 +457,7 @@ Fig.~\ref{fig:validity_scorer} illustrates how competing candidate reconstructio
 The source of data used for the experiments carried out in this project was the UniProt Reviewed (Swiss-Prot) dataset \cite{10.1093/nar/gkae1010}.
 It served as a reliable source for well-curated proteins, and was easily accessible online for free.
 To condense the scope of the project into something feasible given time and budget constraints, a decision was made to focus on only two organisms, \textit{Escherichia coli} (e. coli) and \textit{Saccharomyces cerevisiae} (yeast)
-as their biological sequences are considerably different in terms of length and structure, with both belonging to different kingdoms of bacteria and fungai respectively. 
+as their biological sequences are considerably different in terms of length and structure, with both belonging to different kingdoms of bacteria and fungi respectively. 
 This decision allowed for a better understanding of the system's potential performance across species.
 
 Filtering the UniProt curated dataset left $\sim$23,000 e. coli proteins and
@@ -629,7 +650,10 @@ the true strength of the LLM's reasoning. Similarly, the restricted influence wh
 could be limiting most of the potential that comes with the agentic approach.
 
 The scope of the project had to be limited due to time and computational constraints. This made it possible to only consider 
-two species of organism, a single pLM (ESM-2 - 8M), and no mixtures of proteins as originally planned.
+two species of organism, a single pLM (ESM-2 - 8M), and no mixtures of proteins as originally planned. If a bigger computational
+budget were available or further credits for cloud compute, it would have been interesting to observe how larger, more powerful
+LLMs such as GPT-5.6 Sol perform at reasoning for the biological tools, using more thinking tokens, and allowing for intermediary
+tool selection choice between calls rather than only one call at the end of validation for the next iteration.
 
 \subsection{Future Directions}
 
@@ -643,17 +667,22 @@ such as a folding model would be worth the reconstructive accuracy uplifts.
 
 A larger iteration budget, more tools, and more influential control over the pipeline would likely see the gap between
 LLM-guided reconstruction and random search grow considerably, however, it would also become increasingly more
-difficult to measure. It should also be noted that due to
-the limited selection of tools available for the agent and budget constraints, a decision was made
-to remove intermediary calls to the LLM between tool calls before candidate presentation; with a wider
-selection of tools, allowing more freedom over the execution order of tools could yield even better results.
+difficult to measure. Allowing intermediary calls to the LLM between tool calls before candidate presentation, and
+allowing more freedom over the execution order of tools could yield even better results.
 
 To capture more significant results, a larger sampling of proteins per species, and
 more species considered would be a desirable for future work. Furthermore, investigating reconstruction from mixed protein samples
 would be beneficial as this is more likely to be the case in real-world mixed microbial community sampling. Considering alternative pLMs (e.g. higher parameter models) and
 alternative pLM architectures such as decoder-only / encoder/decoder (ESM-2 is encoder-only) would be interesting in seeing how capable they
 are at improving the reconstruction process. Brief testing during
-early experimentation has already shown promising uplifts in reconstruction accuracy with a larger ESM model (ESM-2 650M).
+early experimentation has already shown promising uplifts in reconstruction accuracy with a larger ESM model (ESM-2 650M), while older models such as ProtBert naturally performed
+worse than the more modern ESM-2 variants.
+
+Making use of a database to guide the reconstruction could be beneficial, however, given this project's research was on
+de novo reconstruction, it was decided to exclude it; however, a database tool integration could potentially be useful
+for reconstructing de novo proteins, and is certainly useful for ambiguous proteins which are already on record.
+Furthermore, a multi-agent system could be investigated to reconstruct multiple candidates in parallel, or have
+dedicated jobs as seen with VibeGen \cite{ni2025agenticendtoendnovoprotein} and ProtAgents \cite{ghafarollahi2024protagentsproteindiscoverylarge}.
 
 \section{Conclusion}
 
