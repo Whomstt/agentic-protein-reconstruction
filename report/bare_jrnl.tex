@@ -184,7 +184,7 @@ are visible due to noise or errors in the data. MLM helps to simulate and train
 a network to complete peptides with noise through randomly masking residues (amino acids)
 and inferring their correct values through the surrounding context \cite{kharkar2024llmproteins}.
 
-Well-documented species such as \textit{E. coli} have abundant training data, as such, pLMs are expected to generally perform
+Well-documented species such as \textit{Escherichia coli} (\textit{E. coli}) have abundant training data, as such, pLMs are expected to generally perform
 better on them than proteins which were not represented during training. 
 Fine-tuning transformer models like BERT and RoBERTa that were originally trained purely on natural language are capable
 of adapting to the task of predicting missing amino acids, while pLMs including ProteinBERT
@@ -456,12 +456,12 @@ Fig.~\ref{fig:validity_scorer} illustrates how competing candidate reconstructio
 \subsection{Datasets}
 The source of data used for the experiments carried out in this project was the UniProt Reviewed (Swiss-Prot) dataset \cite{10.1093/nar/gkae1010}.
 It served as a reliable source for well-curated proteins, and was easily accessible online for free.
-To condense the scope of the project into something feasible given time and budget constraints, a decision was made to focus on only two organisms, \textit{Escherichia coli} (e. coli) and \textit{Saccharomyces cerevisiae} (yeast)
+To condense the scope of the project into something feasible given time and budget constraints, a decision was made to focus on only two organisms, \textit{E. coli} and \textit{Saccharomyces cerevisiae} (\textit{S. cerevisiae})
 as their biological sequences are considerably different in terms of length and structure, with both belonging to different kingdoms of bacteria and fungi respectively. 
 This decision allowed for a better understanding of the system's potential performance across species.
 
-Filtering the UniProt curated dataset left $\sim$23,000 e. coli proteins and
-$\sim$8,000 records for yeast. After filtering, each protein was fragmented into appropriate
+Filtering the UniProt curated dataset left $\sim$23,000 \textit{E. coli} proteins and
+$\sim$8,000 records for \textit{S. cerevisiae}. After filtering, each protein was fragmented into appropriate
 peptides according to trypsin digestion; an enzymatic process in which a trypsin protease
 cuts the protein into small peptide fragments by cleaving after lysine (K)
 or arginine (R) residues, unless they are followed by proline (P). To simulate
@@ -479,7 +479,7 @@ To ensure that the experiments represented a substantial coverage of the full da
 comprehensive, six configurations were tested on
 100 proteins with varying replica counts and microorganisms being considered as outlined in
 Table~\ref{tab:dataset_coverage} and Table~\ref{tab:config}. The digestion replica counts
-consisted of 5, 20, and 100 respectively to cover constrained to ideal conditions. E. coli and yeast were selected
+consisted of 5, 20, and 100 respectively to cover constrained to ideal conditions. \textit{E. coli} and \textit{S. cerevisiae} were selected
 for their distinct properties mentioned previously, but they were especially chosen as they
 have a large difference in the average number of fragments found in each protein; 
 Fig.~\ref{fig:sample_fragment_counts_ecoli} and Fig.~\ref{fig:sample_fragment_counts_yeast}.
@@ -538,11 +538,11 @@ seen in Table~\ref{tab:main_results_all}.
 
 \input{figures/search_comparison}
 
-Across all variants of the system on all metrics the reconstruction of yeast was worse
-than that of e. coli; APA of 0.879 vs. 0.812, EM of 0.460 vs. 0.260, LCR of 0.717 vs. 0.530, and ES of
-0.795 vs. 0.641 between e. coli and yeast with 100 replicas, the same pattern repeats on the other replica
+Across all variants of the system on all metrics the reconstruction of \textit{S. cerevisiae} was worse
+than that of \textit{E. coli}; APA of 0.879 vs. 0.812, EM of 0.460 vs. 0.260, LCR of 0.717 vs. 0.530, and ES of
+0.795 vs. 0.641 between \textit{E. coli} and \textit{S. cerevisiae} with 100 replicas, the same pattern repeats on the other replica
 counts as seen in Table~\ref{tab:organism_gap}. This is primarily correlated with the number of fragments
-found in yeast being much greater in comparison; objectively creating a harder reconstruction problem. When the
+found in \textit{S. cerevisiae} being much greater in comparison; objectively creating a harder reconstruction problem. When the
 results of both species are size-adjusted, the gap between them becomes negligible; Table~\ref{tab:organism_gap}. 
 The differences between the species beyond fragment count likely come from the
 limited sample count under analysis, and the binning method used to adjust metrics for the size; 
@@ -587,7 +587,7 @@ The agent correctly diagnosed that the local junction perplexity was high which 
 suitable with these fragments to produce a better candidate.
 
 The agent does not always use the same strategy, it is capable of doing the inverse strategy when
-the tool outputs suggest it to be wise. Consider the run of \textit{Saccharomyces cerevisiae} r100, sample 84, iter. 4 in Table~\ref{tab:llm_reasoning_examples};
+the tool outputs suggest it to be wise. Consider the run of \textit{S. cerevisiae} r100, sample 84, iter. 4 in Table~\ref{tab:llm_reasoning_examples};
 the LLM decides that increasing the junction window is unnecessary given that the local signal is already strong.
 
 Another example seen in the run of \textit{E. coli} r100, sample 10, iter. 5 in Table~\ref{tab:llm_reasoning_examples} would indicate that the reasoning of the agent while often plausible,
@@ -626,8 +626,8 @@ This shows the potential of the agentic pipeline if the validity signal was alwa
 indicating which generated candidate is really the closest to the original.
 
 There is clearly a gap in reconstruction performance between both species. However, this is no surprise,
-as it is there is a significant difference in terms of fragment count between them. Yeast has
-approximately 1.5x the number of fragments of e. coli, with a mean average of 32.5 and 19.3 fragments respectively
+as it is there is a significant difference in terms of fragment count between them. \textit{S. cerevisiae} has
+approximately 1.5x the number of fragments of \textit{E. coli}, with a mean average of 32.5 and 19.3 fragments respectively
 from the sampled split as in Table~\ref{tab:dataset_coverage}. This creates an objectively harder reconstruction problem.
 
 The LLM reasoning comes at a cost which is considerable, taking approximately 5x as long to complete a
