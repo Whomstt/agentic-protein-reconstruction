@@ -1,0 +1,18 @@
+\begin{table}[!tb]
+  \centering
+  \caption{Paired comparison of LLM-Guided and Random Search on {\normalfont\itshape E. coli} at 100 replicas ($n=100$).}
+  \label{tab:llm_random_significance_ecoli_r100}
+  \scriptsize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Metric & Mean $\Delta$ & $p$ & Holm-adjusted $p$ & Significant \\
+    \midrule
+    APA & +0.016 & 0.014 & 0.042 & Yes \\
+    EM & +0.060 & 0.070 & 0.070 & No \\
+    LCR & +0.035 & 0.030 & 0.060 & No \\
+    ES & +0.045 & 0.004 & 0.014 & Yes \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{Significance is assessed at $p<0.05$ after Holm correction across the four metrics. P-values were calculated using paired Wilcoxon signed-rank tests, except Exact Match which uses exact McNemar's test.}
+\end{table}

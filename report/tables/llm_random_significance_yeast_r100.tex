@@ -1,0 +1,18 @@
+\begin{table}[!tb]
+  \centering
+  \caption{Paired comparison of LLM-Guided and Random Search on {\normalfont\itshape S. cerevisiae} at 100 replicas ($n=100$).}
+  \label{tab:llm_random_significance_yeast_r100}
+  \scriptsize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Metric & Mean $\Delta$ & $p$ & Holm-adjusted $p$ & Significant \\
+    \midrule
+    APA & +0.024 & 0.001 & 0.006 & Yes \\
+    EM & +0.000 & 1.000 & 1.000 & No \\
+    LCR & +0.017 & 0.061 & 0.184 & No \\
+    ES & +0.008 & 0.259 & 0.517 & No \\
+    \bottomrule
+  \end{tabular}
+  \par\smallskip\footnotesize{Significance is assessed at $p<0.05$ after Holm correction across the four metrics. P-values were calculated using paired Wilcoxon signed-rank tests, except Exact Match which uses exact McNemar's test.}
+\end{table}

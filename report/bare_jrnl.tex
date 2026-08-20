@@ -526,6 +526,11 @@ exactly the same as the original with all fragments ordered correctly.
 The Longest Correct Run (LCR) metric considers the longest correctly ordered subsequence of ordered fragments, normalised by $n$; the number of fragments.
 Edit Similarity (ES) measures the Levenshtein (edit) distance required to reach the target (repositioning amino acids), normalised by the length of the protein in residues.
 
+A statistical significance test was performed to observe how the LLM-Guided approach compared to the Random Search.
+A Wilcoxan signed-rank test was used to compare the runs as it is a standard choice for paired comparisons on results
+where the data does not form a normal distribution. A Holm correction was applied to reduce the risk of identifying
+significance through luck by accident. A result was only considered significant if the p-adjusted value was under 0.05.
+
 \section{Results}
 \subsection{Quantitative Results}
 \input{tables/main_results_all}
@@ -561,6 +566,14 @@ It is evident from the clock times of the LLM-Guided approach and the Random Sea
 Table~\ref{tab:cost_ecoli_r100} that the time cost of the LLM calls between candidates is significant
 with respect to the rest of the pipeline. The overhead of the LLM resulted
 in $\sim$5x more time (35.8s vs. 7s on average per candidate) to compute the reconstructions than the random search approach.
+
+The paired comparisons as shown in Table~\ref{tab:llm_random_significance_ecoli_r100} and Table~\ref{tab:llm_random_significance_yeast_r100}
+indicate that a few of the metrics are significantly improved on, while others remain insignificant. The LLM-Guided approach
+saw a statistically significant improvement for APA on both \textit{E. coli} and \textit{S. cerevisiae} with 100 replicas, and also ES for \textit{E. coli}.
+Additionally, the p-values suggest that both runs have no significant advantage from the LLM-Guided approach for the metrics of EM and LCR.
+
+\input{tables/llm_random_significance_ecoli_r100}
+\input{tables/llm_random_significance_yeast_r100}
 
 \subsection{Qualitative Analysis}
 In general the reconstruction from the agentic approach is more likely to not be perfect than to be perfect,
@@ -651,7 +664,7 @@ could be limiting most of the potential that comes with the agentic approach.
 The scope of the project had to be limited due to time and computational constraints. This made it possible to only consider 
 two species of organism, a single pLM (ESM-2 - 8M), and no mixtures of proteins as originally planned. If a bigger computational
 budget were available or further credits for cloud compute, it would have been interesting to observe how larger, more powerful
-LLMs such as GPT-5.6 Sol perform at reasoning for the biological tools, using more thinking tokens, and allowing for intermediary
+frontier LLMs such as GPT-5.6 Sol perform at reasoning for the biological tools, using more thinking tokens, and allowing for intermediary
 tool selection choice between calls rather than only one call at the end of validation for the next iteration.
 
 \subsection{Future Directions}
