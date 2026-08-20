@@ -470,10 +470,6 @@ will not be cut at a given target site for arginine (R) and lysine (K) respectiv
 This is consistent with the findings that digestions occur more efficiently at arginine sites than lysine ones ($\sim$1.5x ratio) during
 tryptic digestion as found in \cite{siepen2007prediction}; with a 42\% and 58\% split found for R and K respectively.
 
-\input{tables/dataset_coverage}
-\input{figures/sample_fragment_counts_ecoli}
-\input{figures/sample_fragment_counts_yeast}
-
 \subsection{Experimental Setup}
 To ensure that the experiments represented a substantial coverage of the full dataset and were
 comprehensive, six configurations were tested on
@@ -482,6 +478,10 @@ Table~\ref{tab:dataset_coverage} and Table~\ref{tab:config}. The digestion repli
 consisted of 5, 20, and 100 respectively to cover conditions varying from constrained to ideal. \textit{E. coli} and \textit{S. cerevisiae} were selected
 as they have a large difference in the average number of fragments found in each protein, as shown in
 Fig.~\ref{fig:sample_fragment_counts_ecoli} and Fig.~\ref{fig:sample_fragment_counts_yeast}.
+
+\input{tables/dataset_coverage}
+\input{figures/sample_fragment_counts_ecoli}
+\input{figures/sample_fragment_counts_yeast}
 
 A fixed random seed of 42 was used to ensure that the experiment results were reproducible and that modifications
 to the pipeline could be made with direct observability of how results changed.
@@ -537,7 +537,7 @@ significance through luck by accident. A result was only considered significant 
 Based on the results from experimentation, in its current implementation most gains
 in APA come from the fact that there was a larger budget for the number of iterations
 and a higher protein replica count, as seen in Table~\ref{tab:main_results_all}.
-The LLM's reasoning ability shows a small, but consistent advantage over random search across all four metrics.
+As evident from Fig~\ref{fig:search_comparison_ecoli} and Fig~\ref{fig:search_comparison_yeast}, the LLM's reasoning ability shows a small, but consistent advantage over random search across all four metrics.
 
 \input{figures/search_comparison}
 
