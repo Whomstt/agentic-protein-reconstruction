@@ -527,8 +527,8 @@ The Longest Correct Run (LCR) metric considers the longest correctly ordered sub
 Edit Similarity (ES) measures the Levenshtein (edit) distance required to reach the target (repositioning amino acids), normalised by the length of the protein in residues.
 
 A statistical significance test was performed to observe how the LLM-Guided approach compared to the Random Search.
-A Wilcoxan signed-rank test was used to compare the runs as it is a standard choice for paired comparisons on results
-where the data does not form a normal distribution. A Holm correction was applied to reduce the risk of identifying
+A Wilcoxan signed-rank test was used to calculate the p-values for the continuous metrics as it is a standard choice for paired comparisons on results
+where the data does not form a normal distribution. Similarly, an exact McNemar test was used to calculate the Exact Match metrics as it is a paired binary metric. A Holm correction was applied to reduce the risk of identifying
 significance through luck by accident. A result was only considered significant if the p-adjusted value was under 0.05.
 
 \section{Results}
